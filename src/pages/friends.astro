@@ -1,0 +1,176 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE, FRIEND_LINKS } from '../consts';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={`友情链接 | ${SITE_TITLE}`} description="我的友情链接" />
+		<style>
+			main {
+				width: 100%;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 2em 1em;
+			}
+
+			.friends-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+
+			.friends-header h1 {
+				font-size: 2.5em;
+				margin-bottom: 0.5em;
+				color: var(--black);
+			}
+
+			.friends-header p {
+				color: rgb(var(--gray));
+				font-size: 1.1em;
+			}
+
+			.friends-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+				gap: 1.5em;
+				margin-top: 2em;
+			}
+
+			.friend-card {
+				background: white;
+				border-radius: 12px;
+				padding: 1.5em;
+				box-shadow: 0 2px 8px rgba(var(--black), 8%);
+				transition: all 0.3s ease;
+				display: flex;
+				align-items: flex-start;
+				gap: 1em;
+			}
+
+			.friend-card:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 4px 16px rgba(var(--black), 15%);
+			}
+
+			:global(.dark) .friend-card {
+				background: #2d3748;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 20%);
+			}
+
+			:global(.dark) .friend-card:hover {
+				box-shadow: 0 4px 16px rgba(0, 0, 0, 40%);
+			}
+
+			.friend-avatar {
+				flex-shrink: 0;
+				width: 64px;
+				height: 64px;
+				border-radius: 50%;
+				overflow: hidden;
+				border: 2px solid rgb(var(--accent));
+			}
+
+			.friend-avatar img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+
+			.friend-info {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.friend-name {
+				font-size: 1.2em;
+				font-weight: 600;
+				margin: 0 0 0.5em 0;
+				color: var(--black);
+			}
+
+			.friend-name a {
+				text-decoration: none;
+				color: inherit;
+				transition: color 0.2s ease;
+			}
+
+			.friend-name a:hover {
+				color: rgb(var(--accent));
+			}
+
+			.friend-description {
+				color: rgb(var(--gray));
+				font-size: 0.95em;
+				line-height: 1.5;
+				margin: 0;
+				word-break: break-word;
+			}
+
+			.add-friend-card {
+				background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-dark)) 100%);
+				border-radius: 12px;
+				padding: 2em;
+				text-align: center;
+				color: white;
+				box-shadow: 0 2px 8px rgba(var(--accent), 30%);
+			}
+
+			.add-friend-card h3 {
+				margin: 0 0 0.5em 0;
+				font-size: 1.3em;
+			}
+
+			.add-friend-card p {
+				margin: 0;
+				opacity: 0.95;
+			}
+
+			@media (max-width: 768px) {
+				.friends-grid {
+					grid-template-columns: 1fr;
+				}
+
+				.friends-header h1 {
+					font-size: 2em;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="friends-header">
+				<h1>友情链接</h1>
+				<p>这些都是我的朋友们，欢迎互相访问交流</p>
+			</div>
+
+			<div class="friends-grid">
+				{FRIEND_LINKS.map((friend) => (
+					<div class="friend-card">
+						<div class="friend-avatar">
+							<img src={friend.avatar} alt={friend.name} loading="lazy" />
+						</div>
+						<div class="friend-info">
+							<h3 class="friend-name">
+								<a href={friend.url} target="_blank" rel="noopener noreferrer">
+									{friend.name}
+								</a>
+							</h3>
+							<p class="friend-description">{friend.description}</p>
+						</div>
+					</div>
+				))}
+
+				<div class="add-friend-card">
+					<h3>交换友链</h3>
+					<p>欢迎交换友链，请通过邮件或评论联系我</p>
+				</div>
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>

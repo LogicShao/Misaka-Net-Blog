@@ -1,0 +1,26 @@
+// @ts-check
+
+// 如果需要 SSR 功能，使用此配置
+// import cloudflare from '@astrojs/cloudflare';
+import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
+import { defineConfig } from 'astro/config';
+
+// https://astro.build/config
+export default defineConfig({
+	site: 'https://example.com',
+
+	// 选项 1：静态生成（推荐用于博客）
+	// 默认模式，无需配置 output 和 adapter
+
+	// 选项 2：服务器端渲染（需要动态功能时使用）
+	// 取消下面两行注释并安装 @astrojs/cloudflare
+	// output: 'server',
+	// adapter: cloudflare(),
+
+	// 选项 3：混合模式（部分静态 + 部分动态）
+	// output: 'hybrid',
+	// adapter: cloudflare(),
+
+	integrations: [mdx(), sitemap()],
+});

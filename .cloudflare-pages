@@ -1,0 +1,13 @@
+# Cloudflare Pages 部署配置
+
+# 注意：这个文件是可选的
+# Cloudflare Pages 会自动检测 Astro 项目并使用正确的构建设置
+
+# 如果需要自定义构建配置，可以在 Cloudflare Dashboard 中设置：
+# - 构建命令：npm run build
+# - 构建输出目录：dist
+# - Node.js 版本：20 或更高
+# - 环境变量（如果需要）：在 Pages 设置中配置
+
+# 或者使用 wrangler CLI 部署：
+# wrangler pages deploy dist --project-name=your-project-name
