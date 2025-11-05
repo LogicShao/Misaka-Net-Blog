@@ -1,0 +1,89 @@
+---
+// Misaka Network - Tags Archive Page
+import {getCollection} from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Card from '../../components/Card.astro';
+
+export async function getStaticPaths() {
+    const allPosts = await getCollection('blog');
+    const uniqueTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+
+    return uniqueTags.map(tag => ({
+        params: {tag},
+        props: {
+            posts: allPosts
+                .filter(post => post.data.tags?.includes(tag))
+                .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+        }
+    }));
+}
+
+const {tag} = Astro.params;
+const {posts} = Astro.props;
+---
+
+<Layout
+        title={`标签: ${tag} - Misaka Network`}
+        description={`所有包含标签"${tag}"的文章`}
+>
+    <!-- Page Header -->
+    <div class="mb-12">
+        <nav class="text-sm mb-6 font-mono" style="color: var(--text-muted);">
+            <a href="/" class="hover:text-misaka-blue transition-colors">Home</a>
+            <span class="mx-2">/</span>
+            <a href="/blog" class="hover:text-misaka-blue transition-colors">Blog</a>
+            <span class="mx-2">/</span>
+            <span class="text-misaka-circuit">Tags</span>
+        </nav>
+
+        <div class="flex items-center space-x-4 mb-4">
+            <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--text-primary);">
+                #{tag}
+            </h1>
+            <span class="px-4 py-2 bg-misaka-circuit/20 border border-misaka-circuit/50 rounded-lg text-misaka-circuit font-mono text-sm">
+				{posts.length} {posts.length === 1 ? '篇' : '篇'}
+			</span>
+        </div>
+
+        <p class="text-lg font-mono" style="color: var(--text-muted);">
+            // Filtered by tag: <span class="text-misaka-blue">"{tag}"</span>
+        </p>
+
+        <div class="divider-circuit mt-6"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="space-y-8">
+        {posts.map(post => (
+                <Card
+                        title={post.data.title}
+                        description={post.data.description}
+                        pubDate={post.data.pubDate}
+                        heroImage={post.data.heroImage?.src}
+                        tags={post.data.tags}
+                        slug={post.id}
+                />
+        ))}
+
+        {posts.length === 0 && (
+                <div class="network-panel text-center py-12">
+                    <p class="text-lg" style="color: var(--text-muted);">
+                        该标签下暂无文章
+                    </p>
+                </div>
+        )}
+    </div>
+
+    <!-- Back Link -->
+    <div class="mt-12 text-center">
+        <a
+                href="/blog"
+                class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            <span>返回博客列表</span>
+        </a>
+    </div>
+</Layout>

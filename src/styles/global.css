@@ -1,181 +1,318 @@
-/*
-  The CSS in this style tag is based off of Bear Blog's default CSS.
-  https://github.com/HermanMartinus/bearblog/blob/297026a877bc2ab2b3bdfbd6b9f7961c350917dd/templates/styles/blog/default.css
-  License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
- */
+/* Misaka Network Blog - Global Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-	/* 浅色模式颜色 */
-	--accent: #2337ff;
-	--accent-dark: #000d8a;
-	--black: 15, 18, 25;
-	--gray: 96, 115, 159;
-	--gray-light: 229, 233, 240;
-	--gray-dark: 34, 41, 57;
-	--gray-gradient: rgba(var(--gray-light), 50%), #fff;
-	--box-shadow:
-		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px
-		rgba(var(--gray), 33%);
+@layer base {
+    :root {
+        /* Misaka Network 主题色 - 深色模式（默认） */
+        --misaka-dark: #1e293b;
+        --misaka-circuit: #4ade80;
+        --misaka-light: #f0f8ff;
+        --misaka-blue: #00bfff;
+        --misaka-accent: #38bdf8;
+        --misaka-bg: #0f172a;
+        --misaka-gray: #64748b;
 
-	/* 背景色 */
-	--bg-body: #ffffff;
-	--bg-code: rgb(var(--gray-light));
+        /* 深色模式专用 - 使用更亮的颜色 */
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --text-primary: #f0f8ff; /* 使用更亮的alice blue */
+        --text-secondary: #e2e8f0;
+        --text-muted: #94a3b8;
+        --border-color: rgba(74, 222, 128, 0.2);
+    }
+
+    /* 浅色模式 */
+    :root:not(.dark) {
+        --misaka-bg: #f8fafc;
+        --misaka-dark: #e2e8f0;
+        --misaka-light: #1e293b;
+        --misaka-gray: #475569;
+
+        --bg-primary: #ffffff;
+        --bg-secondary: #f1f5f9;
+        --text-primary: #0f172a;
+        --text-secondary: #334155;
+        --text-muted: #64748b;
+        --border-color: rgba(74, 222, 128, 0.4);
+    }
+
+    /* 加载 Google Fonts - Inter */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    html {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--bg-primary);
+        color: var(--text-secondary);
+        background-attachment: fixed;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        @apply antialiased;
+    }
+
+    /* 电路板背景效果 - 深色模式 */
+    .dark body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 1;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    /* 电路板背景效果 - 浅色模式 */
+    :root:not(.dark) body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 1;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    /* 标题 - 增强对比度 */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Inter', sans-serif;
+        @apply font-bold tracking-tight;
+        color: var(--text-primary);
+    }
+
+    h1 {
+        @apply text-4xl md:text-5xl;
+        font-weight: 800;
+    }
+
+    h2 {
+        @apply text-3xl md:text-4xl;
+        font-weight: 700;
+    }
+
+    h3 {
+        @apply text-2xl md:text-3xl;
+        font-weight: 700;
+    }
+
+    h4 {
+        @apply text-xl md:text-2xl;
+        font-weight: 600;
+    }
+
+    a {
+        @apply text-misaka-blue hover:text-misaka-accent transition-colors duration-200;
+    }
+
+    code {
+        @apply font-mono text-sm px-1.5 py-0.5 rounded;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    /* 深色模式下的代码颜色 */
+    .dark code {
+        color: var(--text-secondary);
+    }
+
+    /* 浅色模式下的代码颜色 - 增强对比度 */
+    :root:not(.dark) code {
+        color: #f1f5f9;
+        background-color: #334155;
+        border-color: #1e293b;
+    }
+
+    pre {
+        @apply rounded-lg p-4 overflow-x-auto;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    pre code {
+        @apply bg-transparent border-0 p-0;
+    }
+
+    blockquote {
+        @apply border-l-4 border-misaka-blue pl-4 italic my-4;
+        color: var(--text-muted);
+    }
+
+    img {
+        @apply rounded-lg shadow-lg;
+    }
+
+    hr {
+        border-color: var(--border-color);
+        @apply my-8;
+    }
 }
 
-/* 深色模式颜色 */
-:root.dark {
-	--accent: #5b8ff9;
-	--accent-dark: #4a7dd4;
-	--black: 230, 237, 243;
-	--gray: 152, 166, 187;
-	--gray-light: 45, 55, 72;
-	--gray-dark: 203, 213, 225;
-	--gray-gradient: rgba(var(--gray-light), 50%), #1a202c;
-	--box-shadow:
-		0 2px 6px rgba(0, 0, 0, 25%), 0 8px 24px rgba(0, 0, 0, 33%), 0 16px 32px
-		rgba(0, 0, 0, 33%);
+@layer components {
+    /* 电流效果按钮 */
+    .btn-misaka {
+        @apply px-6 py-2 bg-gradient-to-r from-misaka-blue to-misaka-accent text-white font-semibold rounded-lg;
+        @apply hover:shadow-lg hover:shadow-misaka-blue/50 transition-all duration-300;
+        @apply border border-misaka-blue/30;
+    }
 
-	/* 深色模式背景 */
-	--bg-body: #1a202c;
-	--bg-code: rgb(var(--gray-light));
+    /* 卡片样式 - 支持深色/浅色模式 */
+    .card-misaka {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        @apply backdrop-blur-sm rounded-xl p-6;
+        @apply hover:border-misaka-blue/50 transition-all duration-300;
+        @apply shadow-lg hover:shadow-misaka-blue/20;
+    }
+
+    /* 浅色模式卡片增强对比 */
+    :root:not(.dark) .card-misaka {
+        background-color: #f8fafc;
+        border-color: rgba(74, 222, 128, 0.4);
+        @apply shadow-md hover:shadow-lg;
+    }
+
+    /* 标签样式 */
+    .tag-misaka {
+        @apply inline-block px-3 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit;
+        @apply border border-misaka-circuit/30 rounded-full;
+        @apply hover:bg-misaka-circuit/20 transition-colors duration-200;
+    }
+
+    /* 电路板分隔线 */
+    .divider-circuit {
+        @apply h-px bg-gradient-to-r from-transparent via-misaka-circuit to-transparent my-8;
+    }
+
+    /* 发光效果文本 - 深色模式 */
+    .dark .text-glow {
+        text-shadow: 0 0 10px var(--misaka-blue), 0 0 20px var(--misaka-blue);
+    }
+
+    /* 发光效果文本 - 浅色模式（减弱） */
+    :root:not(.dark) .text-glow {
+        text-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
+	}
+
+    /* 网络状态面板 - 支持深色/浅色模式 */
+    .network-panel {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        @apply backdrop-blur-md rounded-lg p-4;
+        @apply shadow-lg shadow-misaka-circuit/10;
+    }
+
+    /* 浅色模式面板增强对比 */
+    :root:not(.dark) .network-panel {
+        background-color: #f8fafc;
+        border-color: rgba(74, 222, 128, 0.4);
+        @apply shadow-md;
+	}
 }
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-regular.woff") format("woff");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
+
+@layer utilities {
+    /* 无障碍性 - 屏幕阅读器专用 */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    /* 渐变背景 - 深色模式 */
+    .dark .bg-misaka-gradient {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    }
+
+    /* 渐变背景 - 浅色模式 */
+    :root:not(.dark) .bg-misaka-gradient {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+    }
+
+    /* 脉冲动画 */
+    .pulse-circuit {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
 }
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-bold.woff") format("woff");
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
+
+/* 代码块样式优化 - 深色模式 */
+.dark .astro-code {
+    @apply rounded-lg border !important;
+    border-color: var(--border-color) !important;
+    padding: 1rem !important;
+    background-color: var(--bg-secondary) !important;
 }
-body {
-	font-family: "Atkinson", sans-serif;
-	margin: 0;
-	padding: 0;
-	text-align: left;
-	background: linear-gradient(var(--gray-gradient)) no-repeat;
-	background-size: 100% 600px;
-	background-color: var(--bg-body);
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	color: rgb(var(--gray-dark));
-	font-size: 20px;
-	line-height: 1.7;
-	transition: background-color 0.3s ease, color 0.3s ease;
+
+/* 代码块样式优化 - 浅色模式 */
+:root:not(.dark) .astro-code {
+    @apply rounded-lg border !important;
+    border-color: #1e293b !important;
+    padding: 1rem !important;
+    background-color: #334155 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
 }
-main {
-	width: 720px;
-	max-width: calc(100% - 2em);
-	margin: auto;
-	padding: 3em 1em;
+
+/* Markdown 内容样式 */
+.prose {
+    @apply max-w-none;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
-	line-height: 1.2;
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+    color: var(--text-primary);
 }
-h1 {
-	font-size: 3.052em;
-}
-h2 {
-	font-size: 2.441em;
-}
-h3 {
-	font-size: 1.953em;
-}
-h4 {
-	font-size: 1.563em;
-}
-h5 {
-	font-size: 1.25em;
-}
-strong,
-b {
-	font-weight: 700;
-}
-a {
-	color: var(--accent);
-}
-a:hover {
-	color: var(--accent);
-}
-p {
-	margin-bottom: 1em;
-}
+
 .prose p {
-	margin-bottom: 2em;
-}
-textarea {
-	width: 100%;
-	font-size: 16px;
-}
-input {
-	font-size: 16px;
-}
-table {
-	width: 100%;
-}
-img {
-	max-width: 100%;
-	height: auto;
-	border-radius: 8px;
-}
-code {
-	padding: 2px 5px;
-	background-color: var(--bg-code);
-	border-radius: 2px;
-	color: rgb(var(--gray-dark));
-}
-pre {
-	padding: 1.5em;
-	border-radius: 8px;
-}
-pre > code {
-	all: unset;
-}
-blockquote {
-	border-left: 4px solid var(--accent);
-	padding: 0 0 0 20px;
-	margin: 0px;
-	font-size: 1.333em;
-}
-hr {
-	border: none;
-	border-top: 1px solid rgb(var(--gray-light));
-}
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-	main {
-		padding: 1em;
-	}
+    color: var(--text-secondary);
+    @apply leading-relaxed mb-4;
 }
 
-.sr-only {
-	border: 0;
-	padding: 0;
-	margin: 0;
-	position: absolute !important;
-	height: 1px;
-	width: 1px;
-	overflow: hidden;
-	/* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
-	clip: rect(1px 1px 1px 1px);
-	/* maybe deprecated but we need to support legacy browsers */
-	clip: rect(1px, 1px, 1px, 1px);
-	/* modern browsers, clip-path works inwards from each corner */
-	clip-path: inset(50%);
-	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
-	white-space: nowrap;
+.prose strong {
+    color: var(--text-primary);
+    @apply font-semibold;
+}
+
+.prose ul, .prose ol {
+    color: var(--text-secondary);
+    @apply ml-6 mb-4;
+}
+
+.prose li {
+    @apply mb-2;
+}
+
+.prose a {
+    @apply text-misaka-blue hover:text-misaka-accent underline decoration-misaka-blue/30;
+    @apply hover:decoration-misaka-accent transition-colors;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .card-misaka {
+        @apply p-4;
+    }
+
+    .network-panel {
+        @apply p-3;
+    }
 }

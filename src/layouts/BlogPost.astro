@@ -1,86 +1,125 @@
 ---
+// Misaka Network - Blog Post Layout
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
+import Layout from './Layout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import Tag from '../components/Tag.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const {title, description, pubDate, updatedDate, heroImage, tags = []} = Astro.props;
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
+<Layout title={`${title} - Misaka Network`} description={description}>
+    <article class="max-w-4xl mx-auto">
+        <!-- Hero Image -->
+        {heroImage && (
+                <div class="mb-8 rounded-xl overflow-hidden border" style="border-color: var(--border-color);">
+                    <Image
+                            width={1200}
+                            height={600}
+                            src={heroImage}
+                            alt={title}
+                            class="w-full h-auto"
+                    />
+                </div>
+        )}
 
-	<body>
-		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
-</html>
+        <!-- Article Header -->
+        <header class="mb-12">
+            <!-- Breadcrumb -->
+            <nav class="text-sm mb-6 font-mono" style="color: var(--text-muted);">
+                <a href="/" class="hover:text-misaka-blue transition-colors">Home</a>
+                <span class="mx-2">/</span>
+                <a href="/blog" class="hover:text-misaka-blue transition-colors">Blog</a>
+                <span class="mx-2">/</span>
+                <span class="text-misaka-circuit">{title}</span>
+            </nav>
+
+            <!-- Title -->
+            <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight" style="color: var(--text-primary);">
+                {title}
+            </h1>
+
+            <!-- Meta Info -->
+            <div class="flex flex-wrap items-center gap-4 text-sm mb-6" style="color: var(--text-muted);">
+                <!-- Publish Date -->
+                <div class="flex items-center space-x-2 font-mono">
+                    <svg class="w-5 h-5 text-misaka-circuit" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <FormattedDate date={pubDate}/>
+                </div>
+
+                <!-- Updated Date -->
+                {updatedDate && (
+                        <div class="flex items-center space-x-2 font-mono text-misaka-blue">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>Updated: <FormattedDate date={updatedDate}/></span>
+                        </div>
+                )}
+            </div>
+
+            <!-- Tags -->
+            {tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        {tags.map(tag =>
+                                <Tag tag={tag}/>)}
+                    </div>
+            )}
+
+            <!-- Divider -->
+            <div class="divider-circuit"></div>
+        </header>
+
+        <!-- Article Content -->
+        <div class="prose prose-lg max-w-none">
+            <slot/>
+        </div>
+
+        <!-- Article Footer -->
+        <footer class="mt-16 pt-8 border-t" style="border-color: var(--border-color);">
+            <!-- Navigation -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a
+                        href="/blog"
+                        class="flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>返回博客列表</span>
+                </a>
+
+                <a
+                        href="#"
+                        class="flex items-center space-x-2 text-misaka-circuit hover:text-misaka-blue transition-colors font-mono"
+                        onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                    <span>回到顶部</span>
+                </a>
+            </div>
+
+            <!-- Tags (again for easy access) -->
+            {tags.length > 0 && (
+                    <div class="mt-8">
+                        <h3 class="text-sm font-mono text-misaka-circuit mb-3">// Related Tags</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {tags.map(tag =>
+                                    <Tag tag={tag}/>)}
+                        </div>
+                    </div>
+            )}
+        </footer>
+    </article>
+</Layout>

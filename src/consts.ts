@@ -1,8 +1,8 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
-export const SITE_TITLE = 'Misaka-Net Blog';
-export const SITE_DESCRIPTION = '一个基于 Astro + Cloudflare Pages 搭建的现代化个人博客';
+export const SITE_TITLE = 'Misaka Network';
+export const SITE_DESCRIPTION = '御坂网络 - 科学实验日志与技术观测站 | A Certain Scientific Blog';
 
 // 友链数据
 export interface FriendLink {

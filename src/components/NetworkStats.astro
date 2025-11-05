@@ -1,0 +1,78 @@
+---
+// Misaka Network - Network Stats Component
+import {getCollection} from 'astro:content';
+
+// 获取所有博客文章
+const allPosts = await getCollection('blog');
+const totalPosts = allPosts.length;
+
+// 获取所有标签
+const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+const totalTags = allTags.length;
+
+// 计算总字数（粗略估计）
+const totalWords = allPosts.reduce((acc, post) => {
+    return acc + (post.body?.split(/\s+/).length || 0);
+}, 0);
+---
+
+<div class="network-panel">
+    <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono flex items-center space-x-2">
+        <span class="w-2 h-2 bg-misaka-circuit rounded-full animate-pulse"></span>
+        <span>// Network Status</span>
+    </h3>
+
+    <div class="space-y-4">
+        <!-- 文章统计 -->
+        <div class="flex items-center justify-between">
+            <span class="text-sm" style="color: var(--text-muted);">Total Articles</span>
+            <span class="text-2xl font-bold text-misaka-blue font-mono">{totalPosts}</span>
+        </div>
+
+        <!-- 标签统计 -->
+        <div class="flex items-center justify-between">
+            <span class="text-sm" style="color: var(--text-muted);">Total Tags</span>
+            <span class="text-2xl font-bold text-misaka-circuit font-mono">{totalTags}</span>
+        </div>
+
+        <!-- 字数统计 -->
+        <div class="flex items-center justify-between">
+            <span class="text-sm" style="color: var(--text-muted);">Total Words</span>
+            <span class="text-2xl font-bold text-misaka-accent font-mono">
+				{(totalWords / 1000).toFixed(1)}K
+			</span>
+        </div>
+
+        <!-- 分隔线 -->
+        <div class="divider-circuit"></div>
+
+        <!-- 标签云 -->
+        <div>
+            <h4 class="text-sm font-mono text-misaka-circuit mb-3">// Tag Cloud</h4>
+            <div class="flex flex-wrap gap-2">
+                {allTags.slice(0, 10).map(tag => (
+                        <a
+                                href={`/tags/${tag}`}
+                                class="inline-block px-2 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit border border-misaka-circuit/30 rounded hover:bg-misaka-circuit/20 transition-colors"
+                        >
+                            #{tag}
+                        </a>
+                ))}
+            </div>
+        </div>
+
+        <!-- 系统状态指示器 -->
+        <div class="pt-4" style="border-top: 1px solid var(--border-color);">
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-misaka-circuit rounded-full animate-pulse"></div>
+                    <span style="color: var(--text-muted);">CPU: <span class="text-misaka-circuit">ACTIVE</span></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-misaka-blue rounded-full animate-pulse"></div>
+                    <span style="color: var(--text-muted);">PWR: <span class="text-misaka-blue">100%</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

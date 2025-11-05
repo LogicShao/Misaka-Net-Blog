@@ -1,0 +1,78 @@
+---
+// Misaka Network - Card Component (Blog Post Preview)
+import FormattedDate from './FormattedDate.astro';
+import Tag from './Tag.astro';
+
+export interface Props {
+    title: string;
+    description: string;
+    pubDate: Date;
+    heroImage?: string;
+    tags?: string[];
+    slug: string;
+}
+
+const {title, description, pubDate, heroImage, tags = [], slug} = Astro.props;
+---
+
+<article class="card-misaka group">
+    <!-- 图片部分 -->
+    {heroImage && (
+            <div class="relative overflow-hidden rounded-lg mb-4">
+                <img
+                        src={heroImage}
+                        alt={title}
+                        class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <!-- 悬停电流效果 -->
+                <div class="absolute inset-0 bg-gradient-to-r from-misaka-blue/0 via-misaka-blue/20 to-misaka-blue/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+    )}
+
+    <!-- 内容部分 -->
+    <div class="space-y-3">
+        <!-- 日期 -->
+        <div class="flex items-center space-x-2 text-sm text-misaka-circuit font-mono">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <FormattedDate date={pubDate}/>
+        </div>
+
+        <!-- 标题 -->
+        <h2 class="text-2xl font-bold group-hover:text-misaka-blue transition-colors duration-200"
+            style="color: var(--text-primary);">
+            <a href={`/blog/${slug}`} class="no-underline">
+                {title}
+            </a>
+        </h2>
+
+        <!-- 描述 -->
+        <p class="leading-relaxed line-clamp-3" style="color: var(--text-secondary);">
+            {description}
+        </p>
+
+        <!-- 标签 -->
+        {tags.length > 0 && (
+                <div class="flex flex-wrap gap-2 pt-2">
+                    {tags.map(tag =>
+                            <Tag tag={tag}/>)}
+                </div>
+        )}
+
+        <!-- 阅读更多按钮 -->
+        <div class="pt-4">
+            <a
+                    href={`/blog/${slug}`}
+                    class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono text-sm group"
+            >
+                <span>READ_MORE</span>
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none"
+                     stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</article>

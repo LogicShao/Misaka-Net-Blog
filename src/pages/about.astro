@@ -1,63 +1,228 @@
 ---
-import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
-import Layout from '../layouts/BlogPost.astro';
+// Misaka Network - About Page
+import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage={AboutHeroImage}
+        title="关于 - Misaka Network"
+        description="实验日志 - 关于这个博客和它的创建者"
 >
-	<p>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-		labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo
-		viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam
-		adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus
-		et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus
-		vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque
-		sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
-	</p>
+    <div class="max-w-4xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-glow" style="color: var(--text-primary);">
+                实验日志 #10032
+            </h1>
+            <p class="text-xl text-misaka-circuit font-mono">
+                // EXPERIMENT_LOG: MISAKA_NETWORK
+            </p>
+            <div class="divider-circuit mt-6"></div>
+        </div>
 
-	<p>
-		Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non
-		tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non
-		blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna
-		porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis
-		massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc.
-		Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis
-		bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra
-		massa massa ultricies mi.
-	</p>
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- About Section -->
+                <section class="network-panel">
+                    <h2 class="text-2xl font-bold text-misaka-circuit mb-6 font-mono flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-misaka-circuit rounded-full animate-pulse"></span>
+                        <span>// About This Network</span>
+                    </h2>
 
-	<p>
-		Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl
-		suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet
-		nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae
-		turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem
-		dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat
-		semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus
-		vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum
-		facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam
-		vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla
-		urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
-	</p>
+                    <div class="prose prose-lg">
+                        <p class="leading-relaxed mb-4" style="color: var(--text-secondary);">
+                            欢迎来到 <strong class="text-misaka-blue">Misaka Network</strong> -
+                            一个专注于技术、代码与实验的数字空间。
+                        </p>
 
-	<p>
-		Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper
-		viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc
-		scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur
-		gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus
-		pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim
-		blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id
-		cursus metus aliquam eleifend mi.
-	</p>
+                        <p class="leading-relaxed mb-4" style="color: var(--text-secondary);">
+                            这里记录着关于软件开发、系统架构、前端技术以及各种有趣实验的观察与思考。
+                            就像学园都市的"御坂网络"一样，这里汇聚着来自不同领域的知识与经验。
+                        </p>
 
-	<p>
-		Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta
-		nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam
-		tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci
-		ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar
-		proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
-	</p>
+                        <blockquote class="border-l-4 border-misaka-blue pl-4 italic my-6"
+                                    style="color: var(--text-muted);">
+                            "不管是多么微不足道的能力，只要使用方式正确，就能发挥出惊人的威力。"
+                            <footer class="text-sm mt-2">— 某科学的超电磁炮</footer>
+                        </blockquote>
+
+                        <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">技术栈</h3>
+                        <ul class="list-disc list-inside space-y-2" style="color: var(--text-secondary);">
+                            <li>前端：TypeScript, React, Vue, Astro</li>
+                            <li>后端：Node.js, Python, Go</li>
+                            <li>数据库：PostgreSQL, MongoDB, Redis</li>
+                            <li>DevOps：Docker, Kubernetes, GitHub Actions</li>
+                            <li>云平台：Cloudflare, AWS, Vercel</li>
+                        </ul>
+
+                        <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">关注领域</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-misaka-circuit/10 border border-misaka-circuit/30 rounded-lg p-3">
+                                <div class="text-misaka-circuit font-mono text-sm mb-1">Web Development</div>
+                                <div class="text-xs" style="color: var(--text-muted);">现代 Web 应用开发</div>
+                            </div>
+                            <div class="bg-misaka-blue/10 border border-misaka-blue/30 rounded-lg p-3">
+                                <div class="text-misaka-blue font-mono text-sm mb-1">Cloud Native</div>
+                                <div class="text-xs" style="color: var(--text-muted);">云原生架构与部署</div>
+                            </div>
+                            <div class="bg-misaka-accent/10 border border-misaka-accent/30 rounded-lg p-3">
+                                <div class="text-misaka-accent font-mono text-sm mb-1">Performance</div>
+                                <div class="text-xs" style="color: var(--text-muted);">性能优化与监控</div>
+                            </div>
+                            <div class="bg-misaka-circuit/10 border border-misaka-circuit/30 rounded-lg p-3">
+                                <div class="text-misaka-circuit font-mono text-sm mb-1">Open Source</div>
+                                <div class="text-xs" style="color: var(--text-muted);">开源项目贡献</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Blog Philosophy -->
+                <section class="network-panel">
+                    <h2 class="text-2xl font-bold text-misaka-circuit mb-6 font-mono flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-misaka-blue rounded-full animate-pulse"></span>
+                        <span>// Writing Philosophy</span>
+                    </h2>
+
+                    <div class="space-y-4" style="color: var(--text-secondary);">
+                        <p>这个博客的内容遵循以下原则：</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-misaka-circuit flex-shrink-0 mt-1" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <strong class="text-misaka-blue">实践导向</strong> -
+                                    所有文章都基于实际项目经验
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-misaka-circuit flex-shrink-0 mt-1" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <strong class="text-misaka-blue">深度优先</strong> -
+                                    注重原理分析而非浅尝辄止
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-misaka-circuit flex-shrink-0 mt-1" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <strong class="text-misaka-blue">开源精神</strong> -
+                                    分享代码和解决方案
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <svg class="w-6 h-6 text-misaka-circuit flex-shrink-0 mt-1" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <strong class="text-misaka-blue">持续学习</strong> -
+                                    记录成长与思考过程
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-8">
+                <!-- System Info -->
+                <div class="network-panel">
+                    <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
+                        // System Info
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span style="color: var(--text-muted);">Version</span>
+                            <span class="text-misaka-blue font-mono">v2.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span style="color: var(--text-muted);">Built with</span>
+                            <span class="text-misaka-circuit font-mono">Astro</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span style="color: var(--text-muted);">Hosted on</span>
+                            <span class="text-misaka-accent font-mono">Cloudflare</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span style="color: var(--text-muted);">Status</span>
+                            <span class="text-misaka-circuit font-mono flex items-center space-x-1">
+								<span class="w-2 h-2 bg-misaka-circuit rounded-full animate-pulse"></span>
+								<span>Online</span>
+							</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact -->
+                <div class="network-panel">
+                    <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
+                        // Contact
+                    </h3>
+                    <div class="space-y-3">
+                        <a
+                                href="https://github.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
+                                style="color: var(--text-secondary);"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            <span>GitHub</span>
+                        </a>
+                        <a
+                                href="/rss.xml"
+                                class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
+                                style="color: var(--text-secondary);"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                            </svg>
+                            <span>RSS 订阅</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="network-panel">
+                    <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
+                        // Timeline
+                    </h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-misaka-blue rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">2024</div>
+                                <div class="text-xs" style="color: var(--text-muted);">博客重构，采用 Astro + Tailwind
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-misaka-circuit rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">2023</div>
+                                <div class="text-xs" style="color: var(--text-muted);">开始技术博客写作</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </Layout>
