@@ -5,13 +5,22 @@ import type { CollectionEntry } from 'astro:content';
 import Layout from './Layout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Tag from '../components/Tag.astro';
+import PrevNextNav from '../components/PrevNextNav.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import CopyCodeButton from '../components/CopyCodeButton.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+    prevPost?: CollectionEntry<'blog'>;
+    nextPost?: CollectionEntry<'blog'>;
+};
 
-const {title, description, pubDate, updatedDate, heroImage, tags = []} = Astro.props;
+const {title, description, pubDate, updatedDate, heroImage, tags = [], prevPost, nextPost} = Astro.props;
 ---
 
 <Layout title={`${title} - Misaka Network`} description={description}>
+    <!-- Table of Contents -->
+    <TableOfContents/>
+
     <article class="max-w-4xl mx-auto">
         <!-- Hero Image -->
         {heroImage && (
@@ -82,6 +91,9 @@ const {title, description, pubDate, updatedDate, heroImage, tags = []} = Astro.p
             <slot/>
         </div>
 
+        <!-- Previous/Next Navigation -->
+        <PrevNextNav prevPost={prevPost} nextPost={nextPost}/>
+
         <!-- Article Footer -->
         <footer class="mt-16 pt-8 border-t" style="border-color: var(--border-color);">
             <!-- Navigation -->
@@ -122,4 +134,7 @@ const {title, description, pubDate, updatedDate, heroImage, tags = []} = Astro.p
             )}
         </footer>
     </article>
+
+    <!-- Copy Code Button Component -->
+    <CopyCodeButton/>
 </Layout>

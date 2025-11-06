@@ -1,0 +1,72 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FriendCard from '../components/FriendCard.astro';
+import {FRIEND_LINKS} from '../consts';
+
+const pageTitle = '友情链接';
+const pageDescription = '与 Misaka Network 互相链接的优秀站点';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Page Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+                <span class="text-glow">友情链接</span>
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                这里是与 Misaka Network 互相关注的优秀站点，欢迎交换友链
+            </p>
+            <div class="divider-circuit my-8"></div>
+        </div>
+
+        <!-- Friends Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+            {FRIEND_LINKS.map((friend) => (
+                    <FriendCard
+                            name={friend.name}
+                            url={friend.url}
+                            avatar={friend.avatar}
+                            description={friend.description}
+                    />
+            ))}
+        </div>
+
+        <!-- Apply for Friend Link Section -->
+        <div class="network-panel p-6 mt-12">
+            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                申请友链
+            </h2>
+            <div class="text-gray-600 dark:text-gray-400 space-y-3">
+                <p>欢迎交换友链！请确保您的站点符合以下要求：</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>内容积极向上，无违法违规内容</li>
+                    <li>站点可以正常访问，最好支持 HTTPS</li>
+                    <li>定期更新内容（至少每月一次）</li>
+                    <li>已添加本站友链</li>
+                </ul>
+                <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-semibold mb-2 text-gray-900 dark:text-white">本站信息：</h3>
+                    <ul class="space-y-1 text-sm">
+                        <li><span class="font-medium">站点名称：</span>Misaka Network</li>
+                        <li><span class="font-medium">站点地址：</span>https://misaka-net-blog.pages.dev</li>
+                        <li><span class="font-medium">站点描述：</span>御坂网络 - 科学实验日志与技术观测站</li>
+                        <li><span class="font-medium">头像地址：</span>https://via.placeholder.com/100</li>
+                    </ul>
+                </div>
+                <p class="mt-4">
+                    如需申请友链，请通过
+                    <a
+                            href="https://github.com/yourusername/Misaka-Net-Blog/issues"
+                            class="text-[var(--misaka-circuit)] hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                    >
+                        GitHub Issues
+                    </a>
+                    或其他联系方式与我联系。
+                </p>
+            </div>
+        </div>
+    </main>
+</Layout>

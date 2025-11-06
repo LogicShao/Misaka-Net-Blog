@@ -1,0 +1,387 @@
+---
+// Misaka Network - Table of Contents Component
+// 文章目录浮动窗口组件
+---
+
+<div id="toc-container" class="toc-container">
+    <!-- Toggle Button -->
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle Table of Contents">
+        <svg class="toc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <span class="toc-title">目录</span>
+    </button>
+
+    <!-- TOC Content -->
+    <nav id="toc-content" class="toc-content">
+        <div class="toc-header">
+            <span class="toc-header-title">// Table of Contents</span>
+        </div>
+        <ul id="toc-list" class="toc-list">
+            <!-- 动态生成的目录项将插入这里 -->
+        </ul>
+    </nav>
+</div>
+
+<style>
+    .toc-container {
+        position: fixed;
+        top: 120px;
+        right: 20px;
+        z-index: 100;
+        max-width: 280px;
+    }
+
+    .toc-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+
+    .toc-toggle:hover {
+        border-color: var(--misaka-blue);
+        box-shadow: 0 4px 12px rgba(0, 163, 255, 0.2);
+    }
+
+    .toc-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--misaka-circuit);
+        transition: transform 0.3s ease;
+    }
+
+    .toc-toggle.collapsed .toc-icon {
+        transform: rotate(0deg);
+    }
+
+    .toc-toggle.expanded .toc-icon {
+        transform: rotate(90deg);
+    }
+
+    .toc-title {
+        flex: 1;
+        color: var(--text-primary);
+    }
+
+    .toc-content {
+        margin-top: 8px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        max-height: 60vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .toc-content.hidden {
+        display: none;
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    .toc-header {
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .toc-header-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--misaka-circuit);
+        font-weight: 500;
+    }
+
+    .toc-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* 使用 :global() 确保样式应用到动态创建的元素 */
+    .toc-list :global(li) {
+        margin: 0;
+        padding: 0;
+    }
+
+    .toc-list :global(a) {
+        display: flex;
+        align-items: center;
+        padding: 6px 0;
+        padding-left: 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-left: 2px solid transparent;
+        position: relative;
+    }
+
+    .toc-list :global(a::before) {
+        content: '';
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        margin-right: 8px;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .toc-list :global(a:hover) {
+        color: var(--misaka-blue);
+        border-left-color: var(--misaka-blue);
+        padding-left: 16px;
+    }
+
+    .toc-list :global(a:hover::before) {
+        background: var(--misaka-blue);
+        transform: scale(1.3);
+    }
+
+    .toc-list :global(a.active) {
+        color: var(--misaka-accent);
+        border-left-color: var(--misaka-accent);
+        font-weight: 500;
+    }
+
+    .toc-list :global(a.active::before) {
+        background: var(--misaka-accent);
+        transform: scale(1.3);
+    }
+
+    /* 不同层级的缩进 - 增强缩进效果，让层级更清晰 */
+    .toc-list :global(li[data-level="2"] a) {
+        padding-left: 12px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .toc-list :global(li[data-level="2"] a::before) {
+        width: 6px;
+        height: 6px;
+    }
+
+    .toc-list :global(li[data-level="3"] a) {
+        padding-left: 32px;
+        font-size: 12.5px;
+    }
+
+    .toc-list :global(li[data-level="3"] a::before) {
+        width: 5px;
+        height: 5px;
+    }
+
+    .toc-list :global(li[data-level="4"] a) {
+        padding-left: 52px;
+        font-size: 12px;
+        opacity: 0.95;
+    }
+
+    .toc-list :global(li[data-level="4"] a::before) {
+        width: 4px;
+        height: 4px;
+    }
+
+    .toc-list :global(li[data-level="5"] a) {
+        padding-left: 72px;
+        font-size: 11.5px;
+        opacity: 0.9;
+    }
+
+    .toc-list :global(li[data-level="5"] a::before) {
+        width: 3px;
+        height: 3px;
+    }
+
+    .toc-list :global(li[data-level="6"] a) {
+        padding-left: 92px;
+        font-size: 11px;
+        opacity: 0.85;
+    }
+
+    .toc-list :global(li[data-level="6"] a::before) {
+        width: 3px;
+        height: 3px;
+    }
+
+    /* hover 时的缩进增强 */
+    .toc-list :global(li[data-level="2"] a:hover) {
+        padding-left: 16px;
+    }
+
+    .toc-list :global(li[data-level="3"] a:hover) {
+        padding-left: 36px;
+    }
+
+    .toc-list :global(li[data-level="4"] a:hover) {
+        padding-left: 56px;
+    }
+
+    .toc-list :global(li[data-level="5"] a:hover) {
+        padding-left: 76px;
+    }
+
+    .toc-list :global(li[data-level="6"] a:hover) {
+        padding-left: 96px;
+    }
+
+    /* 滚动条样式 */
+    .toc-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .toc-content::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+        border-radius: 3px;
+    }
+
+    .toc-content::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .toc-content::-webkit-scrollbar-thumb:hover {
+        background: var(--misaka-circuit);
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1280px) {
+        .toc-container {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    // 等待 DOM 加载完成
+    document.addEventListener('DOMContentLoaded', () => {
+        const tocContainer = document.getElementById('toc-container');
+        const tocToggle = document.getElementById('toc-toggle');
+        const tocContent = document.getElementById('toc-content');
+        const tocList = document.getElementById('toc-list');
+
+        if (!tocContainer || !tocToggle || !tocContent || !tocList) return;
+
+        // 获取文章内容区域的所有标题
+        const article = document.querySelector('article .prose');
+        if (!article) return;
+
+        const headings = article.querySelectorAll('h2, h3, h4, h5, h6');
+
+        // 如果没有标题，隐藏目录组件
+        if (headings.length === 0) {
+            tocContainer.style.display = 'none';
+            return;
+        }
+
+        // 为每个标题添加 id（如果没有的话）
+        headings.forEach((heading, index) => {
+            if (!heading.id) {
+                heading.id = `heading-${index}`;
+            }
+        });
+
+        // 生成目录列表
+        headings.forEach((heading) => {
+            const level = heading.tagName.toLowerCase().replace('h', '');
+            const text = heading.textContent || '';
+            const id = heading.id;
+
+            const li = document.createElement('li');
+            li.setAttribute('data-level', level);
+
+            const a = document.createElement('a');
+            a.href = `#${id}`;
+            a.textContent = text;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                heading.scrollIntoView({behavior: 'smooth', block: 'start'});
+
+                // 更新活动状态
+                document.querySelectorAll('.toc-list a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                a.classList.add('active');
+
+                // 更新 URL hash（可选）
+                history.pushState(null, '', `#${id}`);
+            });
+
+            li.appendChild(a);
+            tocList.appendChild(li);
+        });
+
+        // 切换目录展开/收起
+        let isExpanded = true;
+        tocToggle.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+
+            if (isExpanded) {
+                tocContent.classList.remove('hidden');
+                tocToggle.classList.remove('collapsed');
+                tocToggle.classList.add('expanded');
+            } else {
+                tocContent.classList.add('hidden');
+                tocToggle.classList.add('collapsed');
+                tocToggle.classList.remove('expanded');
+            }
+        });
+
+        // 初始状态设置为展开
+        tocToggle.classList.add('expanded');
+
+        // 滚动监听，高亮当前标题
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateActiveHeading();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        function updateActiveHeading() {
+            const scrollPosition = window.scrollY + 100;
+
+            let currentHeading = null;
+            headings.forEach((heading) => {
+                const headingTop = heading.offsetTop;
+                if (scrollPosition >= headingTop) {
+                    currentHeading = heading;
+                }
+            });
+
+            if (currentHeading) {
+                document.querySelectorAll('.toc-list a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                const activeLink = tocList.querySelector(`a[href="#${currentHeading.id}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+        }
+
+        // 初始化时设置活动标题
+        updateActiveHeading();
+    });
+</script>

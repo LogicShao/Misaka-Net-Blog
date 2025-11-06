@@ -1,0 +1,83 @@
+---
+import type {CollectionEntry} from 'astro:content';
+
+export interface Props {
+    prevPost?: CollectionEntry<'blog'>;
+    nextPost?: CollectionEntry<'blog'>;
+}
+
+const {prevPost, nextPost} = Astro.props;
+---
+
+{(prevPost || nextPost) && (
+<div class="network-panel my-12">
+    <h3 class="text-sm font-mono text-misaka-circuit mb-4">// Navigation</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Previous Post -->
+        {prevPost ? (
+                <a
+                        href={`/blog/${prevPost.id}/`}
+                        class="group flex flex-col p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 hover:border-[var(--misaka-blue)] hover:shadow-lg hover:shadow-[var(--misaka-blue)]/20"
+                >
+                    <div class="flex items-center gap-2 text-sm font-mono text-gray-500 dark:text-gray-400 mb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        <span>上一篇</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-[var(--misaka-blue)] transition-colors duration-300 line-clamp-2">
+                        {prevPost.data.title}
+                    </h4>
+                    {prevPost.data.description && (
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                                {prevPost.data.description}
+                            </p>
+                    )}
+                </a>
+        ) : (
+                <div class="flex flex-col p-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 opacity-50">
+                    <div class="flex items-center gap-2 text-sm font-mono text-gray-400 dark:text-gray-600 mb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        <span>上一篇</span>
+                    </div>
+                    <p class="text-sm text-gray-400 dark:text-gray-600">没有更早的文章了</p>
+                </div>
+        )}
+
+        <!-- Next Post -->
+        {nextPost ? (
+                <a
+                        href={`/blog/${nextPost.id}/`}
+                        class="group flex flex-col p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 hover:border-[var(--misaka-circuit)] hover:shadow-lg hover:shadow-[var(--misaka-circuit)]/20 text-right md:text-left"
+                >
+                    <div class="flex items-center justify-end md:justify-start gap-2 text-sm font-mono text-gray-500 dark:text-gray-400 mb-2 md:flex-row-reverse">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span>下一篇</span>
+                    </div>
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-[var(--misaka-circuit)] transition-colors duration-300 line-clamp-2">
+                        {nextPost.data.title}
+                    </h4>
+                    {nextPost.data.description && (
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                                {nextPost.data.description}
+                            </p>
+                    )}
+                </a>
+        ) : (
+                <div class="flex flex-col p-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 opacity-50">
+                    <div class="flex items-center justify-end gap-2 text-sm font-mono text-gray-400 dark:text-gray-600 mb-2">
+                        <span>下一篇</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-400 dark:text-gray-600 text-right">没有更新的文章了</p>
+                </div>
+        )}
+    </div>
+</div>
+    )}

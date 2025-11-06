@@ -257,6 +257,7 @@
     border-color: var(--border-color) !important;
     padding: 1rem !important;
     background-color: var(--bg-secondary) !important;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
 }
 
 /* 代码块样式优化 - 浅色模式 */
@@ -266,6 +267,7 @@
     padding: 1rem !important;
     background-color: #334155 !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
 }
 
 /* Markdown 内容样式 */
@@ -304,6 +306,70 @@
 .prose a {
     @apply text-misaka-blue hover:text-misaka-accent underline decoration-misaka-blue/30;
     @apply hover:decoration-misaka-accent transition-colors;
+}
+
+/* 表格样式 - 深色模式 */
+.dark .prose table {
+    @apply w-full border-collapse my-6;
+    border: 1px solid var(--border-color);
+}
+
+.dark .prose thead {
+    background-color: var(--bg-secondary);
+    border-bottom: 2px solid var(--misaka-circuit);
+}
+
+.dark .prose th {
+    @apply px-4 py-3 text-left font-semibold;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.dark .prose td {
+    @apply px-4 py-3;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.dark .prose tbody tr {
+    background-color: rgba(15, 23, 42, 0.5);
+    transition: background-color 0.2s ease;
+}
+
+.dark .prose tbody tr:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+}
+
+/* 表格样式 - 浅色模式 */
+:root:not(.dark) .prose table {
+    @apply w-full border-collapse my-6;
+    border: 1px solid #e2e8f0;
+}
+
+:root:not(.dark) .prose thead {
+    background-color: #f1f5f9;
+    border-bottom: 2px solid var(--misaka-circuit);
+}
+
+:root:not(.dark) .prose th {
+    @apply px-4 py-3 text-left font-semibold;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+:root:not(.dark) .prose td {
+    @apply px-4 py-3;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+:root:not(.dark) .prose tbody tr {
+    background-color: #ffffff;
+    transition: background-color 0.2s ease;
+}
+
+:root:not(.dark) .prose tbody tr:hover {
+    background-color: #f8fafc;
 }
 
 /* 响应式设计 */

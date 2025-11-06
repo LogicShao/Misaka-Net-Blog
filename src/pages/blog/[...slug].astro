@@ -13,8 +13,20 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content } = await render(post);
+
+// 获取所有文章并按日期排序
+const allPosts = (await getCollection('blog'))
+    .filter((p) => !p.data.draft)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 找到当前文章的索引
+const currentIndex = allPosts.findIndex((p) => p.id === post.id);
+
+// 获取上一篇和下一篇文章
+const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : undefined;
+const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : undefined;
 ---
 
-<BlogPost {...post.data}>
+<BlogPost {...post.data} prevPost={prevPost} nextPost={nextPost}>
 	<Content />
 </BlogPost>
