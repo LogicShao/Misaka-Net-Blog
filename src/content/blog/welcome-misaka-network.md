@@ -1,7 +1,7 @@
 ---
 title: '欢迎来到 Misaka Network'
 description: '这是一篇介绍 Misaka Network 博客主题的文章，展示了这个基于 Astro 的现代化博客系统的主要特性。'
-pubDate: 2024-01-15
+pubDate: 2025-01-15
 heroImage: '../../assets/blog-placeholder-1.jpg'
 tags: ['介绍', 'Astro', 'Web开发']
 draft: false

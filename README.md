@@ -153,25 +153,17 @@ draft: false
 theme: {
     extend: {
         colors: {
-            'misaka-dark'
-        :
-            '#1e293b',      // 深蓝灰
-                'misaka-circuit'
-        :
-            '#4ade80',   // 电路板绿
-                'misaka-light'
-        :
-            '#f0f8ff',     // 淡蓝白
-                'misaka-blue'
-        :
-            '#00bfff',      // 电磁炮蓝
-            // 添加你自己的颜色
-        }
-    ,
-    }
-,
-}
-,
+            // Misaka Network 主题色
+            'misaka-dark': '#1e293b',      // 深蓝灰
+            'misaka-circuit': '#4ade80',   // 电路板绿
+            'misaka-light': '#f0f8ff',     // 淡蓝白
+            'misaka-blue': '#00bfff',      // 电磁炮蓝
+            'misaka-accent': '#38bdf8',    // 辅助蓝
+            'misaka-bg': '#0f172a',        // 深色背景
+            'misaka-gray': '#64748b',      // 中灰
+        },
+    },
+},
 ```
 
 ### 修改网站信息

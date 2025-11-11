@@ -1,7 +1,7 @@
 ---
 title: 'Astro 静态网站生成：现代 Web 开发的新选择'
 description: '深入探讨 Astro 框架的核心概念、性能优势以及最佳实践，了解为什么它成为静态网站生成的新趋势。'
-pubDate: 2024-01-20
+pubDate: 2025-01-20
 heroImage: '../../assets/blog-placeholder-2.jpg'
 tags: ['Astro', 'SSG', '性能优化', 'Web开发']
 draft: false

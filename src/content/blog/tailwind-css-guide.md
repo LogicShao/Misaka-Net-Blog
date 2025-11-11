@@ -1,7 +1,7 @@
 ---
 title: 'Tailwind CSS 深度指南：从入门到精通'
 description: '全面解析 Tailwind CSS 的核心概念、设计哲学和高级技巧，助你构建现代化的响应式界面。'
-pubDate: 2024-01-25
+pubDate: 2025-01-25
 heroImage: '../../assets/blog-placeholder-3.jpg'
 tags: ['Tailwind CSS', 'CSS', '前端开发', '设计系统']
 draft: false

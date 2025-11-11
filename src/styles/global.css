@@ -372,6 +372,82 @@
     background-color: #f8fafc;
 }
 
+/* KaTeX 数学公式样式 - 深色模式适配 */
+.dark .katex {
+    color: var(--text-primary);
+}
+
+.dark .katex-display {
+    color: var(--text-primary);
+}
+
+.dark .katex-html {
+    color: var(--text-primary);
+}
+
+/* 行内数学公式 */
+.dark .katex .base {
+    color: var(--text-primary);
+}
+
+.dark .katex .mord {
+    color: var(--text-primary);
+}
+
+.dark .katex .mbin {
+    color: var(--text-primary);
+}
+
+.dark .katex .mrel {
+    color: var(--text-primary);
+}
+
+.dark .katex .mopen {
+    color: var(--text-primary);
+}
+
+.dark .katex .mclose {
+    color: var(--text-primary);
+}
+
+.dark .katex .mpunct {
+    color: var(--text-primary);
+}
+
+.dark .katex .mop {
+    color: var(--text-primary);
+}
+
+/* 特殊符号和运算符 */
+.dark .katex .boldsymbol {
+    color: var(--text-primary);
+}
+
+.dark .katex .amsrm {
+    color: var(--text-primary);
+}
+
+.dark .katex .mathbb {
+    color: var(--text-primary);
+}
+
+.dark .katex .mathcal {
+    color: var(--text-primary);
+}
+
+/* 确保数学公式在深色模式下有足够的对比度 */
+.dark .katex-display {
+    @apply p-4 rounded-lg;
+    background-color: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--border-color);
+}
+
+/* 行内数学公式背景 */
+.dark .katex:not(.katex-display) {
+    background-color: rgba(30, 41, 59, 0.3);
+    @apply px-1 rounded;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .card-misaka {
