@@ -6,8 +6,6 @@ heroImage: '../../assets/blog-placeholder-3.jpg'
 tags: ['测试', '数学']
 ---
 
-# 数学公式渲染测试
-
 本文档用于测试博客系统中的数学公式渲染功能。
 
 ## 行内公式

@@ -1,0 +1,779 @@
+---
+title: '信号与系统及DSP常用数学公式参考手册'
+description: '系统整理信号与系统、数字信号处理中的核心数学公式，包括傅里叶变换、拉普拉斯变换、Z变换、滤波器设计等重要知识点'
+pubDate: 2025-11-16
+tags: ['信号处理', 'DSP', '数学', '参考手册']
+draft: false
+---
+
+本文系统地整理了信号与系统和数字信号处理（DSP）领域中最常用的数学公式，适合作为学习和工作中的快速参考手册。
+
+## 一、基本信号定义
+
+### 1.1 常用连续时间信号
+
+**单位阶跃信号**
+
+$$
+u(t) = \begin{cases}
+1, & t \geq 0 \\
+0, & t < 0
+\end{cases}
+$$
+
+**单位冲激信号（狄拉克函数）**
+
+$$
+\delta(t) = \begin{cases}
+\infty, & t = 0 \\
+0, & t \neq 0
+\end{cases}, \quad \int_{-\infty}^{\infty} \delta(t) dt = 1
+$$
+
+**复指数信号**
+
+$$
+x(t) = e^{st} = e^{(\sigma + j\omega)t} = e^{\sigma t}(\cos \omega t + j \sin \omega t)
+$$
+
+**正弦信号**
+
+使用角频率：
+
+$$
+x(t) = A \cos(\omega_0 t + \phi)
+$$
+
+使用频率：
+
+$$
+x(t) = A \cos(2\pi f_0 t + \phi)
+$$
+
+其中 $\omega_0 = 2\pi f_0$。
+
+### 1.2 常用离散时间信号
+
+**单位阶跃序列**
+
+$$
+u[n] = \begin{cases}
+1, & n \geq 0 \\
+0, & n < 0
+\end{cases}
+$$
+
+**单位脉冲序列**
+
+$$
+\delta[n] = \begin{cases}
+1, & n = 0 \\
+0, & n \neq 0
+\end{cases}
+$$
+
+**复指数序列**
+
+$$
+x[n] = e^{j\omega_0 n} = \cos(\omega_0 n) + j\sin(\omega_0 n)
+$$
+
+## 二、卷积与系统响应
+
+### 2.1 连续时间卷积
+
+$$
+y(t) = x(t) * h(t) = \int_{-\infty}^{\infty} x(\tau) h(t - \tau) d\tau
+$$
+
+### 2.2 离散时间卷积
+
+$$
+y[n] = x[n] * h[n] = \sum_{k=-\infty}^{\infty} x[k] h[n - k]
+$$
+
+### 2.3 卷积性质
+
+- **交换律**：$x(t) * h(t) = h(t) * x(t)$
+- **结合律**：$[x(t) * h_1(t)] * h_2(t) = x(t) * [h_1(t) * h_2(t)]$
+- **分配律**：$x(t) * [h_1(t) + h_2(t)] = x(t) * h_1(t) + x(t) * h_2(t)$
+
+## 三、傅里叶分析
+
+### 频率关系说明
+
+在傅里叶分析中，有两种常用的频率表示方式：
+
+- **角频率** $\omega$ (rad/s)：$\omega = 2\pi f$
+- **频率** $f$ (Hz)：$f = \frac{\omega}{2\pi}$
+
+### 3.1 连续时间傅里叶变换（CTFT）
+
+#### 3.1.1 使用角频率 ω 的形式
+
+**正变换**
+
+$$
+X(j\omega) = \mathcal{F}_\omega\{x(t)\} = \int_{-\infty}^{\infty} x(t) e^{-j\omega t} dt
+$$
+
+**逆变换**
+
+$$
+x(t) = \mathcal{F}_\omega^{-1}\{X(j\omega)\} = \frac{1}{2\pi} \int_{-\infty}^{\infty} X(j\omega) e^{j\omega t} d\omega
+$$
+
+#### 3.1.2 使用频率 f 的形式
+
+**正变换**
+
+$$
+X(f) = \mathcal{F}_f\{x(t)\} = \int_{-\infty}^{\infty} x(t) e^{-j2\pi ft} dt
+$$
+
+**逆变换**
+
+$$
+x(t) = \mathcal{F}_f^{-1}\{X(f)\} = \int_{-\infty}^{\infty} X(f) e^{j2\pi ft} df
+$$
+
+**两种形式的关系**
+
+$$
+X(f) = X(j\omega)\Big|_{\omega = 2\pi f}
+$$
+
+### 3.2 离散时间傅里叶变换（DTFT）
+
+**正变换**
+
+$$
+X(e^{j\omega}) = \sum_{n=-\infty}^{\infty} x[n] e^{-j\omega n}
+$$
+
+**逆变换**
+
+$$
+x[n] = \frac{1}{2\pi} \int_{-\pi}^{\pi} X(e^{j\omega}) e^{j\omega n} d\omega
+$$
+
+### 3.3 傅里叶级数（FS）
+
+#### 3.3.1 使用角频率 ω 的形式
+
+**连续时间周期信号傅里叶级数**
+
+$$
+x(t) = \sum_{k=-\infty}^{\infty} a_k e^{jk\omega_0 t}
+$$
+
+**系数公式**
+
+$$
+a_k = \frac{1}{T} \int_{T} x(t) e^{-jk\omega_0 t} dt
+$$
+
+其中 $\omega_0 = \frac{2\pi}{T}$ 为基波角频率。
+
+#### 3.3.2 使用频率 f 的形式
+
+**连续时间周期信号傅里叶级数**
+
+$$
+x(t) = \sum_{k=-\infty}^{\infty} c_k e^{j2\pi kf_0 t}
+$$
+
+**系数公式**
+
+$$
+c_k = \frac{1}{T} \int_{T} x(t) e^{-j2\pi kf_0 t} dt
+$$
+
+其中 $f_0 = \frac{1}{T}$ 为基波频率。
+
+**关系**：$c_k = a_k$，$f_0 = \frac{\omega_0}{2\pi}$
+
+### 3.4 离散傅里叶变换（DFT）
+
+**正变换**
+
+$$
+X[k] = \sum_{n=0}^{N-1} x[n] e^{-j\frac{2\pi}{N}kn}, \quad k = 0, 1, \ldots, N-1
+$$
+
+**逆变换（IDFT）**
+
+$$
+x[n] = \frac{1}{N} \sum_{k=0}^{N-1} X[k] e^{j\frac{2\pi}{N}kn}, \quad n = 0, 1, \ldots, N-1
+$$
+
+### 3.5 傅里叶变换性质
+
+#### 3.5.1 使用角频率 ω 的性质表
+
+| 性质 | 时域 | 频域（角频率） |
+|------|------|------|
+| 线性 | $ax_1(t) + bx_2(t)$ | $aX_1(j\omega) + bX_2(j\omega)$ |
+| 时移 | $x(t - t_0)$ | $e^{-j\omega t_0} X(j\omega)$ |
+| 频移 | $e^{j\omega_0 t} x(t)$ | $X(j(\omega - \omega_0))$ |
+| 尺度变换 | $x(at)$ | $\frac{1}{\|a\|} X(j\frac{\omega}{a})$ |
+| 时域卷积 | $x(t) * h(t)$ | $X(j\omega) H(j\omega)$ |
+| 频域卷积 | $x(t) h(t)$ | $\frac{1}{2\pi} X(j\omega) * H(j\omega)$ |
+| 微分 | $\frac{dx(t)}{dt}$ | $j\omega X(j\omega)$ |
+| 积分 | $\int_{-\infty}^{t} x(\tau) d\tau$ | $\frac{1}{j\omega} X(j\omega) + \pi X(0)\delta(\omega)$ |
+| 对偶性 | $X(jt)$ | $2\pi x(-\omega)$ |
+| Parseval定理 | $\int_{-\infty}^{\infty} \|x(t)\|^2 dt$ | $\frac{1}{2\pi} \int_{-\infty}^{\infty} \|X(j\omega)\|^2 d\omega$ |
+
+#### 3.5.2 使用频率 f 的性质表
+
+| 性质 | 时域 | 频域（频率） |
+|------|------|------|
+| 线性 | $ax_1(t) + bx_2(t)$ | $aX_1(f) + bX_2(f)$ |
+| 时移 | $x(t - t_0)$ | $e^{-j2\pi ft_0} X(f)$ |
+| 频移 | $e^{j2\pi f_0 t} x(t)$ | $X(f - f_0)$ |
+| 尺度变换 | $x(at)$ | $\frac{1}{\|a\|} X(\frac{f}{a})$ |
+| 时域卷积 | $x(t) * h(t)$ | $X(f) H(f)$ |
+| 频域卷积 | $x(t) h(t)$ | $X(f) * H(f)$ |
+| 微分 | $\frac{dx(t)}{dt}$ | $j2\pi f X(f)$ |
+| 积分 | $\int_{-\infty}^{t} x(\tau) d\tau$ | $\frac{1}{j2\pi f} X(f) + \frac{1}{2} X(0)\delta(f)$ |
+| 对偶性 | $X(t)$ | $x(-f)$ |
+| Parseval定理 | $\int_{-\infty}^{\infty} \|x(t)\|^2 dt$ | $\int_{-\infty}^{\infty} \|X(f)\|^2 df$ |
+
+### 3.6 常用信号的傅里叶变换
+
+#### 3.6.1 使用角频率 ω 的变换对
+
+$$
+\begin{aligned}
+\delta(t) &\xleftrightarrow{\mathcal{F}} 1 \\
+1 &\xleftrightarrow{\mathcal{F}} 2\pi\delta(\omega) \\
+e^{j\omega_0 t} &\xleftrightarrow{\mathcal{F}} 2\pi\delta(\omega - \omega_0) \\
+\cos(\omega_0 t) &\xleftrightarrow{\mathcal{F}} \pi[\delta(\omega - \omega_0) + \delta(\omega + \omega_0)] \\
+\sin(\omega_0 t) &\xleftrightarrow{\mathcal{F}} j\pi[\delta(\omega + \omega_0) - \delta(\omega - \omega_0)] \\
+u(t) &\xleftrightarrow{\mathcal{F}} \frac{1}{j\omega} + \pi\delta(\omega) \\
+e^{-at}u(t), a>0 &\xleftrightarrow{\mathcal{F}} \frac{1}{a + j\omega} \\
+te^{-at}u(t), a>0 &\xleftrightarrow{\mathcal{F}} \frac{1}{(a + j\omega)^2}
+\end{aligned}
+$$
+
+#### 3.6.2 使用频率 f 的变换对
+
+$$
+\begin{aligned}
+\delta(t) &\xleftrightarrow{\mathcal{F}} 1 \\
+1 &\xleftrightarrow{\mathcal{F}} \delta(f) \\
+e^{j2\pi f_0 t} &\xleftrightarrow{\mathcal{F}} \delta(f - f_0) \\
+\cos(2\pi f_0 t) &\xleftrightarrow{\mathcal{F}} \frac{1}{2}[\delta(f - f_0) + \delta(f + f_0)] \\
+\sin(2\pi f_0 t) &\xleftrightarrow{\mathcal{F}} \frac{1}{j2}[\delta(f - f_0) - \delta(f + f_0)] \\
+u(t) &\xleftrightarrow{\mathcal{F}} \frac{1}{j2\pi f} + \frac{1}{2}\delta(f) \\
+e^{-at}u(t), a>0 &\xleftrightarrow{\mathcal{F}} \frac{1}{a + j2\pi f} \\
+te^{-at}u(t), a>0 &\xleftrightarrow{\mathcal{F}} \frac{1}{(a + j2\pi f)^2}
+\end{aligned}
+$$
+
+## 四、拉普拉斯变换
+
+### 4.1 双边拉普拉斯变换
+
+**正变换**
+
+$$
+X(s) = \mathcal{L}\{x(t)\} = \int_{-\infty}^{\infty} x(t) e^{-st} dt
+$$
+
+**逆变换**
+
+$$
+x(t) = \mathcal{L}^{-1}\{X(s)\} = \frac{1}{2\pi j} \int_{\sigma - j\infty}^{\sigma + j\infty} X(s) e^{st} ds
+$$
+
+### 4.2 单边拉普拉斯变换
+
+$$
+X(s) = \int_{0^-}^{\infty} x(t) e^{-st} dt
+$$
+
+### 4.3 拉普拉斯变换性质
+
+| 性质 | 时域 | s域 | ROC |
+|------|------|-----|-----|
+| 线性 | $ax_1(t) + bx_2(t)$ | $aX_1(s) + bX_2(s)$ | 至少为 $R_1 \cap R_2$ |
+| 时移 | $x(t - t_0)u(t - t_0)$ | $e^{-st_0} X(s)$ | $R$ |
+| s域平移 | $e^{s_0 t} x(t)$ | $X(s - s_0)$ | $R$ 平移 $\text{Re}\{s_0\}$ |
+| 尺度变换 | $x(at)$ | $\frac{1}{\|a\|} X(\frac{s}{a})$ | $R$ 缩放 $a$ 倍 |
+| 时域微分 | $\frac{dx(t)}{dt}$ | $sX(s)$ | 至少为 $R$ |
+| s域微分 | $-tx(t)$ | $\frac{dX(s)}{ds}$ | $R$ |
+| 时域积分 | $\int_{-\infty}^{t} x(\tau) d\tau$ | $\frac{1}{s} X(s)$ | 至少为 $R \cap \{\text{Re}\{s\} > 0\}$ |
+| 时域卷积 | $x_1(t) * x_2(t)$ | $X_1(s) X_2(s)$ | 至少为 $R_1 \cap R_2$ |
+
+### 4.4 常用信号的拉普拉斯变换
+
+$$
+\begin{aligned}
+\delta(t) &\xleftrightarrow{\mathcal{L}} 1 & \text{全s平面} \\
+u(t) &\xleftrightarrow{\mathcal{L}} \frac{1}{s} & \text{Re}\{s\} > 0 \\
+t u(t) &\xleftrightarrow{\mathcal{L}} \frac{1}{s^2} & \text{Re}\{s\} > 0 \\
+t^n u(t) &\xleftrightarrow{\mathcal{L}} \frac{n!}{s^{n+1}} & \text{Re}\{s\} > 0 \\
+e^{-at} u(t) &\xleftrightarrow{\mathcal{L}} \frac{1}{s + a} & \text{Re}\{s\} > -a \\
+te^{-at} u(t) &\xleftrightarrow{\mathcal{L}} \frac{1}{(s + a)^2} & \text{Re}\{s\} > -a \\
+\cos(\omega_0 t) u(t) &\xleftrightarrow{\mathcal{L}} \frac{s}{s^2 + \omega_0^2} & \text{Re}\{s\} > 0 \\
+\sin(\omega_0 t) u(t) &\xleftrightarrow{\mathcal{L}} \frac{\omega_0}{s^2 + \omega_0^2} & \text{Re}\{s\} > 0 \\
+e^{-at}\cos(\omega_0 t) u(t) &\xleftrightarrow{\mathcal{L}} \frac{s + a}{(s + a)^2 + \omega_0^2} & \text{Re}\{s\} > -a \\
+e^{-at}\sin(\omega_0 t) u(t) &\xleftrightarrow{\mathcal{L}} \frac{\omega_0}{(s + a)^2 + \omega_0^2} & \text{Re}\{s\} > -a
+\end{aligned}
+$$
+
+## 五、Z变换
+
+### 5.1 双边Z变换
+
+**正变换**
+
+$$
+X(z) = \mathcal{Z}\{x[n]\} = \sum_{n=-\infty}^{\infty} x[n] z^{-n}
+$$
+
+**逆变换**
+
+$$
+x[n] = \mathcal{Z}^{-1}\{X(z)\} = \frac{1}{2\pi j} \oint_C X(z) z^{n-1} dz
+$$
+
+### 5.2 单边Z变换
+
+$$
+X(z) = \sum_{n=0}^{\infty} x[n] z^{-n}
+$$
+
+### 5.3 Z变换性质
+
+| 性质 | 时域 | z域 | ROC |
+|------|------|-----|-----|
+| 线性 | $ax_1[n] + bx_2[n]$ | $aX_1(z) + bX_2(z)$ | 至少为 $R_1 \cap R_2$ |
+| 时移 | $x[n - n_0]$ | $z^{-n_0} X(z)$ | $R$ (可能增减 $z=0$ 或 $z=\infty$) |
+| z域尺度 | $a^n x[n]$ | $X(\frac{z}{a})$ | $\|a\|R$ |
+| 时间翻转 | $x[-n]$ | $X(z^{-1})$ | $\frac{1}{R}$ |
+| 共轭 | $x^*[n]$ | $X^*(z^*)$ | $R$ |
+| 时域卷积 | $x_1[n] * x_2[n]$ | $X_1(z) X_2(z)$ | 至少为 $R_1 \cap R_2$ |
+| z域微分 | $nx[n]$ | $-z\frac{dX(z)}{dz}$ | $R$ |
+| 初值定理 | $x[0]$ | $\lim_{z \to \infty} X(z)$ | |
+| 终值定理 | $\lim_{n \to \infty} x[n]$ | $\lim_{z \to 1} (z-1)X(z)$ | ROC包含单位圆 |
+
+### 5.4 常用序列的Z变换
+
+$$
+\begin{aligned}
+\delta[n] &\xleftrightarrow{\mathcal{Z}} 1 & \text{全z平面} \\
+u[n] &\xleftrightarrow{\mathcal{Z}} \frac{1}{1 - z^{-1}} = \frac{z}{z - 1} & |z| > 1 \\
+a^n u[n] &\xleftrightarrow{\mathcal{Z}} \frac{1}{1 - az^{-1}} = \frac{z}{z - a} & |z| > |a| \\
+-a^n u[-n-1] &\xleftrightarrow{\mathcal{Z}} \frac{1}{1 - az^{-1}} = \frac{z}{z - a} & |z| < |a| \\
+na^n u[n] &\xleftrightarrow{\mathcal{Z}} \frac{az^{-1}}{(1 - az^{-1})^2} = \frac{az}{(z - a)^2} & |z| > |a| \\
+\cos(\omega_0 n) u[n] &\xleftrightarrow{\mathcal{Z}} \frac{1 - z^{-1}\cos\omega_0}{1 - 2z^{-1}\cos\omega_0 + z^{-2}} & |z| > 1 \\
+\sin(\omega_0 n) u[n] &\xleftrightarrow{\mathcal{Z}} \frac{z^{-1}\sin\omega_0}{1 - 2z^{-1}\cos\omega_0 + z^{-2}} & |z| > 1 \\
+r^n\cos(\omega_0 n) u[n] &\xleftrightarrow{\mathcal{Z}} \frac{1 - rz^{-1}\cos\omega_0}{1 - 2rz^{-1}\cos\omega_0 + r^2z^{-2}} & |z| > r \\
+r^n\sin(\omega_0 n) u[n] &\xleftrightarrow{\mathcal{Z}} \frac{rz^{-1}\sin\omega_0}{1 - 2rz^{-1}\cos\omega_0 + r^2z^{-2}} & |z| > r
+\end{aligned}
+$$
+
+## 六、采样定理
+
+### 6.1 奈奎斯特采样定理
+
+对于带限信号 $x(t)$，若其最高频率为 $f_m$ (Hz) 或最高角频率为 $\omega_m$ (rad/s)，则采样频率必须满足：
+
+**使用频率 f**
+
+$$
+f_s \geq 2f_m
+$$
+
+**使用角频率 ω**
+
+$$
+\omega_s \geq 2\omega_m
+$$
+
+其中：
+- $f_N = 2f_m$ 称为**奈奎斯特频率** (Hz)
+- $\omega_N = 2\omega_m$ 称为**奈奎斯特角频率** (rad/s)
+- $T_s = \frac{1}{f_s}$ 为采样周期
+
+### 6.2 采样公式
+
+**理想采样（时域）**
+
+$$
+x_s(t) = x(t) \sum_{n=-\infty}^{\infty} \delta(t - nT_s) = \sum_{n=-\infty}^{\infty} x(nT_s) \delta(t - nT_s)
+$$
+
+**频域（使用角频率 ω）**
+
+$$
+X_s(j\omega) = \frac{1}{T_s} \sum_{k=-\infty}^{\infty} X(j(\omega - k\omega_s))
+$$
+
+**频域（使用频率 f）**
+
+$$
+X_s(f) = f_s \sum_{k=-\infty}^{\infty} X(f - kf_s)
+$$
+
+### 6.3 重建公式（Whittaker-Shannon插值）
+
+**使用采样周期 $T_s$**
+
+$$
+x(t) = \sum_{n=-\infty}^{\infty} x(nT_s) \frac{\sin[\pi(t - nT_s)/T_s]}{\pi(t - nT_s)/T_s} = \sum_{n=-\infty}^{\infty} x(nT_s) \text{sinc}\left(\frac{t - nT_s}{T_s}\right)
+$$
+
+**使用采样频率 $f_s$**
+
+$$
+x(t) = \sum_{n=-\infty}^{\infty} x(n/f_s) \text{sinc}[f_s(t - n/f_s)]
+$$
+
+## 七、数字滤波器
+
+### 7.1 系统函数与差分方程
+
+**差分方程**
+
+$$
+\sum_{k=0}^{N} a_k y[n-k] = \sum_{k=0}^{M} b_k x[n-k]
+$$
+
+**系统函数（传递函数）**
+
+$$
+H(z) = \frac{Y(z)}{X(z)} = \frac{\sum_{k=0}^{M} b_k z^{-k}}{\sum_{k=0}^{N} a_k z^{-k}} = \frac{b_0 + b_1 z^{-1} + \cdots + b_M z^{-M}}{a_0 + a_1 z^{-1} + \cdots + a_N z^{-N}}
+$$
+
+**频率响应**
+
+$$
+H(e^{j\omega}) = H(z)\Big|_{z=e^{j\omega}}
+$$
+
+### 7.2 IIR滤波器设计
+
+**一阶低通滤波器**
+
+$$
+H(z) = \frac{1 - \alpha}{1 - \alpha z^{-1}}, \quad 0 < \alpha < 1
+$$
+
+**二阶IIR滤波器（双线性变换）**
+
+$$
+s = \frac{2}{T} \frac{1 - z^{-1}}{1 + z^{-1}}
+$$
+
+**巴特沃斯滤波器阶数估计**
+
+$$
+N \geq \frac{\log_{10}\left[\frac{10^{0.1A_s} - 1}{10^{0.1A_p} - 1}\right]}{2\log_{10}(\omega_s/\omega_p)}
+$$
+
+其中 $A_p$ 为通带最大衰减(dB)，$A_s$ 为阻带最小衰减(dB)。
+
+### 7.3 FIR滤波器设计
+
+**线性相位FIR滤波器**
+
+对称条件：$h[n] = h[N-1-n]$
+
+**窗函数法**
+
+$$
+h[n] = h_d[n] \cdot w[n]
+$$
+
+常用窗函数：
+
+- **矩形窗**：$w[n] = 1, \quad 0 \leq n \leq N-1$
+
+- **汉宁窗**：$w[n] = 0.5 - 0.5\cos\left(\frac{2\pi n}{N-1}\right), \quad 0 \leq n \leq N-1$
+
+- **汉明窗**：$w[n] = 0.54 - 0.46\cos\left(\frac{2\pi n}{N-1}\right), \quad 0 \leq n \leq N-1$
+
+- **布莱克曼窗**：
+$$
+w[n] = 0.42 - 0.5\cos\left(\frac{2\pi n}{N-1}\right) + 0.08\cos\left(\frac{4\pi n}{N-1}\right)
+$$
+
+**FIR滤波器长度估计（Kaiser窗）**
+
+$$
+N \approx \frac{A_s - 8}{2.285 \Delta\omega}
+$$
+
+其中 $\Delta\omega$ 为过渡带宽度。
+
+### 7.4 频率响应特性
+
+**幅度响应**
+
+$$
+|H(e^{j\omega})| = \sqrt{\text{Re}^2\{H(e^{j\omega})\} + \text{Im}^2\{H(e^{j\omega})\}}
+$$
+
+**相位响应**
+
+$$
+\angle H(e^{j\omega}) = \arctan\left(\frac{\text{Im}\{H(e^{j\omega})\}}{\text{Re}\{H(e^{j\omega})\}}\right)
+$$
+
+**群延迟**
+
+$$
+\tau(\omega) = -\frac{d\angle H(e^{j\omega})}{d\omega}
+$$
+
+## 八、快速傅里叶变换（FFT）
+
+### 8.1 DFT计算复杂度
+
+- 直接计算DFT：$O(N^2)$ 次复数乘法
+- FFT算法：$O(N\log_2 N)$ 次复数乘法
+
+### 8.2 基-2 FFT（时间抽取）
+
+**分解**
+
+$$
+X[k] = \sum_{n=0}^{N-1} x[n] W_N^{kn} = \sum_{m=0}^{N/2-1} x[2m] W_N^{2km} + W_N^k \sum_{m=0}^{N/2-1} x[2m+1] W_N^{2km}
+$$
+
+其中 $W_N = e^{-j\frac{2\pi}{N}}$ 称为**旋转因子**。
+
+**蝶形运算**
+
+$$
+\begin{aligned}
+X[k] &= A[k] + W_N^k B[k] \\
+X[k + N/2] &= A[k] - W_N^k B[k]
+\end{aligned}
+$$
+
+### 8.3 旋转因子性质
+
+$$
+\begin{aligned}
+W_N^{k+N} &= W_N^k & \text{(周期性)} \\
+W_N^{k+N/2} &= -W_N^k & \text{(对称性)} \\
+W_N^{2k} &= W_{N/2}^k & \text{(可约性)} \\
+W_N^* &= W_N^{-1} = W_N^{N-1} & \text{(共轭对称)}
+\end{aligned}
+$$
+
+## 九、能量与功率
+
+### 9.1 连续时间信号
+
+**能量**
+
+$$
+E = \int_{-\infty}^{\infty} |x(t)|^2 dt
+$$
+
+**功率**
+
+$$
+P = \lim_{T \to \infty} \frac{1}{2T} \int_{-T}^{T} |x(t)|^2 dt
+$$
+
+### 9.2 离散时间信号
+
+**能量**
+
+$$
+E = \sum_{n=-\infty}^{\infty} |x[n]|^2
+$$
+
+**功率**
+
+$$
+P = \lim_{N \to \infty} \frac{1}{2N+1} \sum_{n=-N}^{N} |x[n]|^2
+$$
+
+### 9.3 Parseval定理
+
+**连续时间**
+
+$$
+\int_{-\infty}^{\infty} |x(t)|^2 dt = \frac{1}{2\pi} \int_{-\infty}^{\infty} |X(j\omega)|^2 d\omega
+$$
+
+**离散时间**
+
+$$
+\sum_{n=-\infty}^{\infty} |x[n]|^2 = \frac{1}{2\pi} \int_{-\pi}^{\pi} |X(e^{j\omega})|^2 d\omega
+$$
+
+**DFT形式**
+
+$$
+\sum_{n=0}^{N-1} |x[n]|^2 = \frac{1}{N} \sum_{k=0}^{N-1} |X[k]|^2
+$$
+
+## 十、系统稳定性与因果性
+
+### 10.1 BIBO稳定性
+
+**连续时间系统**
+
+$$
+\int_{-\infty}^{\infty} |h(t)| dt < \infty
+$$
+
+**离散时间系统**
+
+$$
+\sum_{n=-\infty}^{\infty} |h[n]| < \infty
+$$
+
+### 10.2 因果性
+
+**连续时间系统**
+
+$$
+h(t) = 0, \quad \forall t < 0
+$$
+
+**离散时间系统**
+
+$$
+h[n] = 0, \quad \forall n < 0
+$$
+
+### 10.3 稳定性判据
+
+**拉普拉斯域**：ROC包含虚轴
+
+**Z域**：ROC包含单位圆
+
+**极点位置**：
+- 因果稳定系统：所有极点在单位圆内（离散）或左半平面（连续）
+- 反因果稳定系统：所有极点在单位圆外（离散）或右半平面（连续）
+
+## 十一、常用DSP运算
+
+### 11.1 相关函数
+
+**自相关**
+
+$$
+R_{xx}[m] = \sum_{n=-\infty}^{\infty} x[n] x^*[n-m]
+$$
+
+**互相关**
+
+$$
+R_{xy}[m] = \sum_{n=-\infty}^{\infty} x[n] y^*[n-m]
+$$
+
+### 11.2 功率谱密度
+
+**维纳-辛钦定理**
+
+$$
+S_{xx}(e^{j\omega}) = \mathcal{F}\{R_{xx}[m]\}
+$$
+
+对于WSS随机过程：
+
+$$
+S_{xx}(e^{j\omega}) = \lim_{N \to \infty} \frac{1}{2N+1} E\left[|X_N(e^{j\omega})|^2\right]
+$$
+
+### 11.3 线性预测
+
+**线性预测误差**
+
+$$
+e[n] = x[n] - \hat{x}[n] = x[n] - \sum_{k=1}^{p} a_k x[n-k]
+$$
+
+**Yule-Walker方程**
+
+$$
+\begin{bmatrix}
+R_{xx}[0] & R_{xx}[1] & \cdots & R_{xx}[p-1] \\
+R_{xx}[1] & R_{xx}[0] & \cdots & R_{xx}[p-2] \\
+\vdots & \vdots & \ddots & \vdots \\
+R_{xx}[p-1] & R_{xx}[p-2] & \cdots & R_{xx}[0]
+\end{bmatrix}
+\begin{bmatrix}
+a_1 \\
+a_2 \\
+\vdots \\
+a_p
+\end{bmatrix}
+=
+\begin{bmatrix}
+R_{xx}[1] \\
+R_{xx}[2] \\
+\vdots \\
+R_{xx}[p]
+\end{bmatrix}
+$$
+
+## 十二、多采样率信号处理
+
+### 12.1 下采样（抽取）
+
+$$
+y[n] = x[Mn]
+$$
+
+频域：
+
+$$
+Y(e^{j\omega}) = \frac{1}{M} \sum_{k=0}^{M-1} X\left(e^{j(\omega - 2\pi k)/M}\right)
+$$
+
+### 12.2 上采样（插值）
+
+$$
+y[n] = \begin{cases}
+x[n/L], & n = 0, \pm L, \pm 2L, \ldots \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+频域：
+
+$$
+Y(e^{j\omega}) = X(e^{j\omega L})
+$$
+
+### 12.3 有理倍采样率转换
+
+$$
+\text{上采样} L \text{ 倍} \rightarrow \text{滤波} \rightarrow \text{下采样} M \text{ 倍}
+$$
+
+采样率变化：$f_{s,out} = \frac{L}{M} f_{s,in}$
+
+## 总结
+
+本文系统地整理了信号与系统和DSP领域的核心数学公式，涵盖：
+
+- ✅ 基本信号定义与特性
+- ✅ 卷积与系统响应
+- ✅ 傅里叶分析（CTFT、DTFT、DFT、FFT）
+- ✅ 拉普拉斯变换与Z变换
+- ✅ 采样定理与重建
+- ✅ 数字滤波器设计（IIR、FIR）
+- ✅ 系统稳定性与因果性分析
+- ✅ 能量功率谱分析
+- ✅ 多采样率信号处理
+
+这些公式是信号处理工程师的必备工具，建议收藏备查。如有补充或勘误，欢迎交流讨论！
+
+---
+
+**参考资料**
+- Oppenheim, A. V., & Willsky, A. S. (1997). *Signals and Systems*
+- Oppenheim, A. V., & Schafer, R. W. (2010). *Discrete-Time Signal Processing*
+- Proakis, J. G., & Manolakis, D. G. (2007). *Digital Signal Processing: Principles, Algorithms, and Applications*

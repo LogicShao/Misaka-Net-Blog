@@ -9,7 +9,7 @@ import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://misaka-net-blog.pages.dev', // 替换为你的 Cloudflare Pages URL 或自定义域名
+    site: 'https://blog.misaka-net.top', // 替换为你的 Cloudflare Pages URL 或自定义域名
 	// 静态生成模式（默认）- 适合博客
 	// Cloudflare Pages 会自动检测并部署静态文件
     integrations: [

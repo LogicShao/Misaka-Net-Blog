@@ -98,7 +98,7 @@ draft: false
 项目配置为 Cloudflare Pages 部署：
 - 构建命令: `npm run build`
 - 输出目录: `dist`
-- 站点 URL: `https://misaka-net-blog.pages.dev`
+- 站点 URL: `https://blog.misaka-net.top`
 
 ## 注意事项
 
