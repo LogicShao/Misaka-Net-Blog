@@ -47,6 +47,17 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
+// 生成时间戳格式的文件名 YY-MM-DD-HH-MM
+function generateTimestampFilename() {
+    const now = new Date();
+    const year = String(now.getFullYear()).slice(-2); // 取年份后两位
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}-${hour}-${minute}.md`;
+}
+
 // 解析标签输入
 function parseTags(input) {
     if (!input || input.trim() === '') {
@@ -135,10 +146,8 @@ async function main() {
         const dateInput = await question('📅 发布日期 (YYYY-MM-DD，留空使用今天): ');
         const pubDate = dateInput.trim() || formatDate(new Date());
 
-        // 生成文件名
-        const slugInput = await question(`🔗 文件名 slug (留空自动生成): `);
-        const slug = slugInput.trim() || generateSlug(title);
-        const filename = `${slug}.md`;
+        // 生成文件名（使用时间戳格式 YY-MM-DD-HH-MM.md）
+        const filename = generateTimestampFilename();
 
         // 确认信息
         console.log('\n📊 文章信息预览：');

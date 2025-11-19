@@ -1,6 +1,8 @@
 # Misaka Network Blog
 
+
 <div align="center">
+<img src="public/favicon.svg" alt="Misaka Network Logo" width="100" align="right" />
 
 ![Misaka Network](https://img.shields.io/badge/Level-5_Railgun-00bfff?style=for-the-badge)
 ![Astro](https://img.shields.io/badge/Astro-5.0-ff5d01?style=for-the-badge&logo=astro)
@@ -11,7 +13,7 @@
 
 *A Certain Scientific Blog Theme*
 
-[在线演示](#) | [快速开始](#快速开始) | [文档](#) | [反馈问题](https://github.com/yourusername/misaka-network-blog/issues)
+[在线演示](#) | [快速开始](#快速开始) | [文档](#) | [反馈问题](https://github.com/LogicShao/misaka-network-blog/issues)
 
 </div>
 

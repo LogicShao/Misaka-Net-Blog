@@ -275,6 +275,12 @@
     @apply max-w-none;
 }
 
+/* 移除 Tailwind Typography 默认添加的代码块反引号 */
+.prose code::before,
+.prose code::after {
+    content: '' !important;
+}
+
 .prose h1,
 .prose h2,
 .prose h3,
@@ -296,7 +302,15 @@
 
 .prose ul, .prose ol {
     color: var(--text-secondary);
-    @apply ml-6 mb-4;
+    @apply ml-3 mb-4;
+}
+
+/* 嵌套列表缩进控制 */
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol {
+    @apply ml-3 mt-2;
 }
 
 .prose li {
