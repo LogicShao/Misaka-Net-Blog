@@ -1,0 +1,364 @@
+---
+// SearchModal.astro - 搜索模态框组件
+---
+
+<!-- 搜索模态框 -->
+<div
+  id="search-modal"
+  class="fixed inset-0 z-[100] hidden"
+  aria-labelledby="search-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- 遮罩层 -->
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" id="search-backdrop"></div>
+
+  <!-- 模态框内容 -->
+  <div class="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
+    <div class="mx-auto max-w-2xl transform transition-all">
+      <div
+        class="overflow-hidden rounded-2xl border shadow-2xl"
+        style="background-color: var(--bg-primary); border-color: var(--border-color);"
+      >
+        <!-- 搜索输入框 -->
+        <div class="relative">
+          <svg
+            class="pointer-events-none absolute left-4 top-3.5 h-5 w-5"
+            style="color: var(--text-tertiary);"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            type="text"
+            id="search-input"
+            class="w-full border-0 bg-transparent pl-11 pr-4 py-3 outline-none placeholder:text-gray-500"
+            style="color: var(--text-primary);"
+            placeholder="搜索文章标题、描述、标签..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button
+            id="search-close"
+            class="absolute right-4 top-3 text-sm px-2 py-1 rounded"
+            style="background-color: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color);"
+          >
+            ESC
+          </button>
+        </div>
+
+        <!-- 分割线 -->
+        <div class="border-t" style="border-color: var(--border-color);"></div>
+
+        <!-- 搜索结果 -->
+        <div id="search-results" class="max-h-[60vh] overflow-y-auto px-2 py-2">
+          <!-- 初始提示 -->
+          <div id="search-empty" class="px-6 py-14 text-center">
+            <svg
+              class="mx-auto h-12 w-12 mb-4"
+              style="color: var(--text-tertiary);"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <p class="text-sm" style="color: var(--text-secondary);">输入关键词开始搜索</p>
+          </div>
+
+          <!-- 无结果提示 -->
+          <div id="search-no-results" class="hidden px-6 py-14 text-center">
+            <p class="text-sm" style="color: var(--text-secondary);">未找到相关文章</p>
+          </div>
+
+          <!-- 结果列表 -->
+          <ul id="search-results-list" class="space-y-1"></ul>
+        </div>
+
+        <!-- 底部提示 -->
+        <div class="border-t px-4 py-3 flex items-center justify-between text-xs" style="border-color: var(--border-color); color: var(--text-tertiary);">
+          <div class="flex items-center space-x-4">
+            <span class="flex items-center space-x-1">
+              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↑</kbd>
+              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↓</kbd>
+              <span>导航</span>
+            </span>
+            <span class="flex items-center space-x-1">
+              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">Enter</kbd>
+              <span>选择</span>
+            </span>
+          </div>
+          <span class="flex items-center space-x-1">
+            <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">ESC</kbd>
+            <span>关闭</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  interface SearchItem {
+    slug: string;
+    title: string;
+    description: string;
+    tags: string[];
+    pubDate: string;
+  }
+
+  let fuse: Fuse<SearchItem> | null = null;
+  let searchData: SearchItem[] = [];
+  let selectedIndex = -1;
+
+  const modal = document.getElementById('search-modal');
+  const backdrop = document.getElementById('search-backdrop');
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const searchClose = document.getElementById('search-close');
+  const searchResultsList = document.getElementById('search-results-list');
+  const searchEmpty = document.getElementById('search-empty');
+  const searchNoResults = document.getElementById('search-no-results');
+
+  // 加载搜索数据
+  async function loadSearchData() {
+    if (searchData.length > 0) return;
+
+    try {
+      const response = await fetch('/search.json');
+      searchData = await response.json();
+
+      // 初始化 Fuse.js
+      fuse = new Fuse(searchData, {
+        keys: [
+          { name: 'title', weight: 3 },
+          { name: 'description', weight: 2 },
+          { name: 'tags', weight: 1 },
+        ],
+        threshold: 0.4,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+      });
+    } catch (error) {
+      console.error('Failed to load search data:', error);
+    }
+  }
+
+  // 打开搜索模态框
+  function openSearch() {
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    searchInput?.focus();
+    loadSearchData();
+  }
+
+  // 关闭搜索模态框
+  function closeSearch() {
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    if (searchInput) searchInput.value = '';
+    if (searchResultsList) searchResultsList.innerHTML = '';
+    if (searchEmpty) searchEmpty.classList.remove('hidden');
+    if (searchNoResults) searchNoResults.classList.add('hidden');
+    selectedIndex = -1;
+  }
+
+  // 执行搜索
+  function performSearch(query: string) {
+    if (!fuse || !searchResultsList || !searchEmpty || !searchNoResults) return;
+
+    selectedIndex = -1;
+
+    if (!query.trim()) {
+      searchResultsList.innerHTML = '';
+      searchEmpty.classList.remove('hidden');
+      searchNoResults.classList.add('hidden');
+      return;
+    }
+
+    const results = fuse.search(query).slice(0, 10);
+
+    searchEmpty.classList.add('hidden');
+
+    if (results.length === 0) {
+      searchResultsList.innerHTML = '';
+      searchNoResults.classList.remove('hidden');
+      return;
+    }
+
+    searchNoResults.classList.add('hidden');
+
+    searchResultsList.innerHTML = results
+      .map(
+        (result, index) => `
+        <li>
+          <a
+            href="/blog/${result.item.slug}"
+            class="search-result-item block px-4 py-3 rounded-lg transition-all duration-200"
+            style="background-color: ${index === 0 ? 'var(--bg-secondary)' : 'transparent'};"
+            data-index="${index}"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-medium truncate mb-1" style="color: var(--text-primary);">
+                  ${highlightMatch(result.item.title, query)}
+                </h3>
+                <p class="text-xs line-clamp-2 mb-2" style="color: var(--text-secondary);">
+                  ${result.item.description}
+                </p>
+                ${
+                  result.item.tags.length > 0
+                    ? `<div class="flex flex-wrap gap-1">
+                        ${result.item.tags
+                          .slice(0, 3)
+                          .map(
+                            (tag) =>
+                              `<span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--bg-tertiary); color: var(--text-tertiary);">${tag}</span>`
+                          )
+                          .join('')}
+                      </div>`
+                    : ''
+                }
+              </div>
+              <svg class="w-4 h-4 ml-2 flex-shrink-0 mt-0.5" style="color: var(--text-tertiary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </a>
+        </li>
+      `
+      )
+      .join('');
+
+    // 更新选中状态
+    updateSelectedItem();
+  }
+
+  // 高亮匹配文本
+  function highlightMatch(text: string, query: string): string {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark class="bg-misaka-blue/20 text-misaka-blue rounded px-0.5">$1</mark>');
+  }
+
+  // 更新选中项样式
+  function updateSelectedItem() {
+    const items = document.querySelectorAll('.search-result-item');
+    items.forEach((item, index) => {
+      if (index === selectedIndex) {
+        item.setAttribute('style', 'background-color: var(--bg-secondary);');
+        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else {
+        item.setAttribute('style', 'background-color: transparent;');
+      }
+    });
+  }
+
+  // 键盘导航
+  function handleKeyboardNavigation(e: KeyboardEvent) {
+    const items = document.querySelectorAll('.search-result-item');
+    const itemCount = items.length;
+
+    if (itemCount === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = (selectedIndex + 1) % itemCount;
+        updateSelectedItem();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = selectedIndex <= 0 ? itemCount - 1 : selectedIndex - 1;
+        updateSelectedItem();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < itemCount) {
+          (items[selectedIndex] as HTMLAnchorElement).click();
+        }
+        break;
+    }
+  }
+
+  // 事件监听
+  window.addEventListener('open-search', openSearch);
+
+  backdrop?.addEventListener('click', closeSearch);
+  searchClose?.addEventListener('click', closeSearch);
+
+  searchInput?.addEventListener('input', (e) => {
+    performSearch((e.target as HTMLInputElement).value);
+  });
+
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSearch();
+    } else {
+      handleKeyboardNavigation(e);
+    }
+  });
+
+  // 全局 ESC 关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      closeSearch();
+    }
+  });
+
+  // 鼠标悬停更新选中项
+  document.addEventListener('mouseover', (e) => {
+    const target = e.target as HTMLElement;
+    const resultItem = target.closest('.search-result-item');
+    if (resultItem) {
+      const index = parseInt(resultItem.getAttribute('data-index') || '-1');
+      if (index >= 0) {
+        selectedIndex = index;
+        updateSelectedItem();
+      }
+    }
+  });
+</script>
+
+<style>
+  /* 自定义滚动条样式 */
+  #search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #search-results::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+
+  #search-results::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  #search-results::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
+
+  /* 搜索结果悬停效果 */
+  .search-result-item:hover {
+    background-color: var(--bg-secondary) !important;
+    border-left: 2px solid var(--misaka-blue);
+    padding-left: calc(1rem - 2px);
+  }
+
+  /* 截断文本 */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

@@ -3,6 +3,7 @@
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import SearchButton from './SearchButton.astro';
 ---
 
 <header class="sticky top-0 z-50 backdrop-blur-md border-b"
@@ -42,6 +43,9 @@ import ThemeToggle from './ThemeToggle.astro';
                     <HeaderLink href="/friends">友链</HeaderLink>
                     <HeaderLink href="/about">关于</HeaderLink>
                 </div>
+
+                <!-- Search Button -->
+                <SearchButton />
 
                 <!-- Theme Toggle -->
                 <ThemeToggle/>

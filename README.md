@@ -1,7 +1,7 @@
+<div align="center">
+
 # Misaka Network Blog
 
-
-<div align="center">
 <img src="public/favicon.svg" alt="Misaka Network Logo" width="100" align="right" />
 
 ![Misaka Network](https://img.shields.io/badge/Level-5_Railgun-00bfff?style=for-the-badge)

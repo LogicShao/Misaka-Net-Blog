@@ -1,0 +1,303 @@
+---
+// MermaidRenderer.astro - Mermaid 流程图渲染组件
+// 使用客户端 mermaid.js 渲染 ```mermaid 代码块
+---
+
+<!-- Mermaid 渲染容器 -->
+<div id="mermaid-container" class="hidden"></div>
+
+<script>
+  // 动态加载 Mermaid.js
+  async function loadMermaid() {
+    if (typeof window.mermaid !== 'undefined') {
+      return window.mermaid;
+    }
+
+    // 从 CDN 加载 Mermaid
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+      script.type = 'module';
+      script.onload = () => {
+        if (window.mermaid) {
+          resolve(window.mermaid);
+        } else {
+          reject(new Error('Mermaid failed to load'));
+        }
+      };
+      script.onerror = () => reject(new Error('Failed to load Mermaid script'));
+      document.head.appendChild(script);
+    });
+  }
+
+  // 初始化 Mermaid
+  async function initMermaid() {
+    try {
+      const mermaid = await loadMermaid();
+
+      // 配置 Mermaid 主题
+      const isDark = document.documentElement.classList.contains('dark');
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: {
+          primaryColor: isDark ? '#4ade80' : '#4ade80',
+          primaryTextColor: isDark ? '#f0f8ff' : '#0f172a',
+          primaryBorderColor: isDark ? '#4ade80' : '#4ade80',
+          lineColor: isDark ? '#38bdf8' : '#38bdf8',
+          secondaryColor: isDark ? '#1e293b' : '#e0f2fe',
+          tertiaryColor: isDark ? '#0f172a' : '#f0f9ff',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontSize: '14px',
+        },
+        flowchart: {
+          curve: 'basis',
+          padding: 20,
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          htmlLabels: true,  // 启用 HTML 标签支持
+        },
+        sequence: {
+          actorMargin: 50,
+          width: 150,
+          height: 65,
+          boxMargin: 10,
+        },
+        // 启用数学公式支持
+        securityLevel: 'loose',  // 允许 HTML 和数学公式
+        suppressErrorRendering: false,
+      });
+
+      // 查找所有 mermaid 代码块（Shiki 使用 data-language 属性）
+      const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+
+      if (mermaidBlocks.length === 0) {
+        return;
+      }
+
+      // 渲染每个 mermaid 块
+      for (let i = 0; i < mermaidBlocks.length; i++) {
+        const block = mermaidBlocks[i];
+        const pre = block.parentElement;
+        // 提取纯文本内容（去除 Shiki 添加的 HTML 标签）
+        const code = block.textContent || block.innerText || '';
+
+        // 跳过空代码块
+        if (!code.trim()) {
+          continue;
+        }
+
+        try {
+          // 创建渲染容器
+          const container = document.createElement('div');
+          container.className = 'mermaid-diagram my-8 flex justify-center';
+          container.style.cssText = `
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            overflow-x: auto;
+          `;
+
+          // 使用 Mermaid 渲染
+          const { svg } = await mermaid.render(`mermaid-${i}`, code);
+          container.innerHTML = svg;
+
+          // 渲染数学公式（如果页面已加载 KaTeX）
+          if (typeof window.katex !== 'undefined') {
+            renderMathInSVG(container);
+          } else {
+            // 尝试加载 KaTeX 并渲染数学公式
+            loadKaTeXAndRender(container);
+          }
+
+          // 替换原始代码块
+          if (pre && pre.parentElement) {
+            pre.parentElement.replaceChild(container, pre);
+          }
+        } catch (error) {
+          console.error('Mermaid rendering error:', error);
+          // 渲染失败时保留原始代码块，但添加错误提示
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'mermaid-error p-4 my-4 rounded-lg';
+          errorDiv.style.cssText = `
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--text-primary);
+          `;
+          errorDiv.innerHTML = `
+            <p class="font-semibold mb-2">⚠️ Mermaid 渲染失败</p>
+            <pre class="text-sm overflow-x-auto"><code>${error.message}</code></pre>
+          `;
+          if (pre && pre.parentElement) {
+            pre.parentElement.insertBefore(errorDiv, pre);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize Mermaid:', error);
+    }
+  }
+
+  // 页面加载完成后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMermaid);
+  } else {
+    initMermaid();
+  }
+
+  // 在 SVG 中渲染数学公式
+  function renderMathInSVG(container) {
+    if (typeof window.katex === 'undefined') return;
+
+    const svgElement = container.querySelector('svg');
+    if (!svgElement) return;
+
+    // 查找所有包含数学公式的文本元素
+    const textElements = svgElement.querySelectorAll('text, tspan');
+
+    textElements.forEach((textEl) => {
+      const text = textEl.textContent || '';
+
+      // 检查是否包含数学公式（$ ... $）
+      if (text.includes('$')) {
+        try {
+          // 替换行内公式 $...$
+          let newHtml = text.replace(/\$([^$]+)\$/g, (match, formula) => {
+            try {
+              return window.katex.renderToString(formula, {
+                throwOnError: false,
+                displayMode: false,
+              });
+            } catch (e) {
+              return match; // 渲染失败时保留原文
+            }
+          });
+
+          // 替换块级公式 $$...$$
+          newHtml = newHtml.replace(/\$\$([^$]+)\$\$/g, (match, formula) => {
+            try {
+              return window.katex.renderToString(formula, {
+                throwOnError: false,
+                displayMode: true,
+              });
+            } catch (e) {
+              return match;
+            }
+          });
+
+          // 如果有变化，更新元素
+          if (newHtml !== text) {
+            // 创建临时容器来解析 HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newHtml;
+
+            // 将 HTML 转换为 SVG foreignObject
+            const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            const bbox = textEl.getBBox();
+
+            foreignObject.setAttribute('x', bbox.x);
+            foreignObject.setAttribute('y', bbox.y - bbox.height * 0.8);
+            foreignObject.setAttribute('width', bbox.width * 3);
+            foreignObject.setAttribute('height', bbox.height * 2);
+
+            const div = document.createElement('div');
+            div.style.cssText = `
+              font-size: ${window.getComputedStyle(textEl).fontSize};
+              color: ${window.getComputedStyle(textEl).fill || window.getComputedStyle(textEl).color};
+            `;
+            div.innerHTML = newHtml;
+
+            foreignObject.appendChild(div);
+            textEl.parentNode?.replaceChild(foreignObject, textEl);
+          }
+        } catch (error) {
+          console.warn('Failed to render math in SVG:', error);
+        }
+      }
+    });
+  }
+
+  // 加载 KaTeX 并渲染数学公式
+  async function loadKaTeXAndRender(container) {
+    if (typeof window.katex !== 'undefined') {
+      renderMathInSVG(container);
+      return;
+    }
+
+    try {
+      // 加载 KaTeX CSS
+      if (!document.querySelector('link[href*="katex"]')) {
+        const katexCSS = document.createElement('link');
+        katexCSS.rel = 'stylesheet';
+        katexCSS.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+        document.head.appendChild(katexCSS);
+      }
+
+      // 加载 KaTeX JS
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+      script.onload = () => {
+        renderMathInSVG(container);
+      };
+      document.head.appendChild(script);
+    } catch (error) {
+      console.error('Failed to load KaTeX:', error);
+    }
+  }
+
+  // 监听主题切换，重新渲染 Mermaid 图表
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class') {
+        // 主题切换时重新渲染
+        setTimeout(initMermaid, 100);
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+</script>
+
+<style>
+  /* Mermaid 图表样式优化 */
+  :global(.mermaid-diagram svg) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 响应式处理 */
+  @media (max-width: 768px) {
+    :global(.mermaid-diagram) {
+      padding: 1rem !important;
+      font-size: 12px;
+    }
+  }
+
+  /* 深色模式下的额外样式 */
+  :global(.dark .mermaid-diagram) {
+    background-color: var(--bg-secondary);
+  }
+
+  /* 流程图节点样式增强 */
+  :global(.mermaid-diagram .node rect),
+  :global(.mermaid-diagram .node circle),
+  :global(.mermaid-diagram .node polygon) {
+    stroke-width: 2px;
+  }
+
+  /* 连接线样式 */
+  :global(.mermaid-diagram .edgePath .path) {
+    stroke-width: 2px;
+  }
+
+  /* 文本样式 */
+  :global(.mermaid-diagram .nodeLabel),
+  :global(.mermaid-diagram .edgeLabel) {
+    font-weight: 500;
+  }
+</style>
