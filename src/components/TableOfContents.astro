@@ -328,9 +328,27 @@
             tocList.appendChild(li);
         });
 
+        // 初始化状态：根据窗口宽度决定是否展开
+        // 阈值设置为 1400px，避免目录与正文重叠
+        const COLLAPSE_THRESHOLD = 1400;
+        const initialWidth = window.innerWidth;
+        let isExpanded = initialWidth >= COLLAPSE_THRESHOLD;
+        let userInteracted = false; // 标记用户是否手动操作过
+
+        // 设置初始状态
+        if (isExpanded) {
+            tocContent.classList.remove('hidden');
+            tocToggle.classList.add('expanded');
+            tocToggle.classList.remove('collapsed');
+        } else {
+            tocContent.classList.add('hidden');
+            tocToggle.classList.add('collapsed');
+            tocToggle.classList.remove('expanded');
+        }
+
         // 切换目录展开/收起
-        let isExpanded = true;
         tocToggle.addEventListener('click', () => {
+            userInteracted = true; // 标记用户已手动操作
             isExpanded = !isExpanded;
 
             if (isExpanded) {
@@ -343,9 +361,6 @@
                 tocToggle.classList.remove('expanded');
             }
         });
-
-        // 初始状态设置为展开
-        tocToggle.classList.add('expanded');
 
         // 滚动监听，高亮当前标题
         let ticking = false;

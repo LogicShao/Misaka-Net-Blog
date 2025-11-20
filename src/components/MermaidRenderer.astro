@@ -89,9 +89,13 @@
         }
 
         try {
+          // 创建外层包装容器
+          const wrapper = document.createElement('div');
+          wrapper.className = 'mermaid-wrapper my-8 relative';
+
           // 创建渲染容器
           const container = document.createElement('div');
-          container.className = 'mermaid-diagram my-8 flex justify-center';
+          container.className = 'mermaid-diagram flex justify-center';
           container.style.cssText = `
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -112,9 +116,37 @@
             loadKaTeXAndRender(container);
           }
 
+          // 创建放大按钮
+          const zoomButton = document.createElement('button');
+          zoomButton.className = 'mermaid-zoom-button';
+          zoomButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+          `;
+          zoomButton.setAttribute('aria-label', '全屏查看流程图');
+          zoomButton.setAttribute('title', '全屏查看 (支持拖拽和缩放)');
+
+          // 点击按钮时触发自定义事件
+          zoomButton.addEventListener('click', () => {
+            const svgElement = container.querySelector('svg');
+            if (svgElement) {
+              window.dispatchEvent(new CustomEvent('open-mermaid-viewer', {
+                detail: {
+                  svg: svgElement.outerHTML,
+                  id: `mermaid-${i}`
+                }
+              }));
+            }
+          });
+
+          // 组装容器
+          wrapper.appendChild(container);
+          wrapper.appendChild(zoomButton);
+
           // 替换原始代码块
           if (pre && pre.parentElement) {
-            pre.parentElement.replaceChild(container, pre);
+            pre.parentElement.replaceChild(wrapper, pre);
           }
         } catch (error) {
           console.error('Mermaid rendering error:', error);
@@ -264,10 +296,46 @@
 </script>
 
 <style>
+  /* Mermaid 包装容器 */
+  :global(.mermaid-wrapper) {
+    position: relative;
+  }
+
   /* Mermaid 图表样式优化 */
   :global(.mermaid-diagram svg) {
     max-width: 100%;
     height: auto;
+  }
+
+  /* 放大按钮样式 */
+  :global(.mermaid-zoom-button) {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0.7;
+  }
+
+  :global(.mermaid-zoom-button:hover) {
+    opacity: 1;
+    background-color: rgba(74, 222, 128, 0.1);
+    border-color: #4ade80;
+    color: #4ade80;
+    transform: scale(1.1);
+  }
+
+  :global(.mermaid-zoom-button:active) {
+    transform: scale(0.95);
   }
 
   /* 响应式处理 */
@@ -275,6 +343,12 @@
     :global(.mermaid-diagram) {
       padding: 1rem !important;
       font-size: 12px;
+    }
+
+    :global(.mermaid-zoom-button) {
+      top: 0.5rem;
+      left: 0.5rem;
+      padding: 0.375rem;
     }
   }
 

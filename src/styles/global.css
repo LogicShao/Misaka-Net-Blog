@@ -43,7 +43,7 @@
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
     html {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', sans-serif;
         scroll-behavior: smooth;
     }
 
@@ -85,7 +85,7 @@
 
     /* 标题 - 增强对比度 */
     h1, h2, h3, h4, h5, h6 {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', sans-serif;
         @apply font-bold tracking-tight;
         color: var(--text-primary);
     }

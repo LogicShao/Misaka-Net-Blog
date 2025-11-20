@@ -9,6 +9,7 @@ import PrevNextNav from '../components/PrevNextNav.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
 import MermaidRenderer from '../components/MermaidRenderer.astro';
+import MermaidViewer from '../components/MermaidViewer.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & {
     prevPost?: CollectionEntry<'blog'>;
@@ -141,4 +142,7 @@ const {title, description, pubDate, updatedDate, heroImage, tags = [], prevPost,
 
     <!-- Mermaid Renderer Component -->
     <MermaidRenderer/>
+
+    <!-- Mermaid Viewer Component (全屏查看器) -->
+    <MermaidViewer/>
 </Layout>

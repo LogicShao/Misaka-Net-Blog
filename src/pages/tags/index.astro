@@ -1,0 +1,532 @@
+---
+// Misaka Network - Tags Overview Page
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+// 获取所有已发布的博客文章
+const allPosts = await getCollection('blog', ({ data }) => data.draft !== true);
+
+// 提取所有标签并统计文章数量
+const tagStats = new Map<string, number>();
+allPosts.forEach(post => {
+    const tags = post.data.tags || [];
+    tags.forEach(tag => {
+        tagStats.set(tag, (tagStats.get(tag) || 0) + 1);
+    });
+});
+
+// 转换为数组并按文章数量降序排序
+const sortedTags = Array.from(tagStats.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+
+// 计算总标签数和总文章数
+const totalTags = sortedTags.length;
+const totalPosts = allPosts.length;
+
+// 预定义的标签颜色方案（循环使用）
+const colorSchemes = [
+    { bg: 'rgba(74, 222, 128, 0.1)', border: 'rgba(74, 222, 128, 0.5)', text: '#4ade80', hover: 'rgba(74, 222, 128, 0.2)' }, // 电路板绿
+    { bg: 'rgba(56, 189, 248, 0.1)', border: 'rgba(56, 189, 248, 0.5)', text: '#38bdf8', hover: 'rgba(56, 189, 248, 0.2)' }, // 辅助蓝
+    { bg: 'rgba(168, 85, 247, 0.1)', border: 'rgba(168, 85, 247, 0.5)', text: '#a855f7', hover: 'rgba(168, 85, 247, 0.2)' }, // 紫色
+    { bg: 'rgba(251, 146, 60, 0.1)', border: 'rgba(251, 146, 60, 0.5)', text: '#fb923c', hover: 'rgba(251, 146, 60, 0.2)' },  // 橙色
+    { bg: 'rgba(244, 63, 94, 0.1)', border: 'rgba(244, 63, 94, 0.5)', text: '#f43f5e', hover: 'rgba(244, 63, 94, 0.2)' },     // 玫红
+    { bg: 'rgba(34, 197, 94, 0.1)', border: 'rgba(34, 197, 94, 0.5)', text: '#22c55e', hover: 'rgba(34, 197, 94, 0.2)' },     // 翠绿
+];
+---
+
+<Layout
+    title="标签归档 - Misaka Network"
+    description={`浏览所有 ${totalTags} 个标签，涵盖 ${totalPosts} 篇文章`}
+>
+    <!-- Page Header -->
+    <div class="mb-12">
+        <nav class="text-sm mb-6 font-mono" style="color: var(--text-muted);">
+            <a href="/" class="hover:text-misaka-blue transition-colors">Home</a>
+            <span class="mx-2">/</span>
+            <a href="/blog" class="hover:text-misaka-blue transition-colors">Blog</a>
+            <span class="mx-2">/</span>
+            <span class="text-misaka-circuit">Tags</span>
+        </nav>
+
+        <div class="flex items-baseline space-x-4 mb-4">
+            <h1 class="text-4xl md:text-5xl font-bold font-sans" style="color: var(--text-primary);">
+                标签归档
+            </h1>
+            <div class="flex items-center space-x-2 text-sm font-mono" style="color: var(--text-muted);">
+                <span class="px-3 py-1 bg-misaka-circuit/20 border border-misaka-circuit/50 rounded-lg text-misaka-circuit">
+                    {totalTags} 个标签
+                </span>
+                <span class="px-3 py-1 bg-misaka-blue/20 border border-misaka-blue/50 rounded-lg text-misaka-blue">
+                    {totalPosts} 篇文章
+                </span>
+            </div>
+        </div>
+
+        <p class="text-lg font-mono" style="color: var(--text-muted);">
+            // Explore topics by tags
+        </p>
+
+        <div class="divider-circuit mt-6"></div>
+    </div>
+
+    <!-- Statistics (Moved to Top) -->
+    <div class="mb-12 network-panel">
+        <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+            📊 标签统计
+        </h2>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stat-item">
+                <div class="stat-label">最多文章的标签</div>
+                <div class="stat-value">
+                    <a href={`/tags/${sortedTags[0].tag}`} class="hover:text-misaka-circuit transition-colors">
+                        #{sortedTags[0].tag}
+                    </a>
+                    <span class="stat-count">({sortedTags[0].count} 篇)</span>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-label">标签总数</div>
+                <div class="stat-value">
+                    {totalTags} 个
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-label">平均每个标签</div>
+                <div class="stat-value">
+                    {(totalPosts / totalTags).toFixed(1)} 篇
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-container">
+            <h3 class="text-lg font-semibold mb-4 font-sans" style="color: var(--text-secondary);">
+                标签分布 (Top 10)
+            </h3>
+            <div class="chart-wrapper">
+                <canvas id="tagChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tags Grid -->
+    <div class="mb-8">
+        <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+            🏷️ 所有标签
+        </h2>
+    </div>
+
+    {sortedTags.length > 0 && (
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {sortedTags.map(({ tag, count }, index) => {
+                const colorScheme = colorSchemes[index % colorSchemes.length];
+                return (
+                    <a
+                        href={`/tags/${tag}`}
+                        class="tag-card group"
+                        style={`
+                            --tag-bg: ${colorScheme.bg};
+                            --tag-border: ${colorScheme.border};
+                            --tag-text: ${colorScheme.text};
+                            --tag-hover: ${colorScheme.hover};
+                        `}
+                    >
+                        <div class="tag-card-content">
+                            <div class="tag-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <div class="tag-info">
+                                <h3 class="tag-name">
+                                    #{tag}
+                                </h3>
+                                <p class="tag-count">
+                                    {count} {count === 1 ? '篇文章' : '篇文章'}
+                                </p>
+                            </div>
+                            <div class="tag-arrow">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                );
+            })}
+        </div>
+    )}
+
+    <!-- Back Link -->
+    <div class="mt-12 text-center">
+        <a
+            href="/blog"
+            class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            <span>返回博客列表</span>
+        </a>
+    </div>
+</Layout>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Chart Initialization Script -->
+<script define:vars={{ sortedTags: sortedTags.slice(0, 10) }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('tagChart');
+        if (!canvas) return;
+
+        // 获取当前主题
+        const isDark = document.documentElement.classList.contains('dark');
+
+        // 主题颜色配置
+        const colors = {
+            primary: isDark ? '#4ade80' : '#22c55e',
+            secondary: isDark ? '#38bdf8' : '#3b82f6',
+            text: isDark ? '#f0f8ff' : '#0f172a',
+            grid: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+            background: isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(74, 222, 128, 0.2)',
+            border: isDark ? 'rgba(74, 222, 128, 0.5)' : 'rgba(74, 222, 128, 0.7)',
+        };
+
+        // 准备图表数据
+        const labels = sortedTags.map(item => item.tag);
+        const data = sortedTags.map(item => item.count);
+
+        // 创建渐变色
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, colors.primary);
+        gradient.addColorStop(1, colors.secondary);
+
+        // 初始化图表
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '文章数量',
+                    data: data,
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    hoverBackgroundColor: colors.primary + '40',
+                    hoverBorderColor: colors.primary,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        titleColor: colors.text,
+                        bodyColor: colors.text,
+                        borderColor: colors.border,
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: (items) => `#${items[0].label}`,
+                            label: (item) => `${item.parsed.y} 篇文章`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: colors.text,
+                            font: {
+                                size: 12
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: colors.grid,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: colors.text,
+                            font: {
+                                size: 12
+                            },
+                            stepSize: 1,
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // 监听主题切换
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const newIsDark = document.documentElement.classList.contains('dark');
+
+                    // 更新颜色
+                    const newColors = {
+                        primary: newIsDark ? '#4ade80' : '#22c55e',
+                        secondary: newIsDark ? '#38bdf8' : '#3b82f6',
+                        text: newIsDark ? '#f0f8ff' : '#0f172a',
+                        grid: newIsDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+                        background: newIsDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(74, 222, 128, 0.2)',
+                        border: newIsDark ? 'rgba(74, 222, 128, 0.5)' : 'rgba(74, 222, 128, 0.7)',
+                    };
+
+                    // 更新图表配置
+                    chart.data.datasets[0].backgroundColor = newColors.background;
+                    chart.data.datasets[0].borderColor = newColors.border;
+                    chart.data.datasets[0].hoverBackgroundColor = newColors.primary + '40';
+                    chart.data.datasets[0].hoverBorderColor = newColors.primary;
+
+                    chart.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+                    chart.options.plugins.tooltip.titleColor = newColors.text;
+                    chart.options.plugins.tooltip.bodyColor = newColors.text;
+                    chart.options.plugins.tooltip.borderColor = newColors.border;
+
+                    chart.options.scales.x.ticks.color = newColors.text;
+                    chart.options.scales.y.ticks.color = newColors.text;
+                    chart.options.scales.y.grid.color = newColors.grid;
+
+                    chart.update();
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    });
+</script>
+
+<style>
+    /* 图表容器样式 */
+    .chart-container {
+        margin-top: 1rem;
+        padding: 1.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+        border-color: rgba(74, 222, 128, 0.4);
+        box-shadow: 0 4px 12px rgba(74, 222, 128, 0.1);
+    }
+
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+        .chart-container {
+            padding: 1rem;
+        }
+
+        .chart-wrapper {
+            max-width: 100%;
+        }
+    }
+
+    /* 标签卡片样式 */
+    .tag-card {
+        display: block;
+        text-decoration: none;
+        background: var(--tag-bg);
+        border: 1px solid var(--tag-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tag-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--tag-hover);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+    }
+
+    .tag-card:hover::before {
+        opacity: 1;
+    }
+
+    .tag-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: var(--tag-text);
+    }
+
+    .tag-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .tag-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        color: var(--tag-text);
+        transition: all 0.3s ease;
+    }
+
+    .tag-card:hover .tag-icon {
+        transform: rotate(12deg) scale(1.1);
+        background: var(--tag-text);
+        color: var(--bg-primary);
+    }
+
+    .tag-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tag-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--tag-text);
+        margin: 0;
+        line-height: 1.4;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tag-count {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin: 0;
+        margin-top: 0.25rem;
+    }
+
+    .tag-arrow {
+        flex-shrink: 0;
+        color: var(--tag-text);
+        opacity: 0;
+        transform: translateX(-8px);
+        transition: all 0.3s ease;
+    }
+
+    .tag-card:hover .tag-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* 统计项样式 */
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        border-color: var(--misaka-circuit);
+        box-shadow: 0 4px 12px rgba(74, 222, 128, 0.1);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .stat-count {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 400;
+        margin-left: 0.5rem;
+    }
+
+    /* 响应式优化 */
+    @media (max-width: 640px) {
+        .tag-card {
+            padding: 1rem;
+        }
+
+        .tag-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .tag-name {
+            font-size: 1rem;
+        }
+
+        .tag-count {
+            font-size: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* 深色模式优化 */
+    :global(.dark) .tag-card {
+        background: var(--tag-bg);
+    }
+
+    :global(.dark) .tag-icon {
+        background: rgba(30, 41, 59, 0.8);
+    }
+
+    :global(.dark) .tag-card:hover .tag-icon {
+        background: var(--tag-text);
+    }
+
+    :global(.dark) .stat-item {
+        background: rgba(30, 41, 59, 0.5);
+    }
+</style>

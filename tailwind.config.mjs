@@ -15,7 +15,24 @@ export default {
                 'misaka-gray': '#64748b',      // 中灰
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                sans: [
+                    'Inter',
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    'system-ui',
+                    'PingFang SC',
+                    'Microsoft YaHei',
+                    'Segoe UI',
+                    'Roboto',
+                    'Helvetica Neue',
+                    'Arial',
+                    'Noto Sans',
+                    'sans-serif',
+                    'Apple Color Emoji',
+                    'Segoe UI Emoji',
+                    'Segoe UI Symbol',
+                    'Noto Color Emoji'
+                ],
                 mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
             },
             backgroundImage: {
