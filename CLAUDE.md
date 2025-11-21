@@ -25,7 +25,20 @@ npm run dev          # 启动开发服务器 (localhost:4321)
 npm run build        # 构建生产版本到 ./dist/
 npm run preview      # 预览构建结果
 npm run new          # 交互式创建新博客文章 (推荐)
+node admin-server.js # 启动 Admin 管理后台 (localhost:3001)
 ```
+
+## 开发服务器运行规则
+
+**重要：** 除非用户明确要求，否则不要执行以下命令：
+- `npm run dev` / `npm start`
+- `npm run build`（除非用户要求构建）
+- 任何启动服务器的命令
+
+**原则：**
+- 仅在用户明确请求"启动开发服务器"或"运行 dev"时执行
+- 不要假设用户需要预览更改
+- 代码修改完成后，说明更改内容即可，不要自动启动服务器
 
 ## 核心架构要点
 
@@ -163,6 +176,22 @@ const nextPost = allPosts[currentIndex - 1]; // 时间更新的文章
 
 **响应式断点：** sm (640px), md (768px), lg (1024px), xl (1280px)
 
+### 9. Admin 管理后台
+
+**架构：**
+- 后端：Express.js (`admin-server.js`, 端口 3001)
+- 前端：纯 HTML/CSS/JS (`admin-ui/index.html`)
+- API：RESTful (GET/POST/PUT/DELETE `/api/posts/*`)
+
+**核心功能：**
+- 文章列表、创建、编辑、删除
+- 触发 `npm run build` 构建
+- Frontmatter 解析与生成
+
+**Frontmatter 处理注意：**
+- `parseFrontmatter()`: 解析 YAML，布尔值 "true"/"false" 需转为真正的 boolean
+- `buildFrontmatter()`: 生成 YAML，布尔值和数字不加引号，字符串加引号
+
 ## 关键开发陷阱
 
 ### 1. Tailwind Typography 反引号问题
@@ -241,6 +270,8 @@ site: 'https://blog.misaka-net.top'  // 用于 sitemap 和 RSS
 | `tailwind.config.mjs` | Tailwind 扩展（Misaka 主题色、字体） |
 | `src/styles/global.css` | 全局样式（CSS 变量、@layer 结构） |
 | `scripts/new-post.js` | 交互式创建文章工具 |
+| `admin-server.js` | Admin 后台服务器 (Express, 端口 3001) |
+| `admin-ui/index.html` | Admin 前端界面（文章 CRUD、构建触发） |
 
 ## 常见问题速查
 
