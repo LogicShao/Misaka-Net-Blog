@@ -10,32 +10,14 @@ export interface FriendLink {
 	url: string;
 	avatar: string;
 	description: string;
+	note?: string; // 备注（仅用于本地管理，不在前端显示）
 }
 
 export const FRIEND_LINKS: FriendLink[] = [
 	{
-        name: 'Astro 官方文档',
-        url: 'https://astro.build',
-        avatar: 'https://astro.build/assets/press/astro-icon-light-gradient.svg',
-        description: '现代化的静态站点生成框架，性能卓越'
-    },
-    {
-        name: 'Tailwind CSS',
-        url: 'https://tailwindcss.com',
-        avatar: 'https://avatars.githubusercontent.com/u/67109815?s=200&v=4',
-        description: '实用优先的 CSS 框架，快速构建现代界面'
-    },
-    {
-        name: 'MDN Web Docs',
-        url: 'https://developer.mozilla.org',
-        avatar: 'https://avatars.githubusercontent.com/u/7565578?s=200&v=4',
-        description: 'Web 技术权威文档，前端开发者必备资源'
-	},
-	{
-        name: 'GitHub',
-        url: 'https://github.com',
-        avatar: 'https://avatars.githubusercontent.com/u/9919?s=200&v=4',
-        description: '全球最大的代码托管平台和开发者社区'
-	},
-	// 在这里添加更多友链
+        name: '夏夜流萤',
+        url: 'https://blog.cuteleaf.cn',
+        avatar: 'https://q1.qlogo.cn/g?b=qq&nk=7618557&s=640',
+        description: '飞萤之火自无梦的长夜亮起，绽放在终竟的明天。'
+    }
 ];

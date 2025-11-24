@@ -19,6 +19,7 @@ app.use(express.json());
 app.use(express.static('admin-ui'));
 
 const BLOG_DIR = path.join(__dirname, 'src', 'content', 'blog');
+const CONSTS_FILE = path.join(__dirname, 'src', 'consts.ts');
 
 // 解析 Markdown frontmatter
 function parseFrontmatter(content) {
@@ -105,6 +106,96 @@ function buildFrontmatter(frontmatter) {
 
   result += '---\n';
   return result;
+}
+
+// ==================== 友链管理函数 ====================
+
+/**
+ * 读取并解析 consts.ts 文件中的友链数据
+ */
+function readFriendLinks() {
+  try {
+    const content = fs.readFileSync(CONSTS_FILE, 'utf8');
+
+    // 提取 FRIEND_LINKS 数组
+    const match = content.match(/export const FRIEND_LINKS: FriendLink\[\] = \[([\s\S]*?)\];/);
+
+    if (!match) {
+      throw new Error('无法找到 FRIEND_LINKS 数组');
+    }
+
+    // 解析友链对象（支持可选的 note 字段）
+    const arrayContent = match[1];
+    const objectRegex = /\{[\s\S]*?name:\s*'([^']+)'[\s\S]*?url:\s*'([^']+)'[\s\S]*?avatar:\s*'([^']+)'[\s\S]*?description:\s*'([^']+)'(?:[\s\S]*?note:\s*'([^']*)')?[\s\S]*?\}/g;
+
+    const friendLinks = [];
+    let objectMatch;
+    while ((objectMatch = objectRegex.exec(arrayContent)) !== null) {
+      const friendLink = {
+        name: objectMatch[1],
+        url: objectMatch[2],
+        avatar: objectMatch[3],
+        description: objectMatch[4]
+      };
+
+      // 添加 note 如果存在
+      if (objectMatch[5]) {
+        friendLink.note = objectMatch[5];
+      }
+
+      friendLinks.push(friendLink);
+    }
+
+    return { content, friendLinks };
+  } catch (error) {
+    throw new Error(`读取友链数据失败: ${error.message}`);
+  }
+}
+
+/**
+ * 生成友链数组的 TypeScript 代码
+ */
+function generateFriendLinksCode(friendLinks) {
+  const items = friendLinks.map(link => {
+    let code = `\t{
+        name: '${link.name}',
+        url: '${link.url}',
+        avatar: '${link.avatar}',
+        description: '${link.description}'`;
+
+    // 添加 note 如果存在
+    if (link.note) {
+      code += `,\n        note: '${link.note}'`;
+    }
+
+    code += '\n    }';
+    return code;
+  }).join(',\n');
+
+  return `export const FRIEND_LINKS: FriendLink[] = [
+${items}
+];`;
+}
+
+/**
+ * 写入更新后的友链数据到 consts.ts
+ */
+function writeFriendLinks(friendLinks) {
+  try {
+    const { content } = readFriendLinks();
+    const newFriendLinksCode = generateFriendLinksCode(friendLinks);
+
+    // 替换原有的 FRIEND_LINKS 数组
+    const newContent = content.replace(
+      /export const FRIEND_LINKS: FriendLink\[\] = \[[\s\S]*?\];/,
+      newFriendLinksCode
+    );
+
+    fs.writeFileSync(CONSTS_FILE, newContent, 'utf8');
+    return true;
+  } catch (error) {
+    throw new Error(`写入友链数据失败: ${error.message}`);
+  }
 }
 
 // API: 获取所有文章列表
@@ -277,6 +368,179 @@ app.get('/api/build/status', (req, res) => {
   } else {
     res.json({
       built: false,
+    });
+  }
+});
+
+// ==================== 友链管理 API ====================
+
+// API: 获取所有友链
+app.get('/api/friends', (req, res) => {
+  try {
+    const { friendLinks } = readFriendLinks();
+    res.json({
+      success: true,
+      data: friendLinks
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 添加友链
+app.post('/api/friends', (req, res) => {
+  try {
+    const { name, url, avatar, description, note } = req.body;
+
+    // 验证必填字段
+    if (!name || !url || !avatar || !description) {
+      return res.status(400).json({
+        success: false,
+        error: '所有字段都是必填的'
+      });
+    }
+
+    // URL 验证
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return res.status(400).json({
+        success: false,
+        error: 'URL 必须以 http:// 或 https:// 开头'
+      });
+    }
+
+    // 读取现有友链并添加新友链
+    const { friendLinks } = readFriendLinks();
+    const newFriend = {
+      name: name.trim(),
+      url: url.trim(),
+      avatar: avatar.trim(),
+      description: description.trim()
+    };
+
+    // 添加 note 如果提供
+    if (note && note.trim()) {
+      newFriend.note = note.trim();
+    }
+
+    friendLinks.push(newFriend);
+
+    // 写入文件
+    writeFriendLinks(friendLinks);
+
+    res.json({
+      success: true,
+      message: '友链添加成功',
+      data: friendLinks
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 更新友链
+app.put('/api/friends/:index', (req, res) => {
+  try {
+    const index = parseInt(req.params.index);
+    const { name, url, avatar, description, note } = req.body;
+
+    // 验证必填字段
+    if (!name || !url || !avatar || !description) {
+      return res.status(400).json({
+        success: false,
+        error: '所有字段都是必填的'
+      });
+    }
+
+    // URL 验证
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return res.status(400).json({
+        success: false,
+        error: 'URL 必须以 http:// 或 https:// 开头'
+      });
+    }
+
+    // 读取现有友链
+    const { friendLinks } = readFriendLinks();
+
+    // 验证索引
+    if (isNaN(index) || index < 0 || index >= friendLinks.length) {
+      return res.status(400).json({
+        success: false,
+        error: '无效的友链索引'
+      });
+    }
+
+    // 更新友链
+    const updatedFriend = {
+      name: name.trim(),
+      url: url.trim(),
+      avatar: avatar.trim(),
+      description: description.trim()
+    };
+
+    // 添加 note 如果提供，或者保留原有的 note
+    if (note && note.trim()) {
+      updatedFriend.note = note.trim();
+    } else if (friendLinks[index].note) {
+      updatedFriend.note = friendLinks[index].note;
+    }
+
+    friendLinks[index] = updatedFriend;
+
+    // 写入文件
+    writeFriendLinks(friendLinks);
+
+    res.json({
+      success: true,
+      message: '友链更新成功',
+      data: friendLinks
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 删除友链
+app.delete('/api/friends/:index', (req, res) => {
+  try {
+    const index = parseInt(req.params.index);
+
+    // 读取现有友链
+    const { friendLinks } = readFriendLinks();
+
+    // 验证索引
+    if (isNaN(index) || index < 0 || index >= friendLinks.length) {
+      return res.status(400).json({
+        success: false,
+        error: '无效的友链索引'
+      });
+    }
+
+    // 删除友链
+    const deletedLink = friendLinks.splice(index, 1)[0];
+
+    // 写入文件
+    writeFriendLinks(friendLinks);
+
+    res.json({
+      success: true,
+      message: '友链删除成功',
+      deletedLink,
+      data: friendLinks
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

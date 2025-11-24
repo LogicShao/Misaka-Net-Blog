@@ -9,6 +9,8 @@
     "astro": "astro",
     "build-and-preview": "astro build && astro preview",
     "new": "node scripts/new-post.js",
+    "friends": "node scripts/manage-friends.js",
+    "friends:test": "node scripts/test-friends.js",
     "admin": "node admin-server.js"
   },
   "dependencies": {

@@ -208,10 +208,12 @@ body {
 .main-content {
   display: grid;
   grid-template-columns: 380px 1fr;
+  grid-template-rows: minmax(0, 1fr); /* 关键：限制行高度 */
   gap: var(--space-5);
   padding: var(--space-5);
   overflow: hidden;
   flex: 1;
+  min-height: 0; /* 关键：允许 flex 子元素收缩 */
 }
 
 /* 侧边栏 - 文章列表 */
@@ -222,6 +224,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0; /* 允许 flex 子元素滚动 */
+  height: 100%; /* 强制使用 grid 单元格的高度 */
 }
 
 .sidebar-header {
@@ -289,6 +293,8 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: var(--space-3);
+  min-height: 0;
+  max-height: calc(100vh - 280px); /* 窗口高度 - 工具栏 - 头部 - 统计 - padding */
 }
 
 .post-item {
@@ -366,6 +372,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0; /* 允许 flex 子元素滚动 */
+  height: 100%; /* 强制使用 grid 单元格的高度 */
 }
 
 .editor-header {
@@ -415,6 +423,8 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: var(--space-5);
+  min-height: 0;
+  max-height: calc(100vh - 200px); /* 窗口高度 - 工具栏 - 编辑器头部 - padding */
 }
 
 /* 表单元素 */
@@ -490,10 +500,15 @@ body {
 .status-message {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
+  margin: 0 var(--space-5) var(--space-4) var(--space-5);
   font-size: 14px;
   display: none;
   animation: slideDown 0.3s ease;
+  flex-shrink: 0; /* 不压缩 */
+}
+
+.status-message.show {
+  display: block;
 }
 
 @keyframes slideDown {
@@ -707,5 +722,210 @@ body {
 
   .sidebar {
     max-height: 400px;
+  }
+}
+
+/* ==================== 友链管理样式 ==================== */
+
+/* 友链列表项 */
+.friend-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.friend-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateX(4px);
+}
+
+.friend-item.active {
+  border-color: var(--primary-color);
+  background: var(--bg-tertiary);
+}
+
+/* 友链头像 */
+.friend-avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 友链信息 */
+.friend-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-url {
+  font-size: 12px;
+  color: var(--primary-color);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.friend-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 4px;
+  border-left: 2px solid var(--primary);
+}
+
+/* 友链统计 */
+.friend-stats {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  flex-shrink: 0; /* 不压缩 */
+}
+
+/* 友链列表容器 */
+.friend-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+  min-height: 0;
+  max-height: calc(100vh - 250px); /* 窗口高度 - 工具栏 - 头部 - 统计 - padding */
+}
+
+/* 友链编辑表单 */
+.friend-form {
+  padding: 20px;
+}
+
+.friend-form .form-group {
+  margin-bottom: 20px;
+}
+
+.friend-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.friend-form label .required {
+  color: var(--danger-color);
+  margin-left: 4px;
+}
+
+.friend-form .form-control {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.friend-form .form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--bg-tertiary);
+}
+
+.friend-form textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.friend-form .form-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 头像预览 */
+.avatar-preview {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-preview img {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+/* 编辑器操作按钮 */
+.editor-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .friend-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .friend-name {
+    font-size: 13px;
+  }
+
+  .friend-url,
+  .friend-description {
+    font-size: 11px;
   }
 }

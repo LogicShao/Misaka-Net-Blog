@@ -16,6 +16,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   buildBlog: () => ipcRenderer.invoke('build-blog'),
   getBuildStatus: () => ipcRenderer.invoke('get-build-status'),
 
+  // 友链管理
+  getFriends: () => ipcRenderer.invoke('get-friends'),
+  addFriend: (data) => ipcRenderer.invoke('add-friend', data),
+  updateFriend: (index, data) => ipcRenderer.invoke('update-friend', { index, friendData: data }),
+  deleteFriend: (index) => ipcRenderer.invoke('delete-friend', index),
+
   // 菜单事件监听
   onMenuNewPost: (callback) => {
     ipcRenderer.on('menu-new-post', callback);

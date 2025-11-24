@@ -26,6 +26,8 @@ npm run build               # 构建生产版本到 ./dist/
 npm run preview             # 预览构建结果
 npm run build-and-preview   # 构建后立即预览
 npm run new                 # 交互式创建新博客文章 (推荐)
+npm run friends             # 交互式友链管理工具 (增删改查)
+npm run friends:test        # 测试友链数据读取功能
 npm run admin               # 启动 Admin 管理后台 (localhost:3001)
 npm run astro -- --version  # 查看 Astro 版本
 ```
@@ -401,6 +403,7 @@ npm run dev               # 启动 Electron（带开发者工具）
 
 **核心功能：**
 - 文章列表、创建、编辑、删除
+- 友链管理（增删改查）
 - 触发 `npm run build` 构建
 - Frontmatter 解析与生成
 - 实时预览 Markdown 渲染（Electron 版）
@@ -448,6 +451,115 @@ function buildFrontmatter(frontmatter) {
 | PUT | `/api/posts/:id` | 更新文章 |
 | DELETE | `/api/posts/:id` | 删除文章 |
 | POST | `/api/build` | 触发 `npm run build` |
+| GET | `/api/friends` | 获取所有友链 |
+| POST | `/api/friends` | 添加新友链 |
+| PUT | `/api/friends/:index` | 更新友链（按索引） |
+| DELETE | `/api/friends/:index` | 删除友链（按索引） |
+
+### 10. 友链管理工具
+
+**概述：**
+交互式 CLI 工具，用于管理 `src/consts.ts` 中的友链数据，支持增删改查操作。
+
+**启动方式：**
+```bash
+npm run friends        # 交互式友链管理（增删改查）
+npm run friends:test   # 快速查看当前所有友链（只读）
+```
+
+**核心功能：**
+
+1. **📋 查看所有友链**
+   - 列出所有友链的详细信息（名称、链接、头像、描述）
+   - 显示友链编号，便于后续编辑和删除操作
+
+2. **➕ 添加新友链**
+   - 交互式输入友链信息：
+     - 🏷️  友链名称（必填）
+     - 🔗 友链地址（必填，需以 http/https 开头）
+     - 🖼️  头像链接（必填）
+     - 📝 友链描述（必填）
+   - 添加前显示预览，确认后写入文件
+
+3. **✏️  编辑友链**
+   - 选择要编辑的友链编号
+   - 支持部分更新（直接按回车保持原值不变）
+   - 更新前显示预览，确认后保存
+
+4. **🗑️  删除友链**
+   - 选择要删除的友链编号
+   - 显示即将删除的友链详情
+   - 需要二次确认以防误删
+
+**实现细节：**
+
+**文件解析机制：**
+```javascript
+// 使用正则表达式解析 TypeScript 文件
+const match = content.match(/export const FRIEND_LINKS: FriendLink\[\] = \[([\s\S]*?)\];/);
+
+// 提取每个友链对象
+const objectRegex = /\{[\s\S]*?name:\s*'([^']+)'[\s\S]*?url:\s*'([^']+)'[\s\S]*?avatar:\s*'([^']+)'[\s\S]*?description:\s*'([^']+)'[\s\S]*?\}/g;
+```
+
+**友链数据结构：**
+```typescript
+interface FriendLink {
+  name: string;        // 友链名称
+  url: string;         // 友链地址（需以 http/https 开头）
+  avatar: string;      // 头像链接
+  description: string; // 友链描述
+}
+```
+
+**代码生成：**
+- 自动格式化友链数组为 TypeScript 代码
+- 保持代码风格一致（缩进、引号）
+- 原子性写入，避免文件损坏
+
+**使用示例：**
+```bash
+$ npm run friends
+
+╔══════════════════════════════════════════╗
+║  🔗 Misaka Network - 友链管理工具      ║
+╚══════════════════════════════════════════╝
+
+请选择操作：
+  1. 📋 查看所有友链
+  2. ➕ 添加新友链
+  3. ✏️  编辑友链
+  4. 🗑️  删除友链
+  0. 🚪 退出
+
+请输入选项 (0-4): 2
+
+➕ 添加新友链
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷️  友链名称 (必填): My Friend's Blog
+🔗 友链地址 (必填，如 https://example.com): https://friend.com
+🖼️  头像链接 (必填): https://friend.com/avatar.png
+📝 友链描述 (必填): 我的好朋友的技术博客
+
+📊 友链信息预览：
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+名称:     My Friend's Blog
+地址:     https://friend.com
+头像:     https://friend.com/avatar.png
+描述:     我的好朋友的技术博客
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ 确认添加? (Y/n): y
+✅ 友链数据已更新！
+
+✨ 成功添加友链: My Friend's Blog
+```
+
+**注意事项：**
+- 所有操作会直接修改 `src/consts.ts` 文件
+- 删除操作需要二次确认以防误删
+- URL 必须以 `http://` 或 `https://` 开头
+- 编辑时直接按回车保持原值不变
 
 ## 关键开发陷阱
 
@@ -583,6 +695,7 @@ site: 'https://blog.misaka-net.top'  // 用于 sitemap 和 RSS
 | `src/pages/blog/[...slug].astro` | 动态路由、前后导航 | ⭐⭐⭐⭐⭐ |
 | `src/pages/search.json.ts` | 搜索索引 API | ⭐⭐⭐⭐ |
 | `scripts/new-post.js` | 交互式创建文章工具 | ⭐⭐⭐⭐ |
+| `scripts/manage-friends.js` | 交互式友链管理工具（增删改查）| ⭐⭐⭐⭐ |
 | `admin-server.js` | Admin 后台服务器 (Express, 端口 3001) | ⭐⭐⭐ |
 | `admin-ui/index.html` | Admin 前端界面（文章 CRUD、构建触发）| ⭐⭐⭐ |
 | `electron-admin/` | Electron 桌面管理应用（可选）| ⭐⭐ |
@@ -663,14 +776,22 @@ const PORT = 3002;  // 改为其他端口
 ### 配置修改
 
 **添加友链：**
+
+**推荐方式（使用 CLI 工具）：**
+```bash
+npm run friends
+# 然后选择选项 2 "➕ 添加新友链"
+```
+
+**手动编辑方式：**
 编辑 `src/consts.ts` 中的 `FRIEND_LINKS` 数组
 ```typescript
 export const FRIEND_LINKS = [
   {
-    title: '友链名称',
-    description: '友链描述',
+    name: '友链名称',
     url: 'https://example.com',
-    avatar: '/avatars/friend.jpg'
+    avatar: '/avatars/friend.jpg',
+    description: '友链描述'
   }
 ];
 ```
@@ -814,7 +935,28 @@ ls -lh dist/_astro/*.js
 
 ## 变更记录
 
-### 2025-11-24
+### 2025-11-24 (下午更新 - Electron Admin 滚动修复)
+- **修复 Electron Admin 管理后台关键滚动问题**：
+  - **问题根源**：Flexbox + Grid 嵌套布局中，`overflow-y: auto` 需要配合明确的高度限制才能触发滚动条
+  - **核心修复**：为所有滚动容器添加基于视口高度的 `max-height` 约束
+    - `.post-list`: `max-height: calc(100vh - 280px)` - 文章列表滚动
+    - `.friend-list`: `max-height: calc(100vh - 250px)` - 友链列表滚动
+    - `.editor-container`: `max-height: calc(100vh - 200px)` - 编辑器内容区滚动
+  - **修复 ES6 模块作用域问题**：
+    - 问题：HTML 内联事件处理器无法访问模块内函数（`loadPost is not defined`）
+    - 解决：将关键函数暴露到全局作用域 (`window.loadPost = loadPost`)
+  - **布局层级优化**：
+    - 为 `.main-content` 添加 `grid-template-rows: minmax(0, 1fr)` 和 `min-height: 0`
+    - 为 `.sidebar` 和 `.editor-panel` 添加 `height: 100%` 强制使用 Grid 单元格高度
+    - 确保所有固定元素设置 `flex-shrink: 0`（工具栏、头部、统计栏、状态消息）
+- **友链备注功能完整性验证**：
+  - ✅ 数据模型：`FriendLink` 接口包含 `note?: string` 字段
+  - ✅ CLI 工具：`manage-friends.js` 完整支持备注的增删改查
+  - ✅ Admin 后台：Express API 和 Electron 前端都支持备注字段
+  - ✅ 网页隔离：`friends.astro` 和 `FriendCard.astro` 不传递/不显示 `note` 字段
+  - 备注仅用于本地管理，不会出现在构建产物或前端页面中
+
+### 2025-11-24 (上午)
 - **实现博客分页功能**：
   - 新增 `Pagination.astro` 分页组件，支持智能页码显示（总页数 > 7 时使用省略号）
   - 重构 `/blog` 路由为 `[...page].astro`，使用 Astro 的 `paginate()` API
@@ -824,6 +966,18 @@ ls -lh dist/_astro/*.js
   - 使用自定义事件（`theme-changed`）替代 MutationObserver，避免无限循环
   - MermaidRenderer 监听主题切换事件，自动重新渲染流程图
   - 添加环境检测，生产环境自动禁用调试日志（`import.meta.env.DEV`）
+- **新增友链管理 CLI 工具**：
+  - 创建 `scripts/manage-friends.js` 交互式友链管理脚本
+  - 支持友链的增删改查操作（查看、添加、编辑、删除）
+  - 自动解析和生成 TypeScript 代码，保持代码风格一致
+  - 添加 `npm run friends` 命令，提供友好的菜单界面
+  - 所有操作包含二次确认机制，防止误操作
+- **Admin 管理后台新增友链编辑功能**：
+  - Express 后端添加友链管理 API 端点（GET/POST/PUT/DELETE `/api/friends/*`）
+  - Electron 桌面应用添加友链管理 IPC 处理器
+  - 前端界面新增视图切换按钮（文章管理 ↔ 友链管理）
+  - 完整的友链 CRUD 界面：列表、添加、编辑、删除、头像预览
+  - 友好的表单验证和错误提示
 - **新增拉康精神分析儿童读本**：创建 `25-11-24-16-00.md`（镜子里的秘密：他者与大他者）
 
 ### 2025-11-23

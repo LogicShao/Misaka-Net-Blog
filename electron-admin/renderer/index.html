@@ -23,6 +23,10 @@
       </div>
     </div>
     <div class="toolbar-right">
+      <button class="btn btn-secondary" id="btnViewMode" data-mode="posts" title="切换到友链管理">
+        <span class="icon">🔗</span>
+        友链管理
+      </button>
       <button class="btn btn-primary" id="btnNewPost" title="新建文章 (Ctrl+N)">
         <span class="icon">➕</span>
         新建文章
@@ -41,7 +45,7 @@
   <!-- 主内容区 -->
   <main class="main-content">
     <!-- 左侧：文章列表 -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="postsView">
       <div class="sidebar-header">
         <h2>📚 文章列表</h2>
         <div class="search-box">
@@ -72,8 +76,33 @@
       </div>
     </aside>
 
-    <!-- 右侧：编辑器 -->
-    <section class="editor-panel">
+    <!-- 左侧：友链列表 -->
+    <aside class="sidebar" id="friendsView" style="display: none;">
+      <div class="sidebar-header">
+        <h2>🔗 友链列表</h2>
+        <button class="btn btn-sm btn-primary" id="btnNewFriend">
+          <span class="icon">➕</span>
+          添加友链
+        </button>
+      </div>
+
+      <div class="friend-stats" id="friendStats">
+        <div class="stat-item">
+          <span class="stat-label">友链总数</span>
+          <span class="stat-value" id="friendTotalCount">0</span>
+        </div>
+      </div>
+
+      <div class="friend-list" id="friendList">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>加载中...</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右侧：文章编辑器 -->
+    <section class="editor-panel" id="postEditor">
       <div class="editor-header">
         <h2>✏️ 编辑器</h2>
         <div class="editor-tabs">
@@ -90,6 +119,37 @@
           <div class="empty-icon">📝</div>
           <p>选择一篇文章开始编辑</p>
           <p class="hint">或点击"新建文章"创建新内容</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右侧：友链编辑器 -->
+    <section class="editor-panel" id="friendEditor" style="display: none;">
+      <div class="editor-header">
+        <h2>🔗 友链编辑</h2>
+        <div class="editor-actions">
+          <button class="btn btn-sm btn-success" id="btnSaveFriend" style="display: none;">
+            <span class="icon">💾</span>
+            保存
+          </button>
+          <button class="btn btn-sm btn-danger" id="btnDeleteFriend" style="display: none;">
+            <span class="icon">🗑️</span>
+            删除
+          </button>
+          <button class="btn btn-sm btn-secondary" id="btnCancelFriend" style="display: none;">
+            <span class="icon">✖️</span>
+            取消
+          </button>
+        </div>
+      </div>
+
+      <div id="friendStatusMessage" class="status-message"></div>
+
+      <div class="editor-container" id="friendEditorContent">
+        <div class="empty-state">
+          <div class="empty-icon">🔗</div>
+          <p>选择一个友链开始编辑</p>
+          <p class="hint">或点击"添加友链"创建新友链</p>
         </div>
       </div>
     </section>
@@ -117,6 +177,6 @@
     </div>
   </div>
 
-  <script src="renderer.js"></script>
+  <script type="module" src="renderer.js"></script>
 </body>
 </html>

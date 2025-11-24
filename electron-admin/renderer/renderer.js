@@ -1,8 +1,12 @@
+// 导入友链管理模块
+import { initFriendsManager, loadFriends } from './friends-manager.js';
+
 // ==================== 全局状态 ====================
 let allPosts = [];
 let filteredPosts = [];
 let currentPost = null;
 let currentTab = 'frontmatter';
+let currentView = 'posts'; // 'posts' or 'friends'
 
 // ==================== DOM 元素 ====================
 const elements = {
@@ -13,6 +17,7 @@ const elements = {
   btnNewPost: document.getElementById('btnNewPost'),
   btnBuild: document.getElementById('btnBuild'),
   btnRefresh: document.getElementById('btnRefresh'),
+  btnViewMode: document.getElementById('btnViewMode'),
   totalCount: document.getElementById('totalCount'),
   publishedCount: document.getElementById('publishedCount'),
   draftCount: document.getElementById('draftCount'),
@@ -20,6 +25,10 @@ const elements = {
   buildLog: document.getElementById('buildLog'),
   buildStatusText: document.getElementById('buildStatusText'),
   blogPath: document.getElementById('blogPath'),
+  postsView: document.getElementById('postsView'),
+  friendsView: document.getElementById('friendsView'),
+  postEditor: document.getElementById('postEditor'),
+  friendEditor: document.getElementById('friendEditor'),
 };
 
 // ==================== 初始化 ====================
@@ -48,6 +57,8 @@ async function init() {
     console.log('[Renderer] Setting up event listeners...');
     setupEventListeners();
     setupMenuListeners();
+    console.log('[Renderer] Initializing friends manager...');
+    initFriendsManager();
     console.log('[Renderer] App init completed successfully');
   } catch (error) {
     console.error('[Renderer] Init error:', error);
@@ -59,7 +70,16 @@ function setupEventListeners() {
   // 按钮事件
   elements.btnNewPost.addEventListener('click', showNewPostForm);
   elements.btnBuild.addEventListener('click', buildBlog);
-  elements.btnRefresh.addEventListener('click', loadPosts);
+  elements.btnRefresh.addEventListener('click', () => {
+    if (currentView === 'posts') {
+      loadPosts();
+    } else {
+      loadFriends();
+    }
+  });
+
+  // 视图切换按钮
+  elements.btnViewMode.addEventListener('click', toggleView);
 
   // 搜索框
   elements.searchInput.addEventListener('input', handleSearch);
@@ -533,3 +553,54 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+
+
+// ==================== 视图切换 ====================
+function toggleView() {
+  if (currentView === 'posts') {
+    // 切换到友链视图
+    currentView = 'friends';
+
+    // 更新按钮文本
+    elements.btnViewMode.innerHTML = '<span class="icon">📝</span> 文章管理';
+    elements.btnViewMode.title = '切换到文章管理';
+
+    // 隐藏文章视图，显示友链视图
+    elements.postsView.style.display = 'none';
+    elements.postEditor.style.display = 'none';
+    elements.friendsView.style.display = 'block';
+    elements.friendEditor.style.display = 'block';
+
+    // 隐藏新建文章按钮
+    elements.btnNewPost.style.display = 'none';
+
+    // 加载友链
+    loadFriends();
+  } else {
+    // 切换到文章视图
+    currentView = 'posts';
+
+    // 更新按钮文本
+    elements.btnViewMode.innerHTML = '<span class="icon">🔗</span> 友链管理';
+    elements.btnViewMode.title = '切换到友链管理';
+
+    // 显示文章视图，隐藏友链视图
+    elements.postsView.style.display = 'block';
+    elements.postEditor.style.display = 'block';
+    elements.friendsView.style.display = 'none';
+    elements.friendEditor.style.display = 'none';
+
+    // 显示新建文章按钮
+    elements.btnNewPost.style.display = 'inline-block';
+
+    // 重新加载文章列表
+    loadPosts();
+  }
+}
+
+// ==================== 暴露函数到全局作用域（用于 HTML 内联事件） ====================
+window.loadPost = loadPost;
+window.savePost = savePost;
+window.deletePost = deletePost;
+window.cancelEdit = cancelEdit;
+window.createPost = createPost;
