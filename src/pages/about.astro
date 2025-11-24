@@ -1,25 +1,27 @@
 ---
 // Misaka Network - About Page
 import Layout from '../layouts/Layout.astro';
+import ProfileCard from '../components/ProfileCard.astro';
+import {PROFILE} from '../consts';
 ---
 
 <Layout
         title="关于 - Misaka Network"
         description="实验日志 - 关于这个博客和它的创建者"
 >
-    <div class="max-w-4xl mx-auto">
-        <!-- Page Header -->
-        <div class="mb-12 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-glow" style="color: var(--text-primary);">
-                实验日志 #10032
-            </h1>
-            <p class="text-xl text-misaka-circuit font-mono">
-                // EXPERIMENT_LOG: MISAKA_NETWORK
-            </p>
-            <div class="divider-circuit mt-6"></div>
-        </div>
+    <!-- Page Header -->
+    <div class="mb-12 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-glow" style="color: var(--text-primary);">
+            实验日志 #10032
+        </h1>
+        <p class="text-xl text-misaka-circuit font-mono">
+            // EXPERIMENT_LOG: MISAKA_NETWORK
+        </p>
+        <div class="divider-circuit mt-6"></div>
+    </div>
 
-        <!-- Main Content -->
+    <!-- Main Content -->
+    <div class="max-w-5xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Column - Main Content -->
             <div class="lg:col-span-2 space-y-8">
@@ -48,12 +50,16 @@ import Layout from '../layouts/Layout.astro';
                         </blockquote>
 
                         <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">技术栈</h3>
-                        <ul class="list-disc list-inside space-y-2" style="color: var(--text-secondary);">
-                            <li>前端：TypeScript, React, Vue, Astro</li>
-                            <li>后端：Node.js, Python, Go</li>
-                            <li>数据库：PostgreSQL, MongoDB, Redis</li>
-                            <li>DevOps：Docker, Kubernetes, GitHub Actions</li>
-                            <li>云平台：Cloudflare, AWS, Vercel</li>
+                        <ul class="list-disc list-inside space-y-2 ml-3" style="color: var(--text-secondary);">
+                            <li><strong>核心框架：</strong>Astro 5.15, TypeScript 5.0, Tailwind CSS 3.4</li>
+                            <li><strong>内容系统：</strong>Markdown/MDX, remark-math, rehype-katex</li>
+                            <li><strong>代码高亮：</strong>Shiki (Dracula 主题)</li>
+                            <li><strong>数学公式：</strong>KaTeX (CDN 动态加载)</li>
+                            <li><strong>流程图：</strong>Mermaid.js (主题响应式渲染)</li>
+                            <li><strong>可视化：</strong>Chart.js (标签统计), WordCloud2.js (内容词云)</li>
+                            <li><strong>搜索引擎：</strong>Fuse.js (客户端模糊搜索)</li>
+                            <li><strong>管理后台：</strong>Express.js + Electron 桌面应用</li>
+                            <li><strong>部署平台：</strong>Cloudflare Pages</li>
                         </ul>
 
                         <h3 class="text-xl font-bold text-misaka-circuit mb-3 mt-8">关注领域</h3>
@@ -139,6 +145,9 @@ import Layout from '../layouts/Layout.astro';
 
             <!-- Right Column - Sidebar -->
             <div class="space-y-8">
+                <!-- Profile Card -->
+                <ProfileCard profile={PROFILE} />
+
                 <!-- System Info -->
                 <div class="network-panel">
                     <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
@@ -147,11 +156,11 @@ import Layout from '../layouts/Layout.astro';
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between">
                             <span style="color: var(--text-muted);">Version</span>
-                            <span class="text-misaka-blue font-mono">v2.0</span>
+                            <span class="text-misaka-blue font-mono">v2.1</span>
                         </div>
                         <div class="flex justify-between">
-                            <span style="color: var(--text-muted);">Built with</span>
-                            <span class="text-misaka-circuit font-mono">Astro</span>
+                            <span style="color: var(--text-muted);">Framework</span>
+                            <span class="text-misaka-circuit font-mono">Astro 5.15</span>
                         </div>
                         <div class="flex justify-between">
                             <span style="color: var(--text-muted);">Hosted on</span>
@@ -208,13 +217,33 @@ import Layout from '../layouts/Layout.astro';
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-misaka-blue rounded-full mt-2 flex-shrink-0"></div>
                             <div>
-                                <div class="font-medium" style="color: var(--text-primary);">2024</div>
-                                <div class="text-xs" style="color: var(--text-muted);">博客重构，采用 Astro + Tailwind
-                                </div>
+                                <div class="font-medium" style="color: var(--text-primary);">2025-01</div>
+                                <div class="text-xs" style="color: var(--text-muted);">新增词云可视化、分页功能</div>
                             </div>
                         </div>
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-misaka-circuit rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">2024-11</div>
+                                <div class="text-xs" style="color: var(--text-muted);">升级 Astro 5.x，新增友链管理</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-misaka-accent rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">2024-10</div>
+                                <div class="text-xs" style="color: var(--text-muted);">实现 Mermaid、数学公式渲染</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-misaka-circuit rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">2024</div>
+                                <div class="text-xs" style="color: var(--text-muted);">博客重构，采用 Astro + Tailwind</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-misaka-blue rounded-full mt-2 flex-shrink-0"></div>
                             <div>
                                 <div class="font-medium" style="color: var(--text-primary);">2023</div>
                                 <div class="text-xs" style="color: var(--text-muted);">开始技术博客写作</div>

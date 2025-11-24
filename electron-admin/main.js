@@ -428,6 +428,11 @@ function buildFrontmatter(frontmatter) {
   let result = '---\n';
 
   for (const [key, value] of Object.entries(frontmatter)) {
+    // 跳过空字符串的 updatedDate（表示未修改）
+    if (key === 'updatedDate' && (!value || value.trim() === '')) {
+      continue;
+    }
+
     if (Array.isArray(value)) {
       result += `${key}: [${value.map(v => `'${v}'`).join(', ')}]\n`;
     } else if (typeof value === 'boolean' || typeof value === 'number') {
@@ -818,6 +823,149 @@ ipcMain.handle('delete-friend', async (event, index) => {
     return { success: true, data: { deletedLink, friendLinks } };
   } catch (error) {
     console.error('[IPC:delete-friend] Error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// ==================== 个人名片管理 IPC 处理程序 ====================
+
+/**
+ * 读取并解析 consts.ts 文件中的 PROFILE 数据
+ */
+async function readProfileSync() {
+  try {
+    const constsPath = BLOG_ROOT ? path.join(BLOG_ROOT, 'src', 'consts.ts') : CONSTS_FILE;
+    const content = await fs.readFile(constsPath, 'utf8');
+
+    // 提取 PROFILE 对象
+    const match = content.match(/export const PROFILE: ProfileInfo = \{([\s\S]*?)\};/);
+
+    if (!match) {
+      throw new Error('无法找到 PROFILE 对象');
+    }
+
+    // 解析个人信息字段
+    const objectContent = match[1];
+    const profile = {};
+
+    // 匹配字段：name, avatar, bio, location, email, github, bilibili, website
+    const fieldRegex = /(\w+):\s*'([^']*)'/g;
+    let fieldMatch;
+    while ((fieldMatch = fieldRegex.exec(objectContent)) !== null) {
+      profile[fieldMatch[1]] = fieldMatch[2];
+    }
+
+    return { content, profile };
+  } catch (error) {
+    throw new Error(`读取个人信息失败: ${error.message}`);
+  }
+}
+
+/**
+ * 生成 PROFILE 对象的 TypeScript 代码
+ */
+function generateProfileCode(profile) {
+  let code = `export const PROFILE: ProfileInfo = {\n`;
+
+  // 必填字段
+  code += `\tname: '${profile.name || ''}',\n`;
+  code += `\tavatar: '${profile.avatar || ''}',\n`;
+  code += `\tbio: '${profile.bio || ''}',\n`;
+
+  // 可选字段
+  if (profile.location) {
+    code += `\tlocation: '${profile.location}',\n`;
+  }
+  if (profile.email) {
+    code += `\temail: '${profile.email}',\n`;
+  }
+  if (profile.github) {
+    code += `\tgithub: '${profile.github}',\n`;
+  }
+  if (profile.bilibili) {
+    code += `\tbilibili: '${profile.bilibili}',\n`;
+  }
+  if (profile.website) {
+    code += `\twebsite: '${profile.website}'\n`;
+  }
+
+  code += `};`;
+  return code;
+}
+
+/**
+ * 写入更新后的 PROFILE 数据到 consts.ts
+ */
+async function writeProfileSync(profile) {
+  try {
+    const { content } = await readProfileSync();
+    const newProfileCode = generateProfileCode(profile);
+
+    // 替换原有的 PROFILE 对象
+    const newContent = content.replace(
+      /export const PROFILE: ProfileInfo = \{[\s\S]*?\};/,
+      newProfileCode
+    );
+
+    const constsPath = BLOG_ROOT ? path.join(BLOG_ROOT, 'src', 'consts.ts') : CONSTS_FILE;
+    await fs.writeFile(constsPath, newContent, 'utf8');
+    return true;
+  } catch (error) {
+    throw new Error(`写入个人信息失败: ${error.message}`);
+  }
+}
+
+// 获取个人信息
+ipcMain.handle('get-profile', async () => {
+  try {
+    const { profile } = await readProfileSync();
+    return { success: true, data: profile };
+  } catch (error) {
+    console.error('[IPC:get-profile] Error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 更新个人信息
+ipcMain.handle('update-profile', async (event, profileData) => {
+  try {
+    const { name, avatar, bio, location, email, github, bilibili, website } = profileData;
+
+    // 验证必填字段
+    if (!name || !avatar || !bio) {
+      return { success: false, error: '姓名、头像和简介是必填的' };
+    }
+
+    // 更新个人信息
+    const updatedProfile = {
+      name: name.trim(),
+      avatar: avatar.trim(),
+      bio: bio.trim()
+    };
+
+    // 添加可选字段
+    if (location && location.trim()) {
+      updatedProfile.location = location.trim();
+    }
+    if (email && email.trim()) {
+      updatedProfile.email = email.trim();
+    }
+    if (github && github.trim()) {
+      updatedProfile.github = github.trim();
+    }
+    if (bilibili && bilibili.trim()) {
+      updatedProfile.bilibili = bilibili.trim();
+    }
+    if (website && website.trim()) {
+      updatedProfile.website = website.trim();
+    }
+
+    // 写入文件
+    await writeProfileSync(updatedProfile);
+
+    return { success: true, data: updatedProfile };
+  } catch (error) {
+    console.error('[IPC:update-profile] Error:', error);
     return { success: false, error: error.message };
   }
 });

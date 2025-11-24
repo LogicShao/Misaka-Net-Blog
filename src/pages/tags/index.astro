@@ -24,6 +24,176 @@ const sortedTags = Array.from(tagStats.entries())
 const totalTags = sortedTags.length;
 const totalPosts = allPosts.length;
 
+// ==================== 词云数据生成 ====================
+/**
+ * 清理 Markdown 语法
+ */
+function cleanMarkdown(text: string): string {
+    if (!text) return '';
+
+    return text
+        // 移除数学公式（优先处理，避免干扰其他规则）
+        .replace(/\$\$[\s\S]*?\$\$/g, ' ')  // 块级公式 $$...$$
+        .replace(/\$[^$]+\$/g, ' ')         // 行内公式 $...$
+
+        // 移除代码块
+        .replace(/```[\s\S]*?```/g, ' ')
+        .replace(/`[^`]+`/g, ' ')
+
+        // 移除链接
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+
+        // 移除图片
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+
+        // 移除标题标记
+        .replace(/^#{1,6}\s+/gm, '')
+
+        // 移除粗体/斜体
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/_([^_]+)_/g, '$1')
+
+        // 移除引用
+        .replace(/^>\s+/gm, '')
+
+        // 移除列表标记
+        .replace(/^[-*+]\s+/gm, '')
+        .replace(/^\d+\.\s+/gm, '')
+
+        // 移除 HTML 标签
+        .replace(/<[^>]+>/g, ' ')
+
+        // 移除多余空白
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * 中文分词辅助函数（简单实现）
+ * 从文本中提取 2-4 个字的词组
+ */
+function extractChineseWords(text: string): string[] {
+    if (!text) return [];
+
+    // 先清理 Markdown 语法
+    const cleanedText = cleanMarkdown(text);
+
+    const words: string[] = [];
+    const cleanText = cleanedText
+        .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ') // 保留中文、英文、数字
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    // 提取 2-4 字的中文词组
+    const chars = cleanText.split('');
+    for (let i = 0; i < chars.length; i++) {
+        for (let len = 2; len <= 4 && i + len <= chars.length; len++) {
+            const word = chars.slice(i, i + len).join('');
+            if (/^[\u4e00-\u9fa5]{2,4}$/.test(word)) {
+                words.push(word);
+            }
+        }
+    }
+
+    // 提取英文单词（2个字母以上）
+    const englishWords = cleanText.match(/[a-zA-Z]{2,}/g) || [];
+    words.push(...englishWords.map(w => w.toLowerCase()));
+
+    return words;
+}
+
+/**
+ * 停用词列表（过滤常见无意义词）- 扩展版
+ */
+const stopWords = new Set([
+    // 中文常见虚词
+    '的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一', '一个', '一些',
+    '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '个',
+    '自己', '这', '那', '里', '就是', '可以', '这个', '来', '与', '但是', '或者', '如果',
+    '因为', '所以', '虽然', '然而', '但', '而且', '并且', '或', '又', '及', '以及',
+    '什么', '怎么', '为什么', '哪里', '哪个', '怎样', '如何', '多少', '几个',
+    '可能', '应该', '需要', '必须', '能够', '已经', '还是', '还有', '只是', '只有',
+    '比如', '例如', '等等', '之类', '通过', '关于', '对于', '根据', '按照',
+    '他', '她', '它', '他们', '她们', '它们', '我们', '你们', '大家',
+    '这些', '那些', '这样', '那样', '怎样', '哪些',
+    '进行', '实现', '使用', '包括', '具有', '属于', '成为', '作为', '由于',
+
+    // LaTeX 常见命令（防止残留）
+    'frac', 'text', 'left', 'right', 'cdot', 'times', 'div', 'sum', 'int',
+    'infty', 'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'theta', 'lambda',
+    'omega', 'sigma', 'sqrt', 'quad', 'qquad', 'geq', 'leq', 'neq', 'approx',
+    'mathbf', 'mathrm', 'mathbb', 'mathcal', 'limits', 'displaystyle',
+
+    // 技术文档常见词
+    '代码', '示例', '如下', '下面', '上面', '接下来', '首先', '其次', '最后',
+    '注意', '重要', '提示', '警告', '备注',
+
+    // 英文停用词
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+    'by', 'from', 'as', 'is', 'was', 'are', 'be', 'been', 'being', 'have', 'has', 'had',
+    'do', 'does', 'did', 'will', 'would', 'should', 'can', 'could', 'may', 'might',
+    'must', 'shall', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it',
+    'we', 'they', 'what', 'which', 'who', 'when', 'where', 'why', 'how',
+    'if', 'so', 'than', 'such', 'no', 'not', 'only', 'own', 'same', 'then', 'there',
+    'their', 'them', 'some', 'all', 'each', 'few', 'more', 'most', 'other', 'into',
+    'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under',
+    'again', 'further', 'once', 'here', 'both', 'very', 'too', 'also'
+]);
+
+/**
+ * 生成词云数据
+ */
+function generateWordCloudData() {
+    const wordFreq = new Map<string, number>();
+
+    allPosts.forEach((post) => {
+        const { title, description, tags } = post.data;
+        const body = post.body || ''; // 获取文章正文
+
+        // 1. 标签权重（×3）
+        (tags || []).forEach(tag => {
+            wordFreq.set(tag, (wordFreq.get(tag) || 0) + 3);
+        });
+
+        // 2. 标题权重（×2）
+        const titleWords = extractChineseWords(title);
+        titleWords.forEach(word => {
+            if (!stopWords.has(word)) {
+                wordFreq.set(word, (wordFreq.get(word) || 0) + 2);
+            }
+        });
+
+        // 3. 正文权重（×2）- 最重要的内容来源
+        if (body) {
+            const bodyWords = extractChineseWords(body);
+            bodyWords.forEach(word => {
+                if (!stopWords.has(word)) {
+                    wordFreq.set(word, (wordFreq.get(word) || 0) + 2);
+                }
+            });
+        }
+
+        // 4. 描述权重（×1）
+        const descWords = extractChineseWords(description || '');
+        descWords.forEach(word => {
+            if (!stopWords.has(word)) {
+                wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+            }
+        });
+    });
+
+    // 过滤低频词（频率 < 3）并转换为词云格式
+    return Array.from(wordFreq.entries())
+        .filter(([_, count]) => count >= 3)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 120) // 取前 120 个词
+        .map(([word, count]) => [word, count] as [string, number]);
+}
+
+const wordCloudData = generateWordCloudData();
+
 // 预定义的标签颜色方案（循环使用）
 const colorSchemes = [
     { bg: 'rgba(74, 222, 128, 0.1)', border: 'rgba(74, 222, 128, 0.5)', text: '#4ade80', hover: 'rgba(74, 222, 128, 0.2)' }, // 电路板绿
@@ -70,7 +240,7 @@ const colorSchemes = [
         <div class="divider-circuit mt-6"></div>
     </div>
 
-    <!-- Statistics (Moved to Top) -->
+    <!-- Statistics -->
     <div class="mb-12 network-panel">
         <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
             📊 标签统计
@@ -163,6 +333,21 @@ const colorSchemes = [
         </div>
     )}
 
+    <!-- Word Cloud Section -->
+    <div class="mb-12 mt-12 network-panel">
+        <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+            ☁️ 内容词云
+        </h2>
+        <p class="text-sm mb-6" style="color: var(--text-muted);">
+            基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
+        </p>
+
+        <!-- Word Cloud Canvas -->
+        <div class="wordcloud-container">
+            <canvas id="wordCloudCanvas"></canvas>
+        </div>
+    </div>
+
     <!-- Back Link -->
     <div class="mt-12 text-center">
         <a
@@ -177,8 +362,227 @@ const colorSchemes = [
     </div>
 </Layout>
 
+<!-- WordCloud2.js (本地文件) -->
+<script is:inline src="/wordcloud2.js"></script>
+
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Word Cloud Initialization Script - Enhanced -->
+<script define:vars={{ wordCloudData }}>
+    // 确保在脚本加载后再执行
+    window.addEventListener('load', () => {
+        console.log('[WordCloud] Page loaded');
+
+        const canvas = document.getElementById('wordCloudCanvas');
+        if (!canvas) {
+            console.error('[WordCloud] Canvas not found');
+            return;
+        }
+
+        // 等待 WordCloud 库加载
+        function initWhenReady() {
+            // 检查 window.WordCloud 是否存在
+            if (typeof window.WordCloud === 'undefined') {
+                console.log('[WordCloud] Waiting for library...', typeof window.WordCloud);
+                setTimeout(initWhenReady, 100);
+                return;
+            }
+
+            console.log('[WordCloud] Library loaded successfully');
+            console.log('[WordCloud] Data length:', wordCloudData.length);
+            console.log('[WordCloud] First 5 items:', wordCloudData.slice(0, 5));
+
+            // 获取当前主题
+            const isDark = document.documentElement.classList.contains('dark');
+
+            // 主题颜色配置 - 增强版渐变色系
+            const colors = isDark
+                ? [
+                    '#4ade80', '#22c55e', '#10b981', '#34d399',  // 绿色系
+                    '#38bdf8', '#0ea5e9', '#06b6d4', '#22d3ee',  // 蓝色系
+                    '#a855f7', '#9333ea', '#c084fc', '#d946ef',  // 紫色系
+                    '#fb923c', '#f97316', '#fb7185', '#fbbf24'   // 暖色系
+                  ]
+                : [
+                    '#22c55e', '#16a34a', '#15803d', '#059669',  // 绿色系
+                    '#3b82f6', '#2563eb', '#1d4ed8', '#0284c7',  // 蓝色系
+                    '#8b5cf6', '#7c3aed', '#a855f7', '#c026d3',  // 紫色系
+                    '#f97316', '#ea580c', '#dc2626', '#d97706'   // 暖色系
+                  ];
+
+            // 智能颜色函数 - 根据词频调整颜色亮度
+            function smartColor(word, weight) {
+                const maxWeight = Math.max(...wordCloudData.map(item => item[1]));
+                const minWeight = Math.min(...wordCloudData.map(item => item[1]));
+                const normalizedWeight = (weight - minWeight) / (maxWeight - minWeight);
+
+                // 高频词使用更亮的颜色
+                const colorIndex = Math.floor(normalizedWeight * (colors.length - 1));
+                return colors[colorIndex] || colors[0];
+            }
+
+            // 初始化词云
+            function initWordCloud() {
+                // 获取设备像素比（支持高DPI屏幕）
+                const dpr = window.devicePixelRatio || 1;
+                console.log('[WordCloud] Device Pixel Ratio (DPI Scale):', dpr);
+
+                // 设置 canvas 物理尺寸
+                const container = canvas.parentElement;
+                const width = container.clientWidth;
+                const height = 500; // 增加高度以获得更好的视觉效果
+
+                // 设置 canvas 的显示尺寸（CSS）
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+
+                // 设置 canvas 的实际尺寸（高DPI支持）
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+
+                // 缩放绘图上下文以匹配设备像素比
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+
+                console.log('[WordCloud] Canvas size:', {
+                    cssWidth: width,
+                    cssHeight: height,
+                    physicalWidth: canvas.width,
+                    physicalHeight: canvas.height,
+                    dpr: dpr
+                });
+
+                // 清空画布
+                ctx.clearRect(0, 0, width, height);
+
+                // 添加加载动画
+                canvas.parentElement.style.opacity = '0.6';
+                canvas.parentElement.style.transition = 'opacity 0.5s ease';
+
+                try {
+                    // 渲染词云
+                    window.WordCloud(canvas, {
+                        list: wordCloudData,
+
+                        // 网格大小（减小以增加密度）
+                        gridSize: Math.round(6 * width / 1024),
+
+                        // 字体大小计算（增加尺寸范围）
+                        weightFactor: function (size) {
+                            const maxSize = Math.max(...wordCloudData.map(item => item[1]));
+                            const minSize = Math.min(...wordCloudData.map(item => item[1]));
+                            const normalized = (size - minSize) / (maxSize - minSize);
+                            // 基础大小 + 动态范围
+                            const baseSize = width / 1024 * 15;
+                            const sizeRange = width / 1024 * 35;
+                            return baseSize + Math.pow(normalized, 0.5) * sizeRange;
+                        },
+
+                        // 字体设置
+                        fontFamily: 'Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+                        fontWeight: function(word, weight) {
+                            // 高频词使用粗体
+                            const maxWeight = Math.max(...wordCloudData.map(item => item[1]));
+                            return weight > maxWeight * 0.7 ? '700' : '600';
+                        },
+
+                        // 颜色函数
+                        color: function(word, weight) {
+                            return smartColor(word, weight);
+                        },
+
+                        // 背景透明
+                        backgroundColor: 'transparent',
+
+                        // 旋转设置（减少旋转以提高可读性）
+                        rotateRatio: 0.15,
+                        rotationSteps: 2,
+                        minRotation: -Math.PI / 8,
+                        maxRotation: Math.PI / 8,
+
+                        // 布局优化
+                        shuffle: true,
+                        shrinkToFit: true,
+                        drawOutOfBound: false,
+                        ellipticity: 0.75, // 调整椭圆度（0.75 更接近圆形，词云更紧凑）
+
+                        // 词云中心点（画布中心）
+                        origin: [width / 2, height / 2],
+
+                        // 清空画布
+                        clearCanvas: true,
+
+                        // 最小字体大小（确保小词也能显示）
+                        minSize: Math.max(8, width / 1024 * 10),
+
+                        // 点击事件（可选）
+                        click: function(item) {
+                            if (item && item[0]) {
+                                console.log('[WordCloud] Clicked:', item[0], 'Weight:', item[1]);
+                                // 可以添加搜索功能
+                                // window.location.href = `/search?q=${encodeURIComponent(item[0])}`;
+                            }
+                        },
+
+                        // hover效果（可选）
+                        hover: function(item, dimension, event) {
+                            if (item) {
+                                canvas.style.cursor = 'pointer';
+                            } else {
+                                canvas.style.cursor = 'default';
+                            }
+                        }
+                    });
+
+                    console.log('[WordCloud] Rendered successfully');
+
+                    // 渲染完成后淡入动画
+                    setTimeout(() => {
+                        canvas.parentElement.style.opacity = '1';
+                    }, 100);
+
+                } catch (error) {
+                    console.error('[WordCloud] Render error:', error);
+                    canvas.parentElement.style.opacity = '1';
+                }
+            }
+
+            // 初始化
+            initWordCloud();
+
+            // 响应窗口大小变化（防抖）
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    initWordCloud();
+                }, 300);
+            });
+
+            // 监听主题切换
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        initWordCloud();
+                    }
+                });
+            });
+
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        // 开始初始化
+        initWhenReady();
+    });
+</script>
 
 <!-- Chart Initialization Script -->
 <script define:vars={{ sortedTags: sortedTags.slice(0, 10) }}>
@@ -324,6 +728,115 @@ const colorSchemes = [
 </script>
 
 <style>
+    /* 词云容器样式 - 增强版 */
+    .wordcloud-container {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        background: linear-gradient(135deg,
+            var(--bg-secondary) 0%,
+            var(--bg-primary) 100%);
+        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .wordcloud-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle,
+            rgba(74, 222, 128, 0.03) 0%,
+            transparent 70%);
+        animation: wordcloud-glow 8s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes wordcloud-glow {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(5%, 5%) scale(1.1); }
+    }
+
+    .wordcloud-container:hover {
+        border-color: rgba(74, 222, 128, 0.6);
+        box-shadow:
+            0 8px 24px rgba(74, 222, 128, 0.15),
+            0 0 0 1px rgba(74, 222, 128, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+    }
+
+    #wordCloudCanvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 添加加载提示 */
+    .wordcloud-container::after {
+        content: '词云生成中...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        font-family: monospace;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .wordcloud-container[data-loading="true"]::after {
+        opacity: 1;
+    }
+
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+        .wordcloud-container {
+            height: 400px;
+            border-radius: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .wordcloud-container {
+            height: 350px;
+        }
+    }
+
+    /* 深色模式增强 */
+    :global(.dark) .wordcloud-container {
+        background: linear-gradient(135deg,
+            rgba(30, 41, 59, 0.8) 0%,
+            rgba(15, 23, 42, 0.9) 100%);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(74, 222, 128, 0.05);
+    }
+
+    :global(.dark) .wordcloud-container::before {
+        background: radial-gradient(circle,
+            rgba(74, 222, 128, 0.05) 0%,
+            transparent 70%);
+    }
+
+    :global(.dark) .wordcloud-container:hover {
+        border-color: rgba(74, 222, 128, 0.4);
+        box-shadow:
+            0 8px 24px rgba(74, 222, 128, 0.2),
+            0 0 0 1px rgba(74, 222, 128, 0.2),
+            inset 0 1px 0 rgba(74, 222, 128, 0.1);
+    }
+
     /* 图表容器样式 */
     .chart-container {
         margin-top: 1rem;

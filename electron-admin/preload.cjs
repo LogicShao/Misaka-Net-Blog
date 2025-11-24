@@ -22,6 +22,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateFriend: (index, data) => ipcRenderer.invoke('update-friend', { index, friendData: data }),
   deleteFriend: (index) => ipcRenderer.invoke('delete-friend', index),
 
+  // 个人名片管理
+  getProfile: () => ipcRenderer.invoke('get-profile'),
+  updateProfile: (data) => ipcRenderer.invoke('update-profile', data),
+
   // 菜单事件监听
   onMenuNewPost: (callback) => {
     ipcRenderer.on('menu-new-post', callback);

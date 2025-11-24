@@ -14,9 +14,9 @@ export const getStaticPaths = (async ({ paginate }) => {
     .filter(post => !post.data.draft)
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-  // 使用 paginate 函数创建分页，每页 10 篇文章
+  // 使用 paginate 函数创建分页，每页 5 篇文章
   return paginate(allPosts, {
-    pageSize: 10,
+    pageSize: 5,
   });
 }) satisfies GetStaticPaths;
 

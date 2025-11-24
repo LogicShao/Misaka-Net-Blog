@@ -23,9 +23,13 @@
       </div>
     </div>
     <div class="toolbar-right">
-      <button class="btn btn-secondary" id="btnViewMode" data-mode="posts" title="切换到友链管理">
+      <button class="btn btn-secondary" id="btnViewMode" data-mode="posts" title="切换视图">
         <span class="icon">🔗</span>
         友链管理
+      </button>
+      <button class="btn btn-secondary" id="btnProfileView" title="个人名片管理">
+        <span class="icon">👤</span>
+        名片管理
       </button>
       <button class="btn btn-primary" id="btnNewPost" title="新建文章 (Ctrl+N)">
         <span class="icon">➕</span>
@@ -100,6 +104,9 @@
         </div>
       </div>
     </aside>
+
+    <!-- 个人名片容器（全宽显示） -->
+    <div id="profile-container" style="display: none;"></div>
 
     <!-- 右侧：文章编辑器 -->
     <section class="editor-panel" id="postEditor">

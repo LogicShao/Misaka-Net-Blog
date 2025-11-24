@@ -4,6 +4,29 @@
 export const SITE_TITLE = 'Misaka Network';
 export const SITE_DESCRIPTION = '御坂网络 - 科学实验日志与技术观测站 | A Certain Scientific Blog';
 
+// 个人信息
+export interface ProfileInfo {
+	name: string;
+	avatar: string;
+	bio: string;
+	location?: string;
+	email?: string;
+	github?: string;
+	bilibili?: string;
+	website?: string;
+}
+
+export const PROFILE: ProfileInfo = {
+	name: '御坂#10032',
+	avatar: 'https://blog.misaka-net.top/favicon.svg',
+	bio: '缺陷电气 | Level 2',
+	location: '学园都市',
+	email: 'wyyxshao@163.com',
+	github: 'https://github.com/LogicShao/Misaka-Net-Blog',
+	bilibili: 'https://space.bilibili.com/432256076',
+	website: 'https://blog.misaka-net.top'
+};
+
 // 友链数据
 export interface FriendLink {
 	name: string;

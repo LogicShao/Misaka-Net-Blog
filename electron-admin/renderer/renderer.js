@@ -1,12 +1,15 @@
 // 导入友链管理模块
 import { initFriendsManager, loadFriends } from './friends-manager.js';
 
+// 导入个人名片管理模块
+import { loadProfile } from './profile-manager.js';
+
 // ==================== 全局状态 ====================
 let allPosts = [];
 let filteredPosts = [];
 let currentPost = null;
 let currentTab = 'frontmatter';
-let currentView = 'posts'; // 'posts' or 'friends'
+let currentView = 'posts'; // 'posts', 'friends', or 'profile'
 
 // ==================== DOM 元素 ====================
 const elements = {
@@ -18,6 +21,7 @@ const elements = {
   btnBuild: document.getElementById('btnBuild'),
   btnRefresh: document.getElementById('btnRefresh'),
   btnViewMode: document.getElementById('btnViewMode'),
+  btnProfileView: document.getElementById('btnProfileView'),
   totalCount: document.getElementById('totalCount'),
   publishedCount: document.getElementById('publishedCount'),
   draftCount: document.getElementById('draftCount'),
@@ -27,6 +31,7 @@ const elements = {
   blogPath: document.getElementById('blogPath'),
   postsView: document.getElementById('postsView'),
   friendsView: document.getElementById('friendsView'),
+  profileContainer: document.getElementById('profile-container'),
   postEditor: document.getElementById('postEditor'),
   friendEditor: document.getElementById('friendEditor'),
 };
@@ -73,13 +78,16 @@ function setupEventListeners() {
   elements.btnRefresh.addEventListener('click', () => {
     if (currentView === 'posts') {
       loadPosts();
-    } else {
+    } else if (currentView === 'friends') {
       loadFriends();
+    } else if (currentView === 'profile') {
+      loadProfile();
     }
   });
 
   // 视图切换按钮
   elements.btnViewMode.addEventListener('click', toggleView);
+  elements.btnProfileView.addEventListener('click', showProfileView);
 
   // 搜索框
   elements.searchInput.addEventListener('input', handleSearch);
@@ -226,6 +234,11 @@ function renderTabContent(post) {
         <input type="date" id="editPubDate" value="${post.frontmatter.pubDate || ''}">
       </div>
       <div class="form-group">
+        <label>🔄 修改日期（可选）</label>
+        <input type="date" id="editUpdatedDate" value="${post.frontmatter.updatedDate || ''}" placeholder="留空表示未修改">
+        <small style="color: var(--text-muted); display: block; margin-top: 4px;">留空表示文章未被修改</small>
+      </div>
+      <div class="form-group">
         <label>🏷️ 标签（用逗号分隔）</label>
         <input type="text" id="editTags" value="${Array.isArray(post.frontmatter.tags) ? post.frontmatter.tags.join(', ') : ''}" placeholder="例如: 技术, 教程, JavaScript">
       </div>
@@ -288,6 +301,11 @@ function showNewPostForm() {
         <div class="form-group">
           <label>📅 发布日期</label>
           <input type="date" id="editPubDate" value="${defaultDate}">
+        </div>
+        <div class="form-group">
+          <label>🔄 修改日期（可选）</label>
+          <input type="date" id="editUpdatedDate" value="" placeholder="留空表示未修改">
+          <small style="color: var(--text-muted); display: block; margin-top: 4px;">新文章通常留空</small>
         </div>
         <div class="form-group">
           <label>🏷️ 标签（用逗号分隔）</label>
@@ -471,11 +489,12 @@ function collectFrontmatter() {
   const title = document.getElementById('editTitle')?.value.trim() || '';
   const description = document.getElementById('editDescription')?.value.trim() || '';
   const pubDate = document.getElementById('editPubDate')?.value || '';
+  const updatedDate = document.getElementById('editUpdatedDate')?.value || '';
   const tagsInput = document.getElementById('editTags')?.value || '';
   const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
   const draft = document.getElementById('editDraft')?.checked || false;
 
-  return { title, description, pubDate, tags, draft };
+  return { title, description, pubDate, updatedDate, tags, draft };
 }
 
 function updateStats() {
@@ -565,9 +584,10 @@ function toggleView() {
     elements.btnViewMode.innerHTML = '<span class="icon">📝</span> 文章管理';
     elements.btnViewMode.title = '切换到文章管理';
 
-    // 隐藏文章视图，显示友链视图
+    // 隐藏文章视图和名片视图，显示友链视图
     elements.postsView.style.display = 'none';
     elements.postEditor.style.display = 'none';
+    elements.profileContainer.style.display = 'none';
     elements.friendsView.style.display = 'block';
     elements.friendEditor.style.display = 'block';
 
@@ -584,11 +604,12 @@ function toggleView() {
     elements.btnViewMode.innerHTML = '<span class="icon">🔗</span> 友链管理';
     elements.btnViewMode.title = '切换到友链管理';
 
-    // 显示文章视图，隐藏友链视图
+    // 显示文章视图，隐藏友链和名片视图
     elements.postsView.style.display = 'block';
     elements.postEditor.style.display = 'block';
     elements.friendsView.style.display = 'none';
     elements.friendEditor.style.display = 'none';
+    elements.profileContainer.style.display = 'none';
 
     // 显示新建文章按钮
     elements.btnNewPost.style.display = 'inline-block';
@@ -596,6 +617,28 @@ function toggleView() {
     // 重新加载文章列表
     loadPosts();
   }
+}
+
+/**
+ * 切换到个人名片视图
+ */
+function showProfileView() {
+  currentView = 'profile';
+
+  // 隐藏所有其他视图
+  elements.postsView.style.display = 'none';
+  elements.postEditor.style.display = 'none';
+  elements.friendsView.style.display = 'none';
+  elements.friendEditor.style.display = 'none';
+
+  // 显示名片容器（全宽）
+  elements.profileContainer.style.display = 'block';
+
+  // 隐藏新建文章按钮
+  elements.btnNewPost.style.display = 'none';
+
+  // 加载个人名片
+  loadProfile();
 }
 
 // ==================== 暴露函数到全局作用域（用于 HTML 内联事件） ====================
