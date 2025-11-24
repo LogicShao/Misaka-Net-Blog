@@ -4,16 +4,164 @@ import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { loadConfig, saveConfig, validateBlogDirectory, getBlogPaths } from './config.js';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 博客根目录（Electron 应用的父目录）
-const BLOG_ROOT = path.resolve(__dirname, '..');
-const BLOG_DIR = path.join(BLOG_ROOT, 'src', 'content', 'blog');
+// 博客根目录（从配置加载）
+let BLOG_ROOT = null;
+let BLOG_DIR = null;
 
 let mainWindow = null;
+let appConfig = null;
+
+/**
+ * 选择博客目录
+ */
+async function selectBlogDirectory() {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择 Misaka Blog 项目目录',
+    message: '请选择包含 Astro 博客项目的根目录',
+    properties: ['openDirectory'],
+    buttonLabel: '选择此目录',
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const selectedPath = result.filePaths[0];
+  console.log('[SelectDir] User selected:', selectedPath);
+
+  // 验证目录
+  const validation = await validateBlogDirectory(selectedPath);
+
+  if (!validation.valid) {
+    dialog.showErrorBox('目录无效', validation.error);
+    return null;
+  }
+
+  return selectedPath;
+}
+
+/**
+ * 初始化博客目录配置
+ */
+async function initializeBlogDirectory() {
+  // 加载配置
+  appConfig = await loadConfig();
+
+  // 如果配置中有目录，验证是否有效
+  if (appConfig.blogRoot) {
+    const validation = await validateBlogDirectory(appConfig.blogRoot);
+
+    if (validation.valid) {
+      BLOG_ROOT = appConfig.blogRoot;
+      const paths = getBlogPaths(BLOG_ROOT);
+      BLOG_DIR = paths.blogDir;
+      console.log('[Init] Using configured blog directory:', BLOG_ROOT);
+      return true;
+    } else {
+      console.log('[Init] Configured directory is invalid:', validation.error);
+    }
+  }
+
+  // 尝试使用默认目录（开发模式）
+  const defaultBlogRoot = path.resolve(__dirname, '..');
+  const defaultValidation = await validateBlogDirectory(defaultBlogRoot);
+
+  if (defaultValidation.valid) {
+    BLOG_ROOT = defaultBlogRoot;
+    const paths = getBlogPaths(BLOG_ROOT);
+    BLOG_DIR = paths.blogDir;
+    console.log('[Init] Using default blog directory (dev mode):', BLOG_ROOT);
+
+    // 保存配置
+    appConfig.blogRoot = BLOG_ROOT;
+    await saveConfig(appConfig);
+    return true;
+  }
+
+  // 需要用户选择目录
+  console.log('[Init] No valid directory found, prompting user to select');
+  return false;
+}
+
+/**
+ * 提示用户选择博客目录
+ */
+async function promptForBlogDirectory() {
+  const selectedPath = await selectBlogDirectory();
+
+  if (!selectedPath) {
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+      type: 'warning',
+      title: '未选择目录',
+      message: '必须选择博客项目目录才能继续使用应用',
+      buttons: ['重新选择', '退出应用'],
+      defaultId: 0,
+    });
+
+    if (choice === 0) {
+      // 重新选择
+      return promptForBlogDirectory();
+    } else {
+      // 退出应用
+      app.quit();
+      return false;
+    }
+  }
+
+  // 保存选择的目录
+  BLOG_ROOT = selectedPath;
+  const paths = getBlogPaths(BLOG_ROOT);
+  BLOG_DIR = paths.blogDir;
+
+  appConfig.blogRoot = BLOG_ROOT;
+  appConfig.lastOpenTime = new Date().toISOString();
+  await saveConfig(appConfig);
+
+  console.log('[Init] Blog directory set to:', BLOG_ROOT);
+  return true;
+}
+
+/**
+ * 更改博客目录
+ */
+async function changeBlogDirectory() {
+  const selectedPath = await selectBlogDirectory();
+
+  if (!selectedPath) {
+    return;
+  }
+
+  // 更新配置
+  BLOG_ROOT = selectedPath;
+  const paths = getBlogPaths(BLOG_ROOT);
+  BLOG_DIR = paths.blogDir;
+
+  appConfig.blogRoot = BLOG_ROOT;
+  appConfig.lastOpenTime = new Date().toISOString();
+  await saveConfig(appConfig);
+
+  console.log('[ChangeBlogDir] Blog directory changed to:', BLOG_ROOT);
+
+  // 提示用户重新加载
+  const choice = dialog.showMessageBoxSync(mainWindow, {
+    type: 'info',
+    title: '目录已更改',
+    message: '博客目录已更改为：\n' + BLOG_ROOT + '\n\n是否立即重新加载应用？',
+    buttons: ['立即重新加载', '稍后手动重新加载'],
+    defaultId: 0,
+  });
+
+  if (choice === 0) {
+    // 重新加载窗口
+    mainWindow.reload();
+  }
+}
 
 // 创建主窗口
 function createWindow() {
@@ -53,7 +201,7 @@ function createWindow() {
     console.log('[Main] Window ready to show');
     mainWindow.show();
     // 默认打开开发者工具（方便调试）
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
   });
 
   // 监听加载完成事件
@@ -105,7 +253,15 @@ function createMenu() {
         {
           label: '打开博客目录',
           click: async () => {
-            await shell.openPath(BLOG_DIR);
+            if (BLOG_DIR) {
+              await shell.openPath(BLOG_DIR);
+            }
+          },
+        },
+        {
+          label: '更改博客目录...',
+          click: async () => {
+            await changeBlogDirectory();
           },
         },
         { type: 'separator' },
@@ -193,6 +349,17 @@ function createMenu() {
 }
 
 // ==================== IPC 处理程序 ====================
+
+// 获取博客目录信息
+ipcMain.handle('get-blog-info', async () => {
+  return {
+    success: true,
+    data: {
+      blogRoot: BLOG_ROOT,
+      blogDir: BLOG_DIR,
+    },
+  };
+});
 
 // 解析 Markdown frontmatter
 function parseFrontmatter(content) {
@@ -437,8 +604,17 @@ ipcMain.handle('get-build-status', async () => {
 
 // ==================== 应用生命周期 ====================
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // 初始化博客目录配置
+  const hasValidDirectory = await initializeBlogDirectory();
+
+  // 创建主窗口
   createWindow();
+
+  // 如果没有有效目录，提示用户选择
+  if (!hasValidDirectory) {
+    await promptForBlogDirectory();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

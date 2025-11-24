@@ -66,6 +66,10 @@
 </style>
 
 <script>
+  // 🔧 开发/生产环境检测
+  const IS_DEV = import.meta.env.DEV;
+  const log = (...args) => IS_DEV && console.log(...args);
+
   // 主题切换逻辑
   function setupThemeToggle() {
     const button = document.getElementById('theme-toggle');
@@ -76,6 +80,7 @@
       const root = document.documentElement;
       const isDark = root.classList.contains('dark');
 
+      // 切换主题
       if (isDark) {
         root.classList.remove('dark');
         localStorage.setItem('theme', 'light');
@@ -83,6 +88,17 @@
         root.classList.add('dark');
         localStorage.setItem('theme', 'dark');
       }
+
+      // 🎯 发送自定义事件，通知其他组件主题已切换
+      const newTheme = isDark ? 'light' : 'dark';
+      log(`[ThemeToggle] Dispatching theme-changed event: ${newTheme}`);
+
+      window.dispatchEvent(new CustomEvent('theme-changed', {
+        detail: {
+          theme: newTheme,
+          timestamp: Date.now()
+        }
+      }));
     });
   }
 

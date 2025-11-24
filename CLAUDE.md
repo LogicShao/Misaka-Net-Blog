@@ -21,11 +21,13 @@ Misaka Network Blog - 基于 Astro 5.x 的现代化静态博客系统，主题�
 ## 常用命令
 
 ```bash
-npm run dev          # 启动开发服务器 (localhost:4321)
-npm run build        # 构建生产版本到 ./dist/
-npm run preview      # 预览构建结果
-npm run new          # 交互式创建新博客文章 (推荐)
-node admin-server.js # 启动 Admin 管理后台 (localhost:3001)
+npm run dev                 # 启动开发服务器 (localhost:4321)
+npm run build               # 构建生产版本到 ./dist/
+npm run preview             # 预览构建结果
+npm run build-and-preview   # 构建后立即预览
+npm run new                 # 交互式创建新博客文章 (推荐)
+npm run admin               # 启动 Admin 管理后台 (localhost:3001)
+npm run astro -- --version  # 查看 Astro 版本
 ```
 
 ## 开发服务器运行规则
@@ -39,6 +41,23 @@ node admin-server.js # 启动 Admin 管理后台 (localhost:3001)
 - 仅在用户明确请求"启动开发服务器"或"运行 dev"时执行
 - 不要假设用户需要预览更改
 - 代码修改完成后，说明更改内容即可，不要自动启动服务器
+
+## Git 提交规则
+
+**重要：除非用户明确要求，否则绝对不要执行 Git 提交或分支操作。**
+
+**禁止的操作（除非用户明确请求）：**
+- `git commit`
+- `git push`
+- `git checkout -b` / `git branch`
+- `git merge`
+- `git rebase`
+- 任何修改 Git 历史的操作
+
+**原则：**
+- 仅在用户明确请求"提交更改"或"创建提交"时执行
+- 不要主动建议进行 Git 操作
+- 代码修改完成后，仅说明更改内容，不要询问是否提交
 
 ## 核心架构要点
 
@@ -364,9 +383,21 @@ pre:hover .copy-code-btn {
 npm run admin  # 访问 http://localhost:3001
 
 # 方式二：Electron 桌面应用（推荐生产使用）
-launch-admin.bat  # Windows
-./启动博客管理后台.bat  # Windows (中文)
+launch-admin.bat          # Windows
+./启动博客管理后台.bat      # Windows (中文)
+
+# 方式三：Electron 开发模式（仅开发调试）
+cd electron-admin
+npm start                 # 启动 Electron（默认不显示开发者工具）
+npm run dev               # 启动 Electron（带开发者工具）
 ```
+
+**Electron 开发者工具配置：**
+- 默认情况：Electron Admin 启动时**不显示**开发者工具（用户体验更好）
+- 手动打开方式：
+  - 快捷键：`F12` 或 `Ctrl+Shift+I`（Windows/Linux）/ `Cmd+Opt+I`（macOS）
+  - 菜单：**视图 → 切换开发者工具**
+- 如需默认显示开发者工具，在 `electron-admin/main.js:56` 中取消注释 `mainWindow.webContents.openDevTools();`
 
 **核心功能：**
 - 文章列表、创建、编辑、删除
@@ -782,6 +813,26 @@ ls -lh dist/_astro/*.js
 ```
 
 ## 变更记录
+
+### 2025-11-24
+- **实现博客分页功能**：
+  - 新增 `Pagination.astro` 分页组件，支持智能页码显示（总页数 > 7 时使用省略号）
+  - 重构 `/blog` 路由为 `[...page].astro`，使用 Astro 的 `paginate()` API
+  - 每页显示 10 篇文章，支持跳转到任意页面
+  - URL 结构：`/blog`（第 1 页）、`/blog/2`（第 2 页）
+- **重构主题切换事件系统**：
+  - 使用自定义事件（`theme-changed`）替代 MutationObserver，避免无限循环
+  - MermaidRenderer 监听主题切换事件，自动重新渲染流程图
+  - 添加环境检测，生产环境自动禁用调试日志（`import.meta.env.DEV`）
+- **新增拉康精神分析儿童读本**：创建 `25-11-24-16-00.md`（镜子里的秘密：他者与大他者）
+
+### 2025-11-23
+- **新增 Git 提交规则章节**：明确禁止未经用户明确请求的 Git 操作
+- **完善常用命令**：添加 `build-and-preview` 和版本查询命令
+- **增强 Electron Admin 文档**：
+  - 添加开发模式启动说明（`npm start` vs `npm run dev`）
+  - 详细说明开发者工具的配置和手动打开方式
+  - 默认配置为不显示开发者工具，提升用户体验
 
 ### 2025-11-22 (下午更新)
 - **新增关键开发陷阱**: 数学公式中的 Unicode 字符问题 (第 6 节)

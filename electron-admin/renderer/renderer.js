@@ -19,6 +19,7 @@ const elements = {
   buildModal: document.getElementById('buildModal'),
   buildLog: document.getElementById('buildLog'),
   buildStatusText: document.getElementById('buildStatusText'),
+  blogPath: document.getElementById('blogPath'),
 };
 
 // ==================== 初始化 ====================
@@ -40,6 +41,8 @@ async function init() {
   }
 
   try {
+    console.log('[Renderer] Loading blog info...');
+    await loadBlogInfo();
     console.log('[Renderer] Calling loadPosts()...');
     await loadPosts();
     console.log('[Renderer] Setting up event listeners...');
@@ -82,6 +85,24 @@ function setupMenuListeners() {
 }
 
 // ==================== 文章管理 ====================
+// 加载博客目录信息
+async function loadBlogInfo() {
+  try {
+    const result = await window.electronAPI.getBlogInfo();
+    if (result.success && result.data.blogRoot) {
+      // 显示博客根目录路径
+      elements.blogPath.textContent = result.data.blogRoot;
+      elements.blogPath.title = result.data.blogRoot;
+    } else {
+      elements.blogPath.textContent = '未设置';
+    }
+  } catch (error) {
+    console.error('[Renderer] loadBlogInfo error:', error);
+    elements.blogPath.textContent = '加载失败';
+  }
+}
+
+// 加载文章列表
 async function loadPosts() {
   console.log('[Renderer] loadPosts() started');
   showLoading(elements.postList);

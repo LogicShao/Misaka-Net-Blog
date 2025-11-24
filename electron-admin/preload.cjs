@@ -2,6 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // 向渲染进程暴露安全的 API
 contextBridge.exposeInMainWorld('electronAPI', {
+  // 博客信息
+  getBlogInfo: () => ipcRenderer.invoke('get-blog-info'),
+
   // 文章管理
   getPosts: () => ipcRenderer.invoke('get-posts'),
   getPost: (postId) => ipcRenderer.invoke('get-post', postId),
