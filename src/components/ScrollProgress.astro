@@ -1,0 +1,94 @@
+---
+// Misaka Network - 滚动进度条组件
+// 显示文章阅读进度，克制简洁的设计
+---
+
+<!-- 进度条容器 -->
+<div id="scroll-progress-container" class="scroll-progress-container">
+    <div id="scroll-progress-bar" class="scroll-progress-bar"></div>
+</div>
+
+<style>
+    .scroll-progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: transparent;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .scroll-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--misaka-circuit), var(--misaka-blue));
+        box-shadow: 0 0 8px var(--misaka-circuit);
+        transition: width 0.1s ease-out;
+    }
+
+    /* 深色模式增强发光效果 */
+    .dark .scroll-progress-bar {
+        box-shadow: 0 0 12px var(--misaka-circuit), 0 0 6px var(--misaka-blue);
+    }
+
+    /* 浅色模式减弱发光 */
+    :root:not(.dark) .scroll-progress-bar {
+        box-shadow: 0 0 4px rgba(74, 222, 128, 0.4);
+    }
+</style>
+
+<script>
+    // 平滑更新滚动进度
+    function updateScrollProgress() {
+        const progressBar = document.getElementById('scroll-progress-bar');
+        if (!progressBar) return;
+
+        // 计算滚动百分比
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const scrollTop = window.scrollY;
+
+        // 可滚动的总高度
+        const scrollableHeight = documentHeight - windowHeight;
+
+        // 计算进度百分比（0-100）
+        const progress = scrollableHeight > 0
+            ? (scrollTop / scrollableHeight) * 100
+            : 0;
+
+        // 更新进度条宽度
+        progressBar.style.width = `${Math.min(progress, 100)}%`;
+    }
+
+    // 使用 requestAnimationFrame 优化性能
+    let ticking = false;
+
+    function onScroll() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                updateScrollProgress();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    // 页面加载时初始化
+    function initScrollProgress() {
+        updateScrollProgress();
+        window.addEventListener('scroll', onScroll, { passive: true });
+    }
+
+    // 首次加载
+    initScrollProgress();
+
+    // View Transitions 支持
+    document.addEventListener('astro:page-load', initScrollProgress);
+
+    // 清理事件监听器（View Transitions 导航时）
+    document.addEventListener('astro:before-preparation', () => {
+        window.removeEventListener('scroll', onScroll);
+    });
+</script>

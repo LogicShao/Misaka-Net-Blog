@@ -644,6 +644,67 @@ npm run build 2>&1 | grep -i "latex.*warn"
 **常见错误：** 使用 `client:load` 等指令导致不必要的水合
 **正确做法：** 直接在 Astro 组件中使用 `<script>` 标签
 
+### 7. Mermaid 节点标签中的特殊字符
+
+**问题：** Mermaid 节点标签中包含特殊字符会导致解析错误，页面加载时卡死或渲染失败
+
+#### 7.1 冒号问题
+
+**解决：** 必须使用双引号包裹包含冒号的节点标签
+
+**常见错误与修正：**
+```markdown
+❌ 错误: A[data: 文章数组]
+✅ 正确: A[data - 文章数组]  或  A["data: 文章数组"]
+
+❌ 错误: B[astro:page-load 事件]
+✅ 正确: B["astro:page-load 事件"]
+
+❌ 错误: C[scroll-behavior: auto]
+✅ 正确: C["scroll-behavior: auto"]
+
+❌ 错误: D[PUT /api/friends/:index]
+✅ 正确: D["PUT /api/friends/:index"]
+```
+
+**需要特别注意的场景：**
+- API 路径参数（如 `/:id`、`/:index`）
+- CSS 属性（如 `font-size: 16px`）
+- 事件名称（如 `astro:page-load`）
+- 键值对表示（如 `key: value`）
+
+#### 7.2 省略号问题
+
+**问题：** 三个连续的点 `...` 在 Mermaid 中有特殊含义，会导致解析错误
+
+**常见错误与修正：**
+```markdown
+❌ 错误: G[...]
+✅ 正确: G[更多]  或  G[其他选项]
+
+❌ 错误: E[1 2 3 4 ... 10]
+✅ 正确: E["1 2 3 4 · · · 10"]  (使用间隔点)
+
+❌ 错误: F[/blog - 第1页]
+✅ 正确: F[第1页]  (简化标签)
+```
+
+**检测方法：**
+```bash
+# 查找 Mermaid 节点中的冒号问题
+grep -n ":\s*[A-Za-z]" src/content/blog/*.md | grep -E "\[.*:.*\]"
+
+# 查找 Mermaid 节点中的省略号问题
+grep -n "\.\.\." src/content/blog/*.md | grep -B2 -A2 "```mermaid"
+```
+
+**最佳实践：**
+- 优先使用连字符 `-` 替代冒号 `:` 作为分隔符
+- 使用间隔点 `· · ·` 或文字描述替代省略号 `...`
+- 如果必须使用特殊字符，务必用双引号包裹整个标签
+- 保持节点标签简洁，避免复杂的路径和 URL
+- 使用 `npm run dev` 在开发环境测试 Mermaid 渲染
+
 ## 部署配置
 
 **Cloudflare Pages：**
@@ -935,6 +996,91 @@ ls -lh dist/_astro/*.js
 
 ## 变更记录
 
+### 2025-11-25
+- **修复 Mermaid 渲染错误和页面无响应问题**：
+  - **问题根源**：
+    - Mermaid 节点标签中使用冒号 `:` 导致语法解析错误
+    - 节点标签中使用省略号 `...` 导致渲染失败和页面卡死
+  - **修复内容**：
+    - 修复 `25-11-24-10-00.md` 中的 2 个图表问题：
+      - 将 `data: 文章数组` 改为 `data - 文章数组`（避免冒号）
+      - 将 `G[...]` 改为 `G[更多页面]`（避免省略号）
+      - 将 `E[1 2 3 4 ... 10]` 改为 `E["1 2 3 4 · · · 10"]`（使用间隔点）
+      - 简化节点标签，删除 `/blog` 等路径前缀
+    - 修复 `25-11-25-20-00.md` 中的冒号问题（为事件名和 CSS 属性添加双引号）
+    - 为 API 路径参数添加双引号（如 `["PUT /api/friends/:index"]`）
+  - **预防措施**：
+    - 在 CLAUDE.md 添加"Mermaid 节点标签中的特殊字符"陷阱文档（第 7 节）
+    - 新增 7.1 冒号问题 和 7.2 省略号问题 两个子章节
+    - 提供冒号和省略号检测命令
+    - 建议优先使用连字符 `-` 和间隔点 `· · ·` 替代特殊字符
+  - **修复的图表数量**：8 个 Mermaid 图表（跨 2 篇博客）
+
+- **实现页面平滑过渡与滚动优化**：
+  - **Astro View Transitions**：
+    - 在 `src/layouts/Layout.astro` 中启用 View Transitions API
+    - 实现 SPA 级别的页面切换体验，避免白屏闪烁
+    - 自动保持 Header、Footer 等共享元素不重新渲染
+  - **克制的淡入淡出动画**（`src/styles/global.css`）：
+    - 页面切换时使用 250ms 淡入淡出过渡
+    - 避免过度装饰，符合简洁优雅的设计原则
+  - **首次加载动画**（`src/styles/global.css`）：
+    - 页面首次打开时 400ms 淡入 + 轻微上移（8px）
+    - View Transitions 导航后自动禁用，避免重复播放
+    - 使用 CSS animation，性能优异
+  - **修复 View Transitions 主题状态丢失**（`src/components/BaseHead.astro`）：
+    - 添加 `astro:after-swap` 事件监听器
+    - 确保页面切换时主题（深色/浅色）正确保持
+    - 修改默认主题为深色（符合 Misaka 主题风格）
+    - 标记已导航页面，避免首次加载动画重复触发
+  - **修复标签页 View Transitions 问题**（`src/pages/tags/index.astro`）：
+    - 词云和图表初始化脚本添加 `astro:page-load` 事件支持
+    - 封装初始化逻辑为独立函数，支持重复调用
+    - 图表实例销毁机制，避免内存泄漏
+    - 确保点击标签页导航时词云和图表正常加载
+  - **全局平滑滚动优化**：
+    - 设置 `scroll-behavior: smooth` 和 `scroll-padding-top: 80px`
+    - 确保锚点跳转时内容不被固定头部遮挡
+  - **无障碍支持**：
+    - 添加 `@media (prefers-reduced-motion: reduce)` 规则
+    - 尊重用户的"减少动画"系统设置
+    - 禁用首次加载动画、页面过渡动画
+    - 符合 WCAG 2.1 无障碍标准
+  - **博客文章页滚动进度条**（`src/components/ScrollProgress.astro`）：
+    - 新增顶部滚动进度条组件（3px 高度）
+    - 电路板绿 → 电磁炮蓝渐变色
+    - 使用 `requestAnimationFrame` 优化性能
+    - 深色模式增强发光效果
+  - **优化 TableOfContents 组件**（`src/components/TableOfContents.astro`）：
+    - 添加 View Transitions 支持（`astro:page-load` 事件）
+    - 确保目录点击时平滑滚动到章节
+    - 使用 `{ passive: true }` 优化滚动监听性能
+  - **修复 /about 页面技术栈描述**：
+    - 更正 "KaTeX (CDN 动态加载)" 为 "remark-math + rehype-katex (构建时静态渲染)"
+
+- **博客分页调整为每页 5 篇文章**：
+  - 修改 `src/pages/blog/[...page].astro` 的 `pageSize` 从 10 改为 5
+  - 优化移动端阅读体验，减少单页加载时间
+  - URL 结构保持不变：`/blog`（第 1 页）、`/blog/2`（第 2 页）
+
+- **Admin 后台新增 updatedDate 字段编辑功能**：
+  - **前端界面**（`electron-admin/renderer/renderer.js`）：
+    - 在编辑表单中添加"修改日期（可选）"输入框（第 237-240 行）
+    - 在新建表单中添加 updatedDate 字段（第 306-309 行）
+    - 支持留空表示文章未修改（新文章默认为空）
+  - **后端处理**（`admin-server.js` 和 `electron-admin/main.js`）：
+    - 修改 `buildFrontmatter()` 函数跳过空的 `updatedDate` 字段
+    - 当 `updatedDate` 为空字符串时，不写入到 Markdown frontmatter 中
+  - **数据收集**（`renderer.js:492`）：
+    - 更新 `collectFrontmatter()` 函数收集 updatedDate 值
+  - 完整支持 Astro content schema 中的 `updatedDate: z.coerce.date().optional()` 字段
+
+- **/about 页面布局优化**：
+  - 添加 `max-w-5xl mx-auto` 容器（第 24 行）
+  - 限制内容最大宽度为 1024px，提升宽屏阅读体验
+  - 保持左右自动居中对齐
+  - 响应式设计：小屏幕占满宽度，大屏幕限制宽度
+
 ### 2025-11-24 (下午更新 - Electron Admin 滚动修复)
 - **修复 Electron Admin 管理后台关键滚动问题**：
   - **问题根源**：Flexbox + Grid 嵌套布局中，`overflow-y: auto` 需要配合明确的高度限制才能触发滚动条
@@ -960,7 +1106,7 @@ ls -lh dist/_astro/*.js
 - **实现博客分页功能**：
   - 新增 `Pagination.astro` 分页组件，支持智能页码显示（总页数 > 7 时使用省略号）
   - 重构 `/blog` 路由为 `[...page].astro`，使用 Astro 的 `paginate()` API
-  - 每页显示 10 篇文章，支持跳转到任意页面
+  - 初始配置每页显示 10 篇文章，支持跳转到任意页面（2025-11-25 已调整为 5 篇）
   - URL 结构：`/blog`（第 1 页）、`/blog/2`（第 2 页）
 - **重构主题切换事件系统**：
   - 使用自定义事件（`theme-changed`）替代 MutationObserver，避免无限循环
@@ -978,7 +1124,6 @@ ls -lh dist/_astro/*.js
   - 前端界面新增视图切换按钮（文章管理 ↔ 友链管理）
   - 完整的友链 CRUD 界面：列表、添加、编辑、删除、头像预览
   - 友好的表单验证和错误提示
-- **新增拉康精神分析儿童读本**：创建 `25-11-24-16-00.md`（镜子里的秘密：他者与大他者）
 
 ### 2025-11-23
 - **新增 Git 提交规则章节**：明确禁止未经用户明确请求的 Git 操作

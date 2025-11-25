@@ -64,6 +64,19 @@
 
     try {
       log('[Mermaid] Starting initialization...');
+
+      // 查找所有 mermaid 代码块（Shiki 使用 data-language 属性）
+      const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+
+      if (mermaidBlocks.length === 0) {
+        log('[Mermaid] No mermaid blocks found');
+        isInitializing = false;
+        isInitialized = true;
+        return;
+      }
+
+      log(`[Mermaid] Found ${mermaidBlocks.length} mermaid blocks`);
+
       const mermaid = await loadMermaid();
 
       // 配置 Mermaid 主题
@@ -100,13 +113,6 @@
         suppressErrorRendering: false,
       });
 
-      // 查找所有 mermaid 代码块（Shiki 使用 data-language 属性）
-      const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
-
-      if (mermaidBlocks.length === 0) {
-        return;
-      }
-
       // 渲染每个 mermaid 块
       for (let i = 0; i < mermaidBlocks.length; i++) {
         const block = mermaidBlocks[i];
@@ -116,6 +122,7 @@
 
         // 跳过空代码块
         if (!code.trim()) {
+          log(`[Mermaid] Skipping empty diagram ${i}`);
           continue;
         }
 
@@ -135,11 +142,11 @@
             overflow-x: auto;
           `;
 
-          // 使用 Mermaid 渲染（带 10秒超时保护）
+          // 使用 Mermaid 渲染（带 5秒超时保护，减少等待时间）
           log(`[Mermaid] Rendering diagram ${i}...`);
           const renderResult = await withTimeout(
-            mermaid.render(`mermaid-${i}`, code),
-            10000  // 10秒超时
+            mermaid.render(`mermaid-${i}-${Date.now()}`, code),
+            5000  // 5秒超时（从10秒减少）
           );
           const { svg } = renderResult;
           container.innerHTML = svg;
@@ -195,7 +202,7 @@
           }
         } catch (error) {
           logError(`[Mermaid] Rendering error for diagram ${i}:`, error);
-          logError(`[Mermaid] Failed code:`, code.substring(0, 200));  // 只显示前200个字符
+          logError(`[Mermaid] Failed code (first 200 chars):`, code.substring(0, 200));
 
           // 渲染失败时保留原始代码块，但添加错误提示
           const errorDiv = document.createElement('div');
@@ -215,7 +222,12 @@
           `;
           if (pre && pre.parentElement) {
             pre.parentElement.insertBefore(errorDiv, pre);
+            // 仍然移除原始的 pre 标签，避免重复显示
+            pre.remove();
           }
+
+          // 继续处理下一个图表，不要因为一个失败而中断
+          continue;
         }
       }
     } catch (error) {
@@ -237,6 +249,21 @@
   } else {
     initMermaid();
   }
+
+  // View Transitions 支持 - 页面导航后重新初始化
+  document.addEventListener('astro:page-load', () => {
+    log('[Mermaid] astro:page-load event fired, reinitializing...');
+
+    // 重置初始化状态
+    isInitialized = false;
+    isInitializing = false;
+
+    // 清空已保存的图表列表
+    mermaidDiagrams.length = 0;
+
+    // 重新初始化
+    initMermaid();
+  });
 
   // 在 SVG 中渲染数学公式
   function renderMathInSVG(container) {
@@ -391,7 +418,7 @@
         // 重新渲染（带超时保护）
         const renderResult = await withTimeout(
           mermaid.render(`${diagram.id}-rerender-${Date.now()}`, diagram.code),
-          10000
+          5000  // 5秒超时（从10秒减少）
         );
         const { svg } = renderResult;
 

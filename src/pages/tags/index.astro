@@ -370,9 +370,9 @@ const colorSchemes = [
 
 <!-- Word Cloud Initialization Script - Enhanced -->
 <script define:vars={{ wordCloudData }}>
-    // 确保在脚本加载后再执行
-    window.addEventListener('load', () => {
-        console.log('[WordCloud] Page loaded');
+    // 初始化词云的函数（支持 View Transitions）
+    function initializeWordCloud() {
+        console.log('[WordCloud] Initializing...');
 
         const canvas = document.getElementById('wordCloudCanvas');
         if (!canvas) {
@@ -581,14 +581,30 @@ const colorSchemes = [
 
         // 开始初始化
         initWhenReady();
-    });
+    }
+
+    // 首次加载 - 等待所有外部资源加载完成
+    window.addEventListener('load', initializeWordCloud);
+
+    // View Transitions 支持
+    document.addEventListener('astro:page-load', initializeWordCloud);
 </script>
 
 <!-- Chart Initialization Script -->
 <script define:vars={{ sortedTags: sortedTags.slice(0, 10) }}>
-    document.addEventListener('DOMContentLoaded', () => {
+    // 保存图表实例（避免重复创建）
+    let chartInstance = null;
+
+    // 初始化图表的函数（支持 View Transitions）
+    function initializeChart() {
         const canvas = document.getElementById('tagChart');
         if (!canvas) return;
+
+        // 如果已有图表实例，先销毁
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
 
         // 获取当前主题
         const isDark = document.documentElement.classList.contains('dark');
@@ -614,7 +630,7 @@ const colorSchemes = [
         gradient.addColorStop(1, colors.secondary);
 
         // 初始化图表
-        const chart = new Chart(ctx, {
+        chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -701,21 +717,21 @@ const colorSchemes = [
                     };
 
                     // 更新图表配置
-                    chart.data.datasets[0].backgroundColor = newColors.background;
-                    chart.data.datasets[0].borderColor = newColors.border;
-                    chart.data.datasets[0].hoverBackgroundColor = newColors.primary + '40';
-                    chart.data.datasets[0].hoverBorderColor = newColors.primary;
+                    chartInstance.data.datasets[0].backgroundColor = newColors.background;
+                    chartInstance.data.datasets[0].borderColor = newColors.border;
+                    chartInstance.data.datasets[0].hoverBackgroundColor = newColors.primary + '40';
+                    chartInstance.data.datasets[0].hoverBorderColor = newColors.primary;
 
-                    chart.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-                    chart.options.plugins.tooltip.titleColor = newColors.text;
-                    chart.options.plugins.tooltip.bodyColor = newColors.text;
-                    chart.options.plugins.tooltip.borderColor = newColors.border;
+                    chartInstance.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+                    chartInstance.options.plugins.tooltip.titleColor = newColors.text;
+                    chartInstance.options.plugins.tooltip.bodyColor = newColors.text;
+                    chartInstance.options.plugins.tooltip.borderColor = newColors.border;
 
-                    chart.options.scales.x.ticks.color = newColors.text;
-                    chart.options.scales.y.ticks.color = newColors.text;
-                    chart.options.scales.y.grid.color = newColors.grid;
+                    chartInstance.options.scales.x.ticks.color = newColors.text;
+                    chartInstance.options.scales.y.ticks.color = newColors.text;
+                    chartInstance.options.scales.y.grid.color = newColors.grid;
 
-                    chart.update();
+                    chartInstance.update();
                 }
             });
         });
@@ -724,7 +740,13 @@ const colorSchemes = [
             attributes: true,
             attributeFilter: ['class']
         });
-    });
+    }
+
+    // 首次加载 - 等待所有外部资源加载完成
+    window.addEventListener('load', initializeChart);
+
+    // View Transitions 支持
+    document.addEventListener('astro:page-load', initializeChart);
 </script>
 
 <style>

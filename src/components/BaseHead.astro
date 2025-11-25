@@ -38,18 +38,43 @@ const { title, description, image = FallbackImage } = Astro.props;
 				return 'dark';
 			}
 
-			// 3. 默认浅色
-			return 'light';
+			// 3. 默认深色模式（符合 Misaka 主题）
+			return 'dark';
 		}
 
 		// 应用主题
-		const theme = getTheme();
+		function applyTheme() {
+			const theme = getTheme();
+			if (theme === 'dark') {
+				document.documentElement.classList.add('dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+			}
+		}
+
+		// 首次加载时应用主题
+		applyTheme();
+	})();
+</script>
+
+<!-- View Transitions 支持 - 页面切换时保持主题 -->
+<script>
+	// 在每次页面切换后重新应用主题（View Transitions）
+	document.addEventListener('astro:after-swap', () => {
+		// 从 localStorage 读取主题
+		const savedTheme = localStorage.getItem('theme');
+		const theme = savedTheme || 'dark'; // 默认深色
+
+		// 应用主题
 		if (theme === 'dark') {
 			document.documentElement.classList.add('dark');
 		} else {
 			document.documentElement.classList.remove('dark');
 		}
-	})();
+
+		// 标记页面已通过 View Transitions 导航，避免首次加载动画重复播放
+		document.body.classList.add('navigated');
+	});
 </script>
 
 <meta name="viewport" content="width=device-width,initial-scale=1" />

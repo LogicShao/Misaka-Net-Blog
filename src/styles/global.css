@@ -45,6 +45,7 @@
     html {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', sans-serif;
         scroll-behavior: smooth;
+        scroll-padding-top: 80px; /* 考虑固定头部高度 */
     }
 
     body {
@@ -53,6 +54,30 @@
         background-attachment: fixed;
         transition: background-color 0.3s ease, color 0.3s ease;
         @apply antialiased;
+    }
+
+    /* 页面首次加载动画 - 克制的淡入效果 */
+    body {
+        opacity: 0;
+        animation: pageEnter 0.4s ease-out forwards;
+    }
+
+    @keyframes pageEnter {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* View Transitions 导航时不需要此动画 */
+    body.navigated {
+        animation: none;
+        opacity: 1;
+        transform: none;
     }
 
     /* 电路板背景效果 - 深色模式 */
@@ -470,5 +495,64 @@
 
     .network-panel {
         @apply p-3;
+    }
+}
+
+/* View Transitions - 页面切换动画 */
+/* 克制的淡入淡出效果，保持简洁优雅 */
+@layer utilities {
+    /* 旧内容淡出 */
+    ::view-transition-old(root) {
+        animation: fade-out 0.25s ease-in-out;
+    }
+
+    /* 新内容淡入 */
+    ::view-transition-new(root) {
+        animation: fade-in 0.25s ease-in-out;
+    }
+
+    /* 淡出动画 */
+    @keyframes fade-out {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    /* 淡入动画 */
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}
+
+/* 减少不必要的动画（尊重用户偏好设置） */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+
+    /* 禁用页面首次加载动画 */
+    body {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
