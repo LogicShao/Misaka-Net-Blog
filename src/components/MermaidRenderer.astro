@@ -352,41 +352,6 @@
     initOnPageLoad();
   }
 
-  // View Transitions 支持 - 页面导航后重新初始化
-  document.addEventListener('astro:page-load', () => {
-    log('\n🔄 ========== ASTRO PAGE LOAD EVENT ==========');
-    log('📍 Trigger: astro:page-load');
-    log('📊 Before reset: isInitialized =', isInitialized, ', isInitializing =', isInitializing);
-
-    // 🔍 检查是否真的有新的 Mermaid 代码块需要渲染
-    const newMermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
-    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
-
-    log('📊 New mermaid blocks found:', newMermaidBlocks.length);
-    log('📊 Existing rendered diagrams:', existingDiagrams.length);
-
-    // 如果没有新的代码块，且已经有渲染好的图表，说明是假事件
-    if (newMermaidBlocks.length === 0 && existingDiagrams.length > 0) {
-      log('✅ This is a false page-load event, keeping existing diagrams');
-      return;
-    }
-
-    // 真正的页面导航 - 重置所有状态
-    log('🔄 True navigation detected, resetting state...');
-
-    // 重置初始化状态
-    isInitialized = false;
-    isInitializing = false;
-
-    // 清空已保存的图表列表
-    mermaidDiagrams.length = 0;
-
-    log('🔄 State reset complete. Starting initialization...');
-
-    // 重新初始化
-    initMermaid();
-  });
-
   // 在 SVG 中渲染数学公式
   function renderMathInSVG(container) {
     if (typeof window.katex === 'undefined') return;

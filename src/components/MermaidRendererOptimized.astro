@@ -366,53 +366,6 @@
     initOnPageLoad();
   }
 
-  // View Transitions 支持
-  document.addEventListener('astro:page-load', () => {
-    log('\n🔄 ========== ASTRO PAGE LOAD EVENT ==========');
-
-    // 🔧 如果正在渲染，直接跳过（不要等待，避免阻塞）
-    if (isRendering) {
-      logWarn('⚠️ Rendering in progress, skipping this event');
-      return;
-    }
-
-    const newMermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
-    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
-
-    log('📊 New blocks:', newMermaidBlocks.length);
-    log('📊 Existing diagrams:', existingDiagrams.length);
-    log('📊 Expected diagrams:', totalDiagramsExpected);
-    log('📊 Diagrams in cache:', mermaidDiagrams.length);
-
-    // 🔧 改进检测逻辑：
-    // 1. 如果没有新代码块，且已渲染图表数量等于预期数量，说明是假事件
-    // 2. 如果已渲染图表数量等于或大于预期数量，也跳过
-    if (newMermaidBlocks.length === 0 &&
-        existingDiagrams.length > 0 &&
-        existingDiagrams.length >= totalDiagramsExpected) {
-      log('✅ False page-load event, all diagrams already rendered');
-      return;
-    }
-
-    // 🔧 如果新代码块数量和已渲染图表数量加起来等于预期，说明渲染未完成
-    if (newMermaidBlocks.length > 0 &&
-        existingDiagrams.length > 0 &&
-        newMermaidBlocks.length + existingDiagrams.length === totalDiagramsExpected) {
-      logWarn('⚠️ Rendering was interrupted, resuming...');
-      // 不重置状态，继续渲染
-      return;
-    }
-
-    log('🔄 True navigation detected, resetting...');
-    isInitialized = false;
-    isInitializing = false;
-    mermaidDiagrams.length = 0;
-    renderQueue.length = 0;
-    totalDiagramsExpected = 0;
-
-    initMermaid();
-  });
-
   // 主题切换支持（重新渲染所有图表）
   window.addEventListener('theme-changed', async (event) => {
     const { theme } = event.detail;
