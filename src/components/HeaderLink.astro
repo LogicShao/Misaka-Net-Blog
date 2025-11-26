@@ -1,26 +1,26 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
+import type {HTMLAttributes} from 'astro/types';
 
 type Props = HTMLAttributes<'a'>;
 
-const { href, class: className, ...props } = Astro.props;
+const {href, class: className, ...props} = Astro.props;
 const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, '');
 const subpath = pathname.match(/[^\/]+/g);
 const isActive = href === pathname || href === '/' + (subpath?.[0] || '');
 ---
 
 <a
-        href={href}
-        class:list={[
-            'px-4 py-2 rounded-lg hover:text-misaka-blue transition-all duration-200',
-            'hover:bg-misaka-circuit/10 font-medium',
-            className,
-            {
-                'bg-misaka-blue/20 text-misaka-blue border-b-2 border-misaka-blue': isActive
-            }
-        ]}
-        style={!isActive ? 'color: var(--text-secondary);' : ''}
-        {...props}
+  href={href}
+  class:list={[
+    'px-4 py-2 rounded-lg hover:text-misaka-blue transition-all duration-200',
+    'hover:bg-misaka-circuit/10 font-medium',
+    className,
+    {
+      'bg-misaka-blue/20 text-misaka-blue border-b-2 border-misaka-blue': isActive
+    }
+  ]}
+  style={!isActive ? 'color: var(--text-secondary);' : ''}
+  {...props}
 >
-	<slot />
+  <slot/>
 </a>

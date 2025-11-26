@@ -89,7 +89,7 @@
 
     // 防止重复初始化
     if (isInitialized || isInitializing) {
-      logWarn('⚠️ Already initialized or initializing, skipping...', { isInitialized, isInitializing });
+      logWarn('⚠️ Already initialized or initializing, skipping...', {isInitialized, isInitializing});
       return;
     }
 
@@ -201,7 +201,7 @@
           log(`✅ Diagram ${i} rendered successfully!`);
           log(`⏰ Render end time:`, new Date().toISOString());
 
-          const { svg } = renderResult;
+          const {svg} = renderResult;
           log(`📏 SVG length: ${svg.length} chars`);
 
           container.innerHTML = svg;
@@ -507,7 +507,7 @@
           mermaid.render(`${diagram.id}-rerender-${Date.now()}`, diagram.code),
           10000  // 10秒超时
         );
-        const { svg } = renderResult;
+        const {svg} = renderResult;
 
         // 更新容器内容
         diagram.container.innerHTML = svg;
@@ -530,7 +530,7 @@
   let isRerendering = false;  // 防止重复渲染标志位
 
   window.addEventListener('theme-changed', async (event) => {
-    const { theme, timestamp } = event.detail;
+    const {theme, timestamp} = event.detail;
     log(`[Mermaid] Received theme-changed event: ${theme} at ${timestamp}`);
 
     // 防止重复渲染

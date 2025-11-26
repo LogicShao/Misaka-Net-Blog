@@ -9,181 +9,181 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- 顶部工具栏 -->
-  <header class="toolbar">
-    <div class="toolbar-left">
-      <h1 class="app-title">
-        <span class="icon">⚡</span>
-        Misaka Blog Admin
-      </h1>
-      <span class="version">v1.0.0</span>
-      <div class="blog-directory-info" id="blogDirectoryInfo" title="当前博客目录">
-        <span class="icon">📁</span>
-        <span class="blog-path" id="blogPath">加载中...</span>
-      </div>
-    </div>
-    <div class="toolbar-right">
-      <button class="btn btn-secondary" id="btnViewMode" data-mode="posts" title="切换视图">
-        <span class="icon">🔗</span>
-        友链管理
-      </button>
-      <button class="btn btn-secondary" id="btnProfileView" title="个人名片管理">
-        <span class="icon">👤</span>
-        名片管理
-      </button>
-      <button class="btn btn-primary" id="btnNewPost" title="新建文章 (Ctrl+N)">
-        <span class="icon">➕</span>
-        新建文章
-      </button>
-      <button class="btn btn-success" id="btnBuild" title="构建博客 (Ctrl+B)">
-        <span class="icon">🔨</span>
-        构建博客
-      </button>
-      <button class="btn btn-secondary" id="btnRefresh" title="刷新列表 (Ctrl+R)">
-        <span class="icon">🔄</span>
-        刷新
-      </button>
-    </div>
-  </header>
-
-  <!-- 主内容区 -->
-  <main class="main-content">
-    <!-- 左侧：文章列表 -->
-    <aside class="sidebar" id="postsView">
-      <div class="sidebar-header">
-        <h2>📚 文章列表</h2>
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="🔍 搜索文章标题或标签...">
-        </div>
-      </div>
-
-      <div class="post-stats" id="postStats">
-        <div class="stat-item">
-          <span class="stat-label">总计</span>
-          <span class="stat-value" id="totalCount">0</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">已发布</span>
-          <span class="stat-value" id="publishedCount">0</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">草稿</span>
-          <span class="stat-value" id="draftCount">0</span>
-        </div>
-      </div>
-
-      <div class="post-list" id="postList">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>加载中...</p>
-        </div>
-      </div>
-    </aside>
-
-    <!-- 左侧：友链列表 -->
-    <aside class="sidebar" id="friendsView" style="display: none;">
-      <div class="sidebar-header">
-        <h2>🔗 友链列表</h2>
-        <button class="btn btn-sm btn-primary" id="btnNewFriend">
-          <span class="icon">➕</span>
-          添加友链
-        </button>
-      </div>
-
-      <div class="friend-stats" id="friendStats">
-        <div class="stat-item">
-          <span class="stat-label">友链总数</span>
-          <span class="stat-value" id="friendTotalCount">0</span>
-        </div>
-      </div>
-
-      <div class="friend-list" id="friendList">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>加载中...</p>
-        </div>
-      </div>
-    </aside>
-
-    <!-- 个人名片容器（全宽显示） -->
-    <div id="profile-container" style="display: none;"></div>
-
-    <!-- 右侧：文章编辑器 -->
-    <section class="editor-panel" id="postEditor">
-      <div class="editor-header">
-        <h2>✏️ 编辑器</h2>
-        <div class="editor-tabs">
-          <button class="tab-btn active" data-tab="frontmatter">元数据</button>
-          <button class="tab-btn" data-tab="content">内容</button>
-          <button class="tab-btn" data-tab="preview">预览</button>
-        </div>
-      </div>
-
-      <div id="statusMessage" class="status-message"></div>
-
-      <div class="editor-container" id="editor">
-        <div class="empty-state">
-          <div class="empty-icon">📝</div>
-          <p>选择一篇文章开始编辑</p>
-          <p class="hint">或点击"新建文章"创建新内容</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 右侧：友链编辑器 -->
-    <section class="editor-panel" id="friendEditor" style="display: none;">
-      <div class="editor-header">
-        <h2>🔗 友链编辑</h2>
-        <div class="editor-actions">
-          <button class="btn btn-sm btn-success" id="btnSaveFriend" style="display: none;">
-            <span class="icon">💾</span>
-            保存
-          </button>
-          <button class="btn btn-sm btn-danger" id="btnDeleteFriend" style="display: none;">
-            <span class="icon">🗑️</span>
-            删除
-          </button>
-          <button class="btn btn-sm btn-secondary" id="btnCancelFriend" style="display: none;">
-            <span class="icon">✖️</span>
-            取消
-          </button>
-        </div>
-      </div>
-
-      <div id="friendStatusMessage" class="status-message"></div>
-
-      <div class="editor-container" id="friendEditorContent">
-        <div class="empty-state">
-          <div class="empty-icon">🔗</div>
-          <p>选择一个友链开始编辑</p>
-          <p class="hint">或点击"添加友链"创建新友链</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- 构建进度弹窗 -->
-  <div class="modal" id="buildModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>🔨 构建博客</h3>
-        <button class="modal-close" id="closeBuildModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="build-status">
-          <div class="spinner"></div>
-          <p id="buildStatusText">正在构建博客，请稍候...</p>
-        </div>
-        <div class="build-output" id="buildOutput">
-          <pre id="buildLog"></pre>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="closeBuildBtn">关闭</button>
-      </div>
+<!-- 顶部工具栏 -->
+<header class="toolbar">
+  <div class="toolbar-left">
+    <h1 class="app-title">
+      <span class="icon">⚡</span>
+      Misaka Blog Admin
+    </h1>
+    <span class="version">v1.0.0</span>
+    <div class="blog-directory-info" id="blogDirectoryInfo" title="当前博客目录">
+      <span class="icon">📁</span>
+      <span class="blog-path" id="blogPath">加载中...</span>
     </div>
   </div>
+  <div class="toolbar-right">
+    <button class="btn btn-secondary" id="btnViewMode" data-mode="posts" title="切换视图">
+      <span class="icon">🔗</span>
+      友链管理
+    </button>
+    <button class="btn btn-secondary" id="btnProfileView" title="个人名片管理">
+      <span class="icon">👤</span>
+      名片管理
+    </button>
+    <button class="btn btn-primary" id="btnNewPost" title="新建文章 (Ctrl+N)">
+      <span class="icon">➕</span>
+      新建文章
+    </button>
+    <button class="btn btn-success" id="btnBuild" title="构建博客 (Ctrl+B)">
+      <span class="icon">🔨</span>
+      构建博客
+    </button>
+    <button class="btn btn-secondary" id="btnRefresh" title="刷新列表 (Ctrl+R)">
+      <span class="icon">🔄</span>
+      刷新
+    </button>
+  </div>
+</header>
 
-  <script type="module" src="renderer.js"></script>
+<!-- 主内容区 -->
+<main class="main-content">
+  <!-- 左侧：文章列表 -->
+  <aside class="sidebar" id="postsView">
+    <div class="sidebar-header">
+      <h2>📚 文章列表</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 搜索文章标题或标签...">
+      </div>
+    </div>
+
+    <div class="post-stats" id="postStats">
+      <div class="stat-item">
+        <span class="stat-label">总计</span>
+        <span class="stat-value" id="totalCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">已发布</span>
+        <span class="stat-value" id="publishedCount">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">草稿</span>
+        <span class="stat-value" id="draftCount">0</span>
+      </div>
+    </div>
+
+    <div class="post-list" id="postList">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 左侧：友链列表 -->
+  <aside class="sidebar" id="friendsView" style="display: none;">
+    <div class="sidebar-header">
+      <h2>🔗 友链列表</h2>
+      <button class="btn btn-sm btn-primary" id="btnNewFriend">
+        <span class="icon">➕</span>
+        添加友链
+      </button>
+    </div>
+
+    <div class="friend-stats" id="friendStats">
+      <div class="stat-item">
+        <span class="stat-label">友链总数</span>
+        <span class="stat-value" id="friendTotalCount">0</span>
+      </div>
+    </div>
+
+    <div class="friend-list" id="friendList">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 个人名片容器（全宽显示） -->
+  <div id="profile-container" style="display: none;"></div>
+
+  <!-- 右侧：文章编辑器 -->
+  <section class="editor-panel" id="postEditor">
+    <div class="editor-header">
+      <h2>✏️ 编辑器</h2>
+      <div class="editor-tabs">
+        <button class="tab-btn active" data-tab="frontmatter">元数据</button>
+        <button class="tab-btn" data-tab="content">内容</button>
+        <button class="tab-btn" data-tab="preview">预览</button>
+      </div>
+    </div>
+
+    <div id="statusMessage" class="status-message"></div>
+
+    <div class="editor-container" id="editor">
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <p>选择一篇文章开始编辑</p>
+        <p class="hint">或点击"新建文章"创建新内容</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右侧：友链编辑器 -->
+  <section class="editor-panel" id="friendEditor" style="display: none;">
+    <div class="editor-header">
+      <h2>🔗 友链编辑</h2>
+      <div class="editor-actions">
+        <button class="btn btn-sm btn-success" id="btnSaveFriend" style="display: none;">
+          <span class="icon">💾</span>
+          保存
+        </button>
+        <button class="btn btn-sm btn-danger" id="btnDeleteFriend" style="display: none;">
+          <span class="icon">🗑️</span>
+          删除
+        </button>
+        <button class="btn btn-sm btn-secondary" id="btnCancelFriend" style="display: none;">
+          <span class="icon">✖️</span>
+          取消
+        </button>
+      </div>
+    </div>
+
+    <div id="friendStatusMessage" class="status-message"></div>
+
+    <div class="editor-container" id="friendEditorContent">
+      <div class="empty-state">
+        <div class="empty-icon">🔗</div>
+        <p>选择一个友链开始编辑</p>
+        <p class="hint">或点击"添加友链"创建新友链</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 构建进度弹窗 -->
+<div class="modal" id="buildModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🔨 构建博客</h3>
+      <button class="modal-close" id="closeBuildModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="build-status">
+        <div class="spinner"></div>
+        <p id="buildStatusText">正在构建博客，请稍候...</p>
+      </div>
+      <div class="build-output" id="buildOutput">
+        <pre id="buildLog"></pre>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="closeBuildBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="renderer.js"></script>
 </body>
 </html>

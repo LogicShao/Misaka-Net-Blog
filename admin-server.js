@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import {fileURLToPath} from 'url';
+import {exec} from 'child_process';
+import {promisify} from 'util';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -23,11 +23,12 @@ const CONSTS_FILE = path.join(__dirname, 'src', 'consts.ts');
 
 // 解析 Markdown frontmatter
 function parseFrontmatter(content) {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+  // 兼容 Windows (\r\n) 和 Unix (\n) 换行符
+  const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
   const match = content.match(frontmatterRegex);
 
   if (!match) {
-    return { frontmatter: {}, content: content };
+    return {frontmatter: {}, content: content};
   }
 
   const frontmatterStr = match[1];
@@ -56,7 +57,7 @@ function parseFrontmatter(content) {
     frontmatter[currentKey] = parseValue(currentValue.trim());
   }
 
-  return { frontmatter, content: bodyContent };
+  return {frontmatter, content: bodyContent};
 }
 
 // 解析值（处理字符串、数组、布尔值等）
@@ -69,7 +70,7 @@ function parseValue(value) {
 
   // 去除引号
   if ((value.startsWith("'") && value.endsWith("'")) ||
-      (value.startsWith('"') && value.endsWith('"'))) {
+    (value.startsWith('"') && value.endsWith('"'))) {
     return value.slice(1, -1);
   }
 
@@ -79,7 +80,7 @@ function parseValue(value) {
     return arrayContent.split(',').map(item => {
       item = item.trim();
       if ((item.startsWith("'") && item.endsWith("'")) ||
-          (item.startsWith('"') && item.endsWith('"'))) {
+        (item.startsWith('"') && item.endsWith('"'))) {
         return item.slice(1, -1);
       }
       return item;
@@ -151,7 +152,7 @@ function readFriendLinks() {
       friendLinks.push(friendLink);
     }
 
-    return { content, friendLinks };
+    return {content, friendLinks};
   } catch (error) {
     throw new Error(`读取友链数据失败: ${error.message}`);
   }
@@ -187,7 +188,7 @@ ${items}
  */
 function writeFriendLinks(friendLinks) {
   try {
-    const { content } = readFriendLinks();
+    const {content} = readFriendLinks();
     const newFriendLinksCode = generateFriendLinksCode(friendLinks);
 
     // 替换原有的 FRIEND_LINKS 数组
@@ -212,7 +213,7 @@ app.get('/api/posts', (req, res) => {
     const posts = files.map(file => {
       const filePath = path.join(BLOG_DIR, file);
       const content = fs.readFileSync(filePath, 'utf-8');
-      const { frontmatter } = parseFrontmatter(content);
+      const {frontmatter} = parseFrontmatter(content);
       const stats = fs.statSync(filePath);
 
       return {
@@ -227,8 +228,18 @@ app.get('/api/posts', (req, res) => {
       };
     });
 
-    // 按发布日期降序排序
+    // 按文件名中的时间降序排序（新文章在前）
     posts.sort((a, b) => {
+      // 从文件名提取时间戳：YY-MM-DD-HH-MM.md
+      const timestampA = getTimestampFromFilename(a.filename);
+      const timestampB = getTimestampFromFilename(b.filename);
+
+      // 如果文件名时间戳有效，使用文件名时间排序
+      if (timestampA > 0 && timestampB > 0) {
+        return timestampB - timestampA;
+      }
+
+      // 降级方案：使用 pubDate 字段
       const dateA = new Date(a.pubDate || 0);
       const dateB = new Date(b.pubDate || 0);
       return dateB - dateA;
@@ -236,9 +247,42 @@ app.get('/api/posts', (req, res) => {
 
     res.json(posts);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
+
+/**
+ * 从文件名中提取时间戳（用于排序）
+ * @param {string} filename 文件名，格式：YY-MM-DD-HH-MM.md
+ * @returns {number} 时间戳（毫秒），解析失败返回 0
+ */
+function getTimestampFromFilename(filename) {
+  // 移除扩展名
+  const id = filename.replace(/\.(md|mdx)$/, '');
+
+  // 匹配文件名格式：YY-MM-DD-HH-MM
+  const match = id.match(/^(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+
+  if (!match) {
+    return 0;
+  }
+
+  const [, yy, month, day, hour, minute] = match;
+
+  // 将两位年份转换为完整年份（假设 20xx 年代）
+  const year = 2000 + parseInt(yy, 10);
+
+  // 创建 Date 对象
+  const date = new Date(
+    year,
+    parseInt(month, 10) - 1, // JavaScript 月份从 0 开始
+    parseInt(day, 10),
+    parseInt(hour, 10),
+    parseInt(minute, 10)
+  );
+
+  return date.getTime();
+}
 
 // API: 获取单篇文章内容
 app.get('/api/posts/:id', (req, res) => {
@@ -246,11 +290,11 @@ app.get('/api/posts/:id', (req, res) => {
     const filePath = path.join(BLOG_DIR, req.params.id);
 
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: '文章不存在' });
+      return res.status(404).json({error: '文章不存在'});
     }
 
     const content = fs.readFileSync(filePath, 'utf-8');
-    const { frontmatter, content: bodyContent } = parseFrontmatter(content);
+    const {frontmatter, content: bodyContent} = parseFrontmatter(content);
 
     res.json({
       id: req.params.id,
@@ -259,17 +303,17 @@ app.get('/api/posts/:id', (req, res) => {
       raw: content,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
 
 // API: 创建新文章
 app.post('/api/posts', (req, res) => {
   try {
-    const { filename, frontmatter, content } = req.body;
+    const {filename, frontmatter, content} = req.body;
 
     if (!filename) {
-      return res.status(400).json({ error: '文件名不能为空' });
+      return res.status(400).json({error: '文件名不能为空'});
     }
 
     // 确保文件名以 .md 结尾
@@ -277,7 +321,7 @@ app.post('/api/posts', (req, res) => {
     const filePath = path.join(BLOG_DIR, finalFilename);
 
     if (fs.existsSync(filePath)) {
-      return res.status(400).json({ error: '文件已存在' });
+      return res.status(400).json({error: '文件已存在'});
     }
 
     const fullContent = buildFrontmatter(frontmatter) + '\n' + (content || '');
@@ -289,7 +333,7 @@ app.post('/api/posts', (req, res) => {
       message: '文章创建成功'
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
 
@@ -299,10 +343,10 @@ app.put('/api/posts/:id', (req, res) => {
     const filePath = path.join(BLOG_DIR, req.params.id);
 
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: '文章不存在' });
+      return res.status(404).json({error: '文章不存在'});
     }
 
-    const { frontmatter, content } = req.body;
+    const {frontmatter, content} = req.body;
     const fullContent = buildFrontmatter(frontmatter) + '\n' + (content || '');
 
     fs.writeFileSync(filePath, fullContent, 'utf-8');
@@ -312,7 +356,7 @@ app.put('/api/posts/:id', (req, res) => {
       message: '文章更新成功'
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
 
@@ -322,7 +366,7 @@ app.delete('/api/posts/:id', (req, res) => {
     const filePath = path.join(BLOG_DIR, req.params.id);
 
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: '文章不存在' });
+      return res.status(404).json({error: '文章不存在'});
     }
 
     fs.unlinkSync(filePath);
@@ -332,14 +376,14 @@ app.delete('/api/posts/:id', (req, res) => {
       message: '文章删除成功'
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({error: error.message});
   }
 });
 
 // API: 构建博客
 app.post('/api/build', async (req, res) => {
   try {
-    const { stdout, stderr } = await execAsync('npm run build', {
+    const {stdout, stderr} = await execAsync('npm run build', {
       cwd: __dirname,
     });
 
@@ -382,7 +426,7 @@ app.get('/api/build/status', (req, res) => {
 // API: 获取所有友链
 app.get('/api/friends', (req, res) => {
   try {
-    const { friendLinks } = readFriendLinks();
+    const {friendLinks} = readFriendLinks();
     res.json({
       success: true,
       data: friendLinks
@@ -398,7 +442,7 @@ app.get('/api/friends', (req, res) => {
 // API: 添加友链
 app.post('/api/friends', (req, res) => {
   try {
-    const { name, url, avatar, description, note } = req.body;
+    const {name, url, avatar, description, note} = req.body;
 
     // 验证必填字段
     if (!name || !url || !avatar || !description) {
@@ -417,7 +461,7 @@ app.post('/api/friends', (req, res) => {
     }
 
     // 读取现有友链并添加新友链
-    const { friendLinks } = readFriendLinks();
+    const {friendLinks} = readFriendLinks();
     const newFriend = {
       name: name.trim(),
       url: url.trim(),
@@ -452,7 +496,7 @@ app.post('/api/friends', (req, res) => {
 app.put('/api/friends/:index', (req, res) => {
   try {
     const index = parseInt(req.params.index);
-    const { name, url, avatar, description, note } = req.body;
+    const {name, url, avatar, description, note} = req.body;
 
     // 验证必填字段
     if (!name || !url || !avatar || !description) {
@@ -471,7 +515,7 @@ app.put('/api/friends/:index', (req, res) => {
     }
 
     // 读取现有友链
-    const { friendLinks } = readFriendLinks();
+    const {friendLinks} = readFriendLinks();
 
     // 验证索引
     if (isNaN(index) || index < 0 || index >= friendLinks.length) {
@@ -520,7 +564,7 @@ app.delete('/api/friends/:index', (req, res) => {
     const index = parseInt(req.params.index);
 
     // 读取现有友链
-    const { friendLinks } = readFriendLinks();
+    const {friendLinks} = readFriendLinks();
 
     // 验证索引
     if (isNaN(index) || index < 0 || index >= friendLinks.length) {
@@ -577,7 +621,7 @@ function readProfile() {
       profile[fieldMatch[1]] = fieldMatch[2];
     }
 
-    return { content, profile };
+    return {content, profile};
   } catch (error) {
     throw new Error(`读取个人信息失败: ${error.message}`);
   }
@@ -620,7 +664,7 @@ function generateProfileCode(profile) {
  */
 function writeProfile(profile) {
   try {
-    const { content } = readProfile();
+    const {content} = readProfile();
     const newProfileCode = generateProfileCode(profile);
 
     // 替换原有的 PROFILE 对象
@@ -639,7 +683,7 @@ function writeProfile(profile) {
 // API: 获取个人信息
 app.get('/api/profile', (req, res) => {
   try {
-    const { profile } = readProfile();
+    const {profile} = readProfile();
     res.json({
       success: true,
       data: profile
@@ -655,7 +699,7 @@ app.get('/api/profile', (req, res) => {
 // API: 更新个人信息
 app.put('/api/profile', (req, res) => {
   try {
-    const { name, avatar, bio, location, email, github, bilibili, website } = req.body;
+    const {name, avatar, bio, location, email, github, bilibili, website} = req.body;
 
     // 验证必填字段
     if (!name || !avatar || !bio) {

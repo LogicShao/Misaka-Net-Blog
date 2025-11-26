@@ -2,117 +2,118 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
-import type { ImageMetadata } from 'astro';
+import type {ImageMetadata} from 'astro';
 import FallbackImage from '../assets/blog-placeholder-1.jpg';
-import { SITE_TITLE } from '../consts';
+import {SITE_TITLE} from '../consts';
 
 interface Props {
-	title: string;
-	description: string;
-	image?: ImageMetadata;
+  title: string;
+  description: string;
+  image?: ImageMetadata;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = FallbackImage } = Astro.props;
+const {title, description, image = FallbackImage} = Astro.props;
 ---
 
 <!-- Global Metadata -->
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
 
 <!-- 主题初始化脚本 - 必须在页面渲染前执行，避免闪烁 -->
 <script is:inline>
-	(function() {
-		// 获取保存的主题或系统偏好
-		function getTheme() {
-			// 1. 检查 localStorage
-			if (typeof localStorage !== 'undefined') {
-				const saved = localStorage.getItem('theme');
-				if (saved === 'light' || saved === 'dark') {
-					return saved;
-				}
-			}
+  (function () {
+    // 获取保存的主题或系统偏好
+    function getTheme() {
+      // 1. 检查 localStorage
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') {
+          return saved;
+        }
+      }
 
-			// 2. 检查系统偏好
-			if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-				return 'dark';
-			}
+      // 2. 检查系统偏好
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
 
-			// 3. 默认深色模式（符合 Misaka 主题）
-			return 'dark';
-		}
+      // 3. 默认深色模式（符合 Misaka 主题）
+      return 'dark';
+    }
 
-		// 应用主题
-		function applyTheme() {
-			const theme = getTheme();
-			if (theme === 'dark') {
-				document.documentElement.classList.add('dark');
-			} else {
-				document.documentElement.classList.remove('dark');
-			}
-		}
+    // 应用主题
+    function applyTheme() {
+      const theme = getTheme();
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
 
-		// 首次加载时应用主题
-		applyTheme();
-	})();
+    // 首次加载时应用主题
+    applyTheme();
+  })();
 </script>
 
 <!-- View Transitions 支持 - 页面切换时保持主题 -->
 <script>
-	// 在每次页面切换后重新应用主题（View Transitions）
-	document.addEventListener('astro:after-swap', () => {
-		// 从 localStorage 读取主题
-		const savedTheme = localStorage.getItem('theme');
-		const theme = savedTheme || 'dark'; // 默认深色
+  // 在每次页面切换后重新应用主题（View Transitions）
+  document.addEventListener('astro:after-swap', () => {
+    // 从 localStorage 读取主题
+    const savedTheme = localStorage.getItem('theme');
+    const theme = savedTheme || 'dark'; // 默认深色
 
-		// 应用主题
-		if (theme === 'dark') {
-			document.documentElement.classList.add('dark');
-		} else {
-			document.documentElement.classList.remove('dark');
-		}
+    // 应用主题
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
 
-		// 标记页面已通过 View Transitions 导航，避免首次加载动画重复播放
-		document.body.classList.add('navigated');
-	});
+    // 标记页面已通过 View Transitions 导航，避免首次加载动画重复播放
+    document.body.classList.add('navigated');
+  });
 </script>
 
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon1.svg" />
-<link rel="sitemap" href="/sitemap-index.xml" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" type="image/svg+xml" href="/favicon1.svg"/>
+<link rel="sitemap" href="/sitemap-index.xml"/>
 <link
-	rel="alternate"
-	type="application/rss+xml"
-	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
+  rel="alternate"
+  type="application/rss+xml"
+  title={SITE_TITLE}
+  href={new URL('rss.xml', Astro.site)}
 />
-<meta name="generator" content={Astro.generator} />
+<meta name="generator" content={Astro.generator}/>
 
 <!-- Font preloads -->
-<link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
-<link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin />
+<link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin/>
+<link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin/>
 
 <!-- KaTeX CSS for Math Rendering -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
 
 <!-- Canonical URL -->
-<link rel="canonical" href={canonicalURL} />
+<link rel="canonical" href={canonicalURL}/>
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
-<meta name="title" content={title} />
-<meta name="description" content={description} />
+<meta name="title" content={title}/>
+<meta name="description" content={description}/>
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={Astro.url} />
-<meta property="og:title" content={title} />
-<meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image.src, Astro.url)} />
+<meta property="og:type" content="website"/>
+<meta property="og:url" content={Astro.url}/>
+<meta property="og:title" content={title}/>
+<meta property="og:description" content={description}/>
+<meta property="og:image" content={new URL(image.src, Astro.url)}/>
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
-<meta property="twitter:title" content={title} />
-<meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+<meta property="twitter:card" content="summary_large_image"/>
+<meta property="twitter:url" content={Astro.url}/>
+<meta property="twitter:title" content={title}/>
+<meta property="twitter:description" content={description}/>
+<meta property="twitter:image" content={new URL(image.src, Astro.url)}/>

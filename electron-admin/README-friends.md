@@ -7,12 +7,14 @@ Admin 管理后台现已支持友链编辑功能，提供完整的友链 CRUD �
 ## 访问方式
 
 ### 方式一：Web 界面
+
 ```bash
 npm run admin
 # 访问 http://localhost:3001
 ```
 
 ### 方式二：Electron 桌面应用
+
 ```bash
 launch-admin.bat          # Windows
 ./启动博客管理后台.bat      # Windows (中文)
@@ -43,8 +45,8 @@ launch-admin.bat          # Windows
 1. **友链名称**（必填）：输入友链站点名称
 2. **友链地址**（必填）：输入完整 URL（必须以 http:// 或 https:// 开头）
 3. **头像链接**（必填）：输入头像图片 URL
-   - 支持实时预览
-   - 预览图会显示在输入框下方
+  - 支持实时预览
+  - 预览图会显示在输入框下方
 4. **友链描述**（必填）：输入友链描述（支持多行）
 
 填写完成后点击 **💾 保存** 按钮。
@@ -81,9 +83,11 @@ launch-admin.bat          # Windows
 后端提供以下 RESTful API 端点：
 
 ### GET `/api/friends`
+
 获取所有友链
 
 **响应示例：**
+
 ```json
 {
   "success": true,
@@ -99,9 +103,11 @@ launch-admin.bat          # Windows
 ```
 
 ### POST `/api/friends`
+
 添加新友链
 
 **请求体：**
+
 ```json
 {
   "name": "友链名称",
@@ -112,17 +118,21 @@ launch-admin.bat          # Windows
 ```
 
 ### PUT `/api/friends/:index`
+
 更新友链（按索引）
 
 **参数：**
+
 - `index`: 友链在数组中的索引（从 0 开始）
 
 **请求体：** 同添加友链
 
 ### DELETE `/api/friends/:index`
+
 删除友链（按索引）
 
 **参数：**
+
 - `index`: 友链在数组中的索引（从 0 开始）
 
 ## 技术实现
@@ -165,6 +175,7 @@ launch-admin.bat          # Windows
 ### 问题：无法加载友链列表
 
 **解决方案：**
+
 1. 检查 `src/consts.ts` 文件是否存在
 2. 确认文件格式正确（包含 `export const FRIEND_LINKS: FriendLink[]`）
 3. 查看开发者工具控制台错误信息（按 F12）
@@ -172,6 +183,7 @@ launch-admin.bat          # Windows
 ### 问题：保存后友链未更新
 
 **解决方案：**
+
 1. 点击刷新按钮重新加载
 2. 检查文件写入权限
 3. 查看控制台错误信息
@@ -179,6 +191,7 @@ launch-admin.bat          # Windows
 ### 问题：头像无法显示
 
 **解决方案：**
+
 1. 确认头像 URL 可访问
 2. 检查 URL 格式是否正确
 3. 尝试使用其他图片链接

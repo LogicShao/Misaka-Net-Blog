@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Misaka Network Blog - 基于 Astro 5.x 的现代化静态博客系统，采用深色科技风格设计。
 
 **核心技术栈：**
+
 - Astro 5.15.3 (静态站点生成器)
 - TypeScript 5.0 (严格类型检查)
 - Tailwind CSS 3.4.18 (自定义 Misaka 主题)
@@ -33,11 +34,13 @@ npm run admin               # 启动 Admin 管理后台 (localhost:3001)
 ## 开发服务器运行规则
 
 **重要：** 除非用户明确要求，否则不要执行以下命令：
+
 - `npm run dev` / `npm start`
 - `npm run build`（除非用户要求构建）
 - 任何启动服务器的命令
 
 **原则：**
+
 - 仅在用户明确请求"启动开发服务器"或"运行 dev"时执行
 - 不要假设用户需要预览更改
 - 代码修改完成后，说明更改内容即可，不要自动启动服务器
@@ -47,12 +50,114 @@ npm run admin               # 启动 Admin 管理后台 (localhost:3001)
 **重要：除非用户明确要求，否则绝对不要执行 Git 提交或分支操作。**
 
 **禁止的操作（除非用户明确请求）：**
+
 - `git commit`
 - `git push`
 - `git checkout -b` / `git branch`
 - `git merge`
 - `git rebase`
 - 任何修改 Git 历史的操作
+
+## 代码风格与规范
+
+### 换行符规范（Line Endings）
+
+**重要：所有文件必须使用 LF（`\n`）换行符，禁止使用 CRLF（`\r\n`）。**
+
+#### 为什么强制使用 LF？
+
+1. **跨平台一致性**：确保 Windows、macOS、Linux 上的文件格式统一
+2. **Git 兼容性**：避免换行符差异导致的无意义 diff
+3. **构建系统要求**：Markdown frontmatter 解析器依赖一致的换行符
+4. **服务器部署**：生产环境（Cloudflare Pages）运行在 Linux 上
+
+#### 历史问题案例
+
+> **真实 Bug 案例**：`25-11-24-16-00.md` 因使用 CRLF 导致 Admin 后台无法正确解析 frontmatter，显示为"无标题"
+> 。原因：frontmatter 解析器的正则表达式 `/^---\n([\s\S]*?)\n---\n/` 无法匹配 CRLF 文件。
+
+#### 配置文件保障
+
+项目已配置以下文件自动强制 LF：
+
+**`.editorconfig`**（编辑器自动配置）：
+
+```ini
+[*]
+end_of_line = lf       # 所有文件使用 LF
+insert_final_newline = true  # 文件末尾插入换行符
+```
+
+**`.gitattributes`**（Git 版本控制强制）：
+
+```
+* text=auto eol=lf     # 提交时自动转换为 LF
+*.md text eol=lf       # Markdown 文件强制 LF
+*.mdx text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+```
+
+#### 检查和修复换行符
+
+**检查文件换行符（Git Bash / WSL）：**
+
+```bash
+file src/content/blog/25-11-24-16-00.md
+# 输出示例：
+# CRLF: "ASCII text, with CRLF line terminators" ❌
+# LF:   "ASCII text" ✅
+```
+
+**批量转换为 LF（Windows PowerShell）：**
+
+```powershell
+# 单个文件
+(Get-Content .\src\content\blog\25-11-24-16-00.md) -join "`n" | Set-Content -NoNewline .\src\content\blog\25-11-24-16-00.md
+
+# 批量转换所有 Markdown 文件
+Get-ChildItem -Path .\src\content\blog\*.md | ForEach-Object {
+    (Get-Content $_.FullName) -join "`n" | Set-Content -NoNewline $_.FullName
+}
+```
+
+**批量转换为 LF（Git Bash / Linux / macOS）：**
+
+```bash
+# 安装 dos2unix（如果尚未安装）
+# macOS: brew install dos2unix
+# Ubuntu: sudo apt-get install dos2unix
+
+# 转换单个文件
+dos2unix src/content/blog/25-11-24-16-00.md
+
+# 批量转换所有 Markdown 文件
+find src/content/blog -name "*.md" -exec dos2unix {} \;
+```
+
+**VS Code 设置：**
+
+```json
+{
+  "files.eol": "\n",          // 默认使用 LF
+  "files.insertFinalNewline": true
+}
+```
+
+#### 创建新文章时的检查清单
+
+使用 `npm run new` 创建文章时，脚本会自动使用正确的换行符。如果手动创建文件：
+
+1. ✅ 确认编辑器设置为 LF 模式（VS Code 右下角状态栏）
+2. ✅ 提交前运行 `git diff` 检查是否有 `^M` 字符（表示 CRLF）
+3. ✅ Admin 后台能正确显示标题和内容（验证 frontmatter 解析成功）
+
+### 其他代码风格
+
+- **缩进风格**：TypeScript/JavaScript 使用 **Tab**，Markdown/JSON/YAML 使用 **2 空格**
+- **字符编码**：UTF-8 无 BOM
+- **尾随空格**：自动删除（Markdown 除外，保留用于强制换行的双空格）
+- **文件末尾**：必须有一个空行
 
 ## 核心架构要点
 
@@ -77,12 +182,14 @@ const blog = defineCollection({
 ```
 
 **关键特性：**
+
 - **构建时数据加载**：`loader: glob()` 在构建阶段扫描文件系统，生成静态内容集合
 - **类型安全保证**：Zod schema 提供编译时类型检查和运行时验证
 - **草稿过滤机制**：`draft: true` 的文章在生产环境被 `getCollection()` 自动过滤
 - **文章 ID 规则**：`post.id` = 文件路径不含扩展名（如 `25-01-15-14-30.md` → `"25-01-15-14-30"`）
 
 **动态路由实现：**
+
 ```typescript
 // src/pages/blog/[...slug].astro
 export async function getStaticPaths() {
@@ -107,6 +214,7 @@ export async function getStaticPaths() {
 ```
 
 **跨组件通信模式（自定义事件总线）：**
+
 ```javascript
 // 发送方 (SearchButton.astro)
 window.dispatchEvent(new CustomEvent('open-search'));
@@ -116,6 +224,7 @@ window.addEventListener('open-search', openSearch);
 ```
 
 **主题切换系统示例：**
+
 ```javascript
 // ThemeToggle.astro - 发送主题切换事件
 window.dispatchEvent(new CustomEvent('theme-changed', {
@@ -129,12 +238,122 @@ window.addEventListener('theme-changed', async (event) => {
 });
 ```
 
-### 3. 路由系统的关键逻辑（易出错）
+### 3. 文章排序系统（关键逻辑）
 
-**文章前后导航的陷阱：**
+#### 文件名即时间戳
+
+**文件命名规范：** `YY-MM-DD-HH-MM.md`
+
+```
+25-11-24-16-00.md  →  2025年11月24日 16:00
+25-11-24-18-30.md  →  2025年11月24日 18:30
+```
+
+**关键问题：**
+- `pubDate` 字段只精确到天（如 `2025-11-24`）
+- 同一天发布的多篇文章无法正确排序
+- **解决方案：** 使用文件名中的小时和分钟信息
+
+#### 统一排序工具
+
+**核心文件：** `src/utils/sortPosts.ts`
+
 ```typescript
-// 文章按 pubDate 降序排列（最新在前）
-const allPosts = sortedPosts; // [新 → 旧]
+/**
+ * 从文件名提取精确时间戳
+ * @param id 文章 ID（文件名不含扩展名）
+ * @returns 时间戳（毫秒）
+ */
+export function getTimestampFromFilename(id: string): number {
+  // 匹配：YY-MM-DD-HH-MM
+  const match = id.match(/^(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+
+  if (!match) return 0;
+
+  const [, yy, month, day, hour, minute] = match;
+  const year = 2000 + parseInt(yy, 10);
+
+  return new Date(year, parseInt(month) - 1, parseInt(day),
+                  parseInt(hour), parseInt(minute)).getTime();
+}
+
+/**
+ * 排序博客文章（新文章在前）
+ * 优先使用文件名时间，降级使用 pubDate
+ */
+export function sortPostsByTime<T extends CollectionEntry<'blog'>>(posts: T[]): T[] {
+  return posts.sort((a, b) => {
+    const timeA = getTimestampFromFilename(a.id);
+    const timeB = getTimestampFromFilename(b.id);
+
+    // 如果文件名时间戳有效，使用文件名时间
+    if (timeA > 0 && timeB > 0) {
+      return timeB - timeA; // 降序：新文章在前
+    }
+
+    // 降级方案：使用 pubDate 字段
+    return (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0);
+  });
+}
+```
+
+#### 使用示例
+
+**前端页面（Astro）：**
+```typescript
+// src/pages/index.astro
+import { sortPostsByTime } from '../utils/sortPosts';
+
+const posts = sortPostsByTime(
+  (await getCollection('blog')).filter(post => !post.data.draft)
+).slice(0, 6);
+```
+
+**后端 API（Admin）：**
+```javascript
+// admin-server.js
+function getTimestampFromFilename(filename) {
+  const id = filename.replace(/\.(md|mdx)$/, '');
+  const match = id.match(/^(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/);
+
+  if (!match) return 0;
+
+  const [, yy, month, day, hour, minute] = match;
+  const year = 2000 + parseInt(yy, 10);
+
+  return new Date(year, parseInt(month) - 1, parseInt(day),
+                  parseInt(hour), parseInt(minute)).getTime();
+}
+
+posts.sort((a, b) => {
+  const timestampA = getTimestampFromFilename(a.filename);
+  const timestampB = getTimestampFromFilename(b.filename);
+
+  if (timestampA > 0 && timestampB > 0) {
+    return timestampB - timestampA;
+  }
+
+  return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
+});
+```
+
+#### 应用场景汇总
+
+| 文件 | 用途 | 排序调用 |
+|------|------|---------|
+| `src/pages/index.astro` | 首页最新文章 | `sortPostsByTime(posts).slice(0, 6)` |
+| `src/pages/blog/[...page].astro` | 文章列表分页 | `sortPostsByTime(posts)` |
+| `src/pages/blog/[...slug].astro` | 文章前后导航 | `sortPostsByTime(posts)` |
+| `src/pages/tags/[tag].astro` | 标签页文章列表 | `sortPostsByTime(filteredPosts)` |
+| `admin-server.js` | Admin 后台列表 | `getTimestampFromFilename()` |
+
+#### 前后导航的索引逻辑
+
+**关键陷阱：** 因为降序排列（新 → 旧），索引逻辑是颠倒的！
+
+```typescript
+// src/pages/blog/[...slug].astro
+const allPosts = sortPostsByTime(posts); // [新 → 旧]
 const currentIndex = allPosts.findIndex(p => p.id === post.id);
 
 // ⚠️ 注意：因为降序排列，索引逻辑颠倒
@@ -142,9 +361,25 @@ const prevPost = allPosts[currentIndex + 1]; // 时间更早的文章（向旧�
 const nextPost = allPosts[currentIndex - 1]; // 时间更新的文章（向新）
 ```
 
+**示意图：**
+```
+索引:  [0]         [1]         [2]         [3]
+文章:  最新文章  →  较新文章  →  较旧文章  →  最旧文章
+                    ↑
+                  当前文章
+
+prevPost = [2]  // 索引 +1，更旧的文章
+nextPost = [0]  // 索引 -1，更新的文章
+```
+
+#### 历史问题案例
+
+> **真实 Bug 案例**：同一天发布的两篇文章（`25-11-24-16-00.md` 和 `25-11-24-18-30.md`），因为只用 `pubDate` 排序，导致 18:30 的文章反而显示在 16:00 文章之前。修复后，通过文件名时间戳正确排序。
+
 ### 4. Mermaid 渲染器的性能优化架构
 
 **核心问题：**
+
 - CDN 加载耗时
 - 复杂图表渲染阻塞主线程
 - 主题切换需要重新渲染
@@ -187,6 +422,7 @@ window.addEventListener('theme-changed', async (event) => {
 ```
 
 **关键技术点：**
+
 - **代码块识别**：`pre[data-language="mermaid"] code`（依赖 Shiki 的 `data-language` 属性）
 - **DOM 健壮性检查**：`if (!block.isConnected) return;` 防止元素失效
 - **全屏查看器集成**：通过 `open-mermaid-viewer` 事件触发 `MermaidViewer.astro`
@@ -194,6 +430,7 @@ window.addEventListener('theme-changed', async (event) => {
 ### 5. 搜索系统的三层架构
 
 **第 1 层：静态索引生成（构建时）**
+
 ```typescript
 // src/pages/search.json.ts - API 端点
 export const GET: APIRoute = async () => {
@@ -209,6 +446,7 @@ export const GET: APIRoute = async () => {
 ```
 
 **第 2 层：Fuse.js 模糊搜索（客户端）**
+
 ```javascript
 // SearchModal.astro
 fuse = new Fuse(searchData, {
@@ -224,6 +462,7 @@ fuse = new Fuse(searchData, {
 ```
 
 **第 3 层：懒加载策略**
+
 ```javascript
 async function loadSearchData() {
   if (searchData.length > 0) return; // 🔑 缓存检查
@@ -268,6 +507,7 @@ async function loadSearchData() {
 ```
 
 **关键技术细节：**
+
 - `is:inline`：强制 Astro 内联脚本到 HTML（不打包到 JS 文件）
 - **执行时机**：在 `<head>` 中，DOM 渲染前
 - **双层主题系统**：CSS 变量（支持切换） + Tailwind 品牌色（固定）
@@ -275,6 +515,7 @@ async function loadSearchData() {
 ### 7. 数学公式渲染管道
 
 **处理流程：**
+
 ```
 Markdown 源文件
   ↓ remark-math (构建时解析 $...$ 和 $$...$$)
@@ -284,6 +525,7 @@ Markdown 源文件
 ```
 
 **关键配置：**
+
 ```javascript
 // astro.config.mjs
 export default defineConfig({
@@ -299,11 +541,13 @@ export default defineConfig({
 **技术栈：** Express.js (后端) + 纯 HTML/CSS/JS (前端)
 
 **启动方式：**
+
 ```bash
 npm run admin  # 启动 Web 界面 (http://localhost:3001)
 ```
 
 **RESTful API 设计：**
+
 ```javascript
 // admin-server.js
 app.get('/api/posts', (req, res) => { /* 文章列表 */ });
@@ -321,6 +565,7 @@ app.post('/api/build', async (req, res) => { /* 触发构建 */ });
 ```
 
 **Frontmatter 解析器（关键实现）：**
+
 ```javascript
 function parseFrontmatter(content) {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
@@ -349,16 +594,19 @@ function parseFrontmatter(content) {
 ### 9. CLI 工具的设计模式
 
 **文章创建脚本（scripts/new-post.js）：**
+
 - 自动生成时间戳文件名：`YY-MM-DD-HH-MM.md`
 - 交互式填写 frontmatter
 - 自动打开默认编辑器
 
 **友链管理脚本（scripts/manage-friends.js）：**
+
 - 正则表达式解析 TypeScript 代码
 - 支持增删改查操作
 - 直接修改 `src/consts.ts` 文件
 
 **核心技术：**
+
 ```javascript
 // 从 consts.ts 中提取友链数据
 function readFriendLinks() {
@@ -398,12 +646,14 @@ function readFriendLinks() {
 ### 2. Mermaid 节点标签中的特殊字符
 
 **冒号问题：**
+
 ```mermaid
 ❌ 错误: A[data: 文章数组]
 ✅ 正确: A[data - 文章数组]  或  A["data: 文章数组"]
 ```
 
 **省略号问题：**
+
 ```mermaid
 ❌ 错误: G[...]
 ✅ 正确: G[更多]  或  G[其他选项]
@@ -417,12 +667,14 @@ function readFriendLinks() {
 ### 4. 代码块语言标识
 
 **必须指定语言：** ` ```typescript ` 而不是 ` ``` `
+
 - 启用 Shiki 语法高亮
 - 自动添加 `data-language` 属性（Mermaid 渲染依赖此属性）
 
 ### 5. View Transitions 已完全移除
 
 **当前状态：**
+
 - ❌ 项目不使用 View Transitions
 - ✅ 使用传统的完整页面刷新
 - ✅ Mermaid 渲染器无需处理 `astro:page-load` 事件

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const {contextBridge, ipcRenderer} = require('electron');
 
 // 向渲染进程暴露安全的 API
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 友链管理
   getFriends: () => ipcRenderer.invoke('get-friends'),
   addFriend: (data) => ipcRenderer.invoke('add-friend', data),
-  updateFriend: (index, data) => ipcRenderer.invoke('update-friend', { index, friendData: data }),
+  updateFriend: (index, data) => ipcRenderer.invoke('update-friend', {index, friendData: data}),
   deleteFriend: (index) => ipcRenderer.invoke('delete-friend', index),
 
   // 个人名片管理

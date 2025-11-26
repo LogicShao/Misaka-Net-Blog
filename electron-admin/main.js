@@ -1,10 +1,10 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from 'electron';
+import {app, BrowserWindow, ipcMain, Menu, dialog, shell} from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import fs from 'fs/promises';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { loadConfig, saveConfig, validateBlogDirectory, getBlogPaths } from './config.js';
+import {exec} from 'child_process';
+import {promisify} from 'util';
+import {loadConfig, saveConfig, validateBlogDirectory, getBlogPaths} from './config.js';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -249,7 +249,7 @@ function createMenu() {
             mainWindow.webContents.send('menu-refresh');
           },
         },
-        { type: 'separator' },
+        {type: 'separator'},
         {
           label: '打开博客目录',
           click: async () => {
@@ -264,7 +264,7 @@ function createMenu() {
             await changeBlogDirectory();
           },
         },
-        { type: 'separator' },
+        {type: 'separator'},
         {
           label: '退出',
           accelerator: 'CmdOrCtrl+Q',
@@ -277,13 +277,13 @@ function createMenu() {
     {
       label: '编辑',
       submenu: [
-        { label: '撤销', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
-        { label: '重做', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo' },
-        { type: 'separator' },
-        { label: '剪切', accelerator: 'CmdOrCtrl+X', role: 'cut' },
-        { label: '复制', accelerator: 'CmdOrCtrl+C', role: 'copy' },
-        { label: '粘贴', accelerator: 'CmdOrCtrl+V', role: 'paste' },
-        { label: '全选', accelerator: 'CmdOrCtrl+A', role: 'selectAll' },
+        {label: '撤销', accelerator: 'CmdOrCtrl+Z', role: 'undo'},
+        {label: '重做', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
+        {type: 'separator'},
+        {label: '剪切', accelerator: 'CmdOrCtrl+X', role: 'cut'},
+        {label: '复制', accelerator: 'CmdOrCtrl+C', role: 'copy'},
+        {label: '粘贴', accelerator: 'CmdOrCtrl+V', role: 'paste'},
+        {label: '全选', accelerator: 'CmdOrCtrl+A', role: 'selectAll'},
       ],
     },
     {
@@ -308,15 +308,15 @@ function createMenu() {
     {
       label: '视图',
       submenu: [
-        { label: '重新加载', accelerator: 'CmdOrCtrl+Shift+R', role: 'reload' },
-        { label: '强制重新加载', accelerator: 'CmdOrCtrl+Shift+F5', role: 'forceReload' },
-        { label: '切换开发者工具', accelerator: 'F12', role: 'toggleDevTools' },
-        { type: 'separator' },
-        { label: '重置缩放', accelerator: 'CmdOrCtrl+0', role: 'resetZoom' },
-        { label: '放大', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
-        { label: '缩小', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
-        { type: 'separator' },
-        { label: '全屏', accelerator: 'F11', role: 'togglefullscreen' },
+        {label: '重新加载', accelerator: 'CmdOrCtrl+Shift+R', role: 'reload'},
+        {label: '强制重新加载', accelerator: 'CmdOrCtrl+Shift+F5', role: 'forceReload'},
+        {label: '切换开发者工具', accelerator: 'F12', role: 'toggleDevTools'},
+        {type: 'separator'},
+        {label: '重置缩放', accelerator: 'CmdOrCtrl+0', role: 'resetZoom'},
+        {label: '放大', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn'},
+        {label: '缩小', accelerator: 'CmdOrCtrl+-', role: 'zoomOut'},
+        {type: 'separator'},
+        {label: '全屏', accelerator: 'F11', role: 'togglefullscreen'},
       ],
     },
     {
@@ -367,7 +367,7 @@ function parseFrontmatter(content) {
   const match = content.match(frontmatterRegex);
 
   if (!match) {
-    return { frontmatter: {}, content: content };
+    return {frontmatter: {}, content: content};
   }
 
   const frontmatterStr = match[1];
@@ -395,7 +395,7 @@ function parseFrontmatter(content) {
     frontmatter[currentKey] = parseValue(currentValue.trim());
   }
 
-  return { frontmatter, content: bodyContent };
+  return {frontmatter, content: bodyContent};
 }
 
 function parseValue(value) {
@@ -405,7 +405,7 @@ function parseValue(value) {
   if (value === 'false') return false;
 
   if ((value.startsWith("'") && value.endsWith("'")) ||
-      (value.startsWith('"') && value.endsWith('"'))) {
+    (value.startsWith('"') && value.endsWith('"'))) {
     return value.slice(1, -1);
   }
 
@@ -414,7 +414,7 @@ function parseValue(value) {
     return arrayContent.split(',').map(item => {
       item = item.trim();
       if ((item.startsWith("'") && item.endsWith("'")) ||
-          (item.startsWith('"') && item.endsWith('"'))) {
+        (item.startsWith('"') && item.endsWith('"'))) {
         return item.slice(1, -1);
       }
       return item;
@@ -461,7 +461,7 @@ ipcMain.handle('get-posts', async () => {
       mdFiles.map(async (file) => {
         const filePath = path.join(BLOG_DIR, file);
         const content = await fs.readFile(filePath, 'utf-8');
-        const { frontmatter } = parseFrontmatter(content);
+        const {frontmatter} = parseFrontmatter(content);
         const stats = await fs.stat(filePath);
 
         return {
@@ -485,10 +485,10 @@ ipcMain.handle('get-posts', async () => {
     });
 
     console.log('[IPC:get-posts] Successfully returning posts count:', posts.length);
-    return { success: true, data: posts };
+    return {success: true, data: posts};
   } catch (error) {
     console.error('[IPC:get-posts] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
@@ -497,7 +497,7 @@ ipcMain.handle('get-post', async (event, postId) => {
   try {
     const filePath = path.join(BLOG_DIR, postId);
     const content = await fs.readFile(filePath, 'utf-8');
-    const { frontmatter, content: bodyContent } = parseFrontmatter(content);
+    const {frontmatter, content: bodyContent} = parseFrontmatter(content);
 
     return {
       success: true,
@@ -509,12 +509,12 @@ ipcMain.handle('get-post', async (event, postId) => {
       },
     };
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 创建文章
-ipcMain.handle('create-post', async (event, { filename, frontmatter, content }) => {
+ipcMain.handle('create-post', async (event, {filename, frontmatter, content}) => {
   try {
     const finalFilename = filename.endsWith('.md') ? filename : `${filename}.md`;
     const filePath = path.join(BLOG_DIR, finalFilename);
@@ -522,7 +522,7 @@ ipcMain.handle('create-post', async (event, { filename, frontmatter, content }) 
     // 检查文件是否存在
     try {
       await fs.access(filePath);
-      return { success: false, error: '文件已存在' };
+      return {success: false, error: '文件已存在'};
     } catch {
       // 文件不存在，可以创建
     }
@@ -530,22 +530,22 @@ ipcMain.handle('create-post', async (event, { filename, frontmatter, content }) 
     const fullContent = buildFrontmatter(frontmatter) + '\n' + (content || '');
     await fs.writeFile(filePath, fullContent, 'utf-8');
 
-    return { success: true, data: { id: finalFilename } };
+    return {success: true, data: {id: finalFilename}};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 更新文章
-ipcMain.handle('update-post', async (event, { postId, frontmatter, content }) => {
+ipcMain.handle('update-post', async (event, {postId, frontmatter, content}) => {
   try {
     const filePath = path.join(BLOG_DIR, postId);
     const fullContent = buildFrontmatter(frontmatter) + '\n' + (content || '');
     await fs.writeFile(filePath, fullContent, 'utf-8');
 
-    return { success: true };
+    return {success: true};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
@@ -555,16 +555,16 @@ ipcMain.handle('delete-post', async (event, postId) => {
     const filePath = path.join(BLOG_DIR, postId);
     await fs.unlink(filePath);
 
-    return { success: true };
+    return {success: true};
   } catch (error) {
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 构建博客
 ipcMain.handle('build-blog', async () => {
   try {
-    const { stdout, stderr } = await execAsync('npm run build', {
+    const {stdout, stderr} = await execAsync('npm run build', {
       cwd: BLOG_ROOT,
       maxBuffer: 1024 * 1024 * 10, // 10MB buffer
     });
@@ -648,7 +648,7 @@ async function readFriendLinksSync() {
       friendLinks.push(friendLink);
     }
 
-    return { content, friendLinks };
+    return {content, friendLinks};
   } catch (error) {
     throw new Error(`读取友链数据失败: ${error.message}`);
   }
@@ -684,7 +684,7 @@ ${items}
  */
 async function writeFriendLinksSync(friendLinks) {
   try {
-    const { content } = await readFriendLinksSync();
+    const {content} = await readFriendLinksSync();
     const newFriendLinksCode = generateFriendLinksCode(friendLinks);
 
     // 替换原有的 FRIEND_LINKS 数组
@@ -704,31 +704,31 @@ async function writeFriendLinksSync(friendLinks) {
 // 获取所有友链
 ipcMain.handle('get-friends', async () => {
   try {
-    const { friendLinks } = await readFriendLinksSync();
-    return { success: true, data: friendLinks };
+    const {friendLinks} = await readFriendLinksSync();
+    return {success: true, data: friendLinks};
   } catch (error) {
     console.error('[IPC:get-friends] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 添加友链
 ipcMain.handle('add-friend', async (event, friendData) => {
   try {
-    const { name, url, avatar, description, note } = friendData;
+    const {name, url, avatar, description, note} = friendData;
 
     // 验证必填字段
     if (!name || !url || !avatar || !description) {
-      return { success: false, error: '所有字段都是必填的' };
+      return {success: false, error: '所有字段都是必填的'};
     }
 
     // URL 验证
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return { success: false, error: 'URL 必须以 http:// 或 https:// 开头' };
+      return {success: false, error: 'URL 必须以 http:// 或 https:// 开头'};
     }
 
     // 读取现有友链并添加新友链
-    const { friendLinks } = await readFriendLinksSync();
+    const {friendLinks} = await readFriendLinksSync();
     const newFriend = {
       name: name.trim(),
       url: url.trim(),
@@ -746,34 +746,34 @@ ipcMain.handle('add-friend', async (event, friendData) => {
     // 写入文件
     await writeFriendLinksSync(friendLinks);
 
-    return { success: true, data: friendLinks };
+    return {success: true, data: friendLinks};
   } catch (error) {
     console.error('[IPC:add-friend] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 更新友链
-ipcMain.handle('update-friend', async (event, { index, friendData }) => {
+ipcMain.handle('update-friend', async (event, {index, friendData}) => {
   try {
-    const { name, url, avatar, description, note } = friendData;
+    const {name, url, avatar, description, note} = friendData;
 
     // 验证必填字段
     if (!name || !url || !avatar || !description) {
-      return { success: false, error: '所有字段都是必填的' };
+      return {success: false, error: '所有字段都是必填的'};
     }
 
     // URL 验证
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return { success: false, error: 'URL 必须以 http:// 或 https:// 开头' };
+      return {success: false, error: 'URL 必须以 http:// 或 https:// 开头'};
     }
 
     // 读取现有友链
-    const { friendLinks } = await readFriendLinksSync();
+    const {friendLinks} = await readFriendLinksSync();
 
     // 验证索引
     if (index < 0 || index >= friendLinks.length) {
-      return { success: false, error: '无效的友链索引' };
+      return {success: false, error: '无效的友链索引'};
     }
 
     // 更新友链
@@ -796,10 +796,10 @@ ipcMain.handle('update-friend', async (event, { index, friendData }) => {
     // 写入文件
     await writeFriendLinksSync(friendLinks);
 
-    return { success: true, data: friendLinks };
+    return {success: true, data: friendLinks};
   } catch (error) {
     console.error('[IPC:update-friend] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
@@ -807,11 +807,11 @@ ipcMain.handle('update-friend', async (event, { index, friendData }) => {
 ipcMain.handle('delete-friend', async (event, index) => {
   try {
     // 读取现有友链
-    const { friendLinks } = await readFriendLinksSync();
+    const {friendLinks} = await readFriendLinksSync();
 
     // 验证索引
     if (index < 0 || index >= friendLinks.length) {
-      return { success: false, error: '无效的友链索引' };
+      return {success: false, error: '无效的友链索引'};
     }
 
     // 删除友链
@@ -820,10 +820,10 @@ ipcMain.handle('delete-friend', async (event, index) => {
     // 写入文件
     await writeFriendLinksSync(friendLinks);
 
-    return { success: true, data: { deletedLink, friendLinks } };
+    return {success: true, data: {deletedLink, friendLinks}};
   } catch (error) {
     console.error('[IPC:delete-friend] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
@@ -855,7 +855,7 @@ async function readProfileSync() {
       profile[fieldMatch[1]] = fieldMatch[2];
     }
 
-    return { content, profile };
+    return {content, profile};
   } catch (error) {
     throw new Error(`读取个人信息失败: ${error.message}`);
   }
@@ -898,7 +898,7 @@ function generateProfileCode(profile) {
  */
 async function writeProfileSync(profile) {
   try {
-    const { content } = await readProfileSync();
+    const {content} = await readProfileSync();
     const newProfileCode = generateProfileCode(profile);
 
     // 替换原有的 PROFILE 对象
@@ -918,22 +918,22 @@ async function writeProfileSync(profile) {
 // 获取个人信息
 ipcMain.handle('get-profile', async () => {
   try {
-    const { profile } = await readProfileSync();
-    return { success: true, data: profile };
+    const {profile} = await readProfileSync();
+    return {success: true, data: profile};
   } catch (error) {
     console.error('[IPC:get-profile] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 
 // 更新个人信息
 ipcMain.handle('update-profile', async (event, profileData) => {
   try {
-    const { name, avatar, bio, location, email, github, bilibili, website } = profileData;
+    const {name, avatar, bio, location, email, github, bilibili, website} = profileData;
 
     // 验证必填字段
     if (!name || !avatar || !bio) {
-      return { success: false, error: '姓名、头像和简介是必填的' };
+      return {success: false, error: '姓名、头像和简介是必填的'};
     }
 
     // 更新个人信息
@@ -963,10 +963,10 @@ ipcMain.handle('update-profile', async (event, profileData) => {
     // 写入文件
     await writeProfileSync(updatedProfile);
 
-    return { success: true, data: updatedProfile };
+    return {success: true, data: updatedProfile};
   } catch (error) {
     console.error('[IPC:update-profile] Error:', error);
-    return { success: false, error: error.message };
+    return {success: false, error: error.message};
   }
 });
 

@@ -210,8 +210,8 @@ export default defineConfig({
 2. 在 Cloudflare Pages 创建新项目
 3. 连接你的 GitHub 仓库
 4. 构建设置：
-    - 构建命令：`npm run build`
-    - 输出目录：`dist`
+  - 构建命令：`npm run build`
+  - 输出目录：`dist`
 5. 部署！
 
 ### Vercel

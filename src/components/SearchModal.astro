@@ -29,7 +29,8 @@
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           <input
             type="text"
@@ -63,7 +64,8 @@
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <p class="text-sm" style="color: var(--text-secondary);">输入关键词开始搜索</p>
           </div>
@@ -78,20 +80,25 @@
         </div>
 
         <!-- 底部提示 -->
-        <div class="border-t px-4 py-3 flex items-center justify-between text-xs" style="border-color: var(--border-color); color: var(--text-tertiary);">
+        <div class="border-t px-4 py-3 flex items-center justify-between text-xs"
+             style="border-color: var(--border-color); color: var(--text-tertiary);">
           <div class="flex items-center space-x-4">
             <span class="flex items-center space-x-1">
-              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↑</kbd>
-              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↓</kbd>
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↑</kbd>
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">↓</kbd>
               <span>导航</span>
             </span>
             <span class="flex items-center space-x-1">
-              <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">Enter</kbd>
+              <kbd class="px-1.5 py-0.5 rounded"
+                   style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">Enter</kbd>
               <span>选择</span>
             </span>
           </div>
           <span class="flex items-center space-x-1">
-            <kbd class="px-1.5 py-0.5 rounded" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">ESC</kbd>
+            <kbd class="px-1.5 py-0.5 rounded"
+                 style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">ESC</kbd>
             <span>关闭</span>
           </span>
         </div>
@@ -103,108 +110,108 @@
 <script>
   import Fuse from 'fuse.js';
 
-  interface SearchItem {
-    slug: string;
-    title: string;
-    description: string;
-    tags: string[];
-    pubDate: string;
-  }
+    interface SearchItem {
+      slug: string;
+      title: string;
+      description: string;
+      tags: string[];
+      pubDate: string;
+      }
 
-  let fuse: Fuse<SearchItem> | null = null;
-  let searchData: SearchItem[] = [];
-  let selectedIndex = -1;
+    let fuse: Fuse<SearchItem> | null = null;
+    let searchData: SearchItem[] = [];
+    let selectedIndex = -1;
 
-  // 获取 DOM 元素（支持 View Transitions）
-  function getElements() {
-    return {
-      modal: document.getElementById('search-modal'),
-      backdrop: document.getElementById('search-backdrop'),
-      searchInput: document.getElementById('search-input') as HTMLInputElement,
-      searchClose: document.getElementById('search-close'),
-      searchResultsList: document.getElementById('search-results-list'),
-      searchEmpty: document.getElementById('search-empty'),
-      searchNoResults: document.getElementById('search-no-results'),
-    };
-  }
+    // 获取 DOM 元素（支持 View Transitions）
+    function getElements() {
+      return {
+        modal: document.getElementById('search-modal'),
+        backdrop: document.getElementById('search-backdrop'),
+        searchInput: document.getElementById('search-input') as HTMLInputElement,
+        searchClose: document.getElementById('search-close'),
+        searchResultsList: document.getElementById('search-results-list'),
+        searchEmpty: document.getElementById('search-empty'),
+        searchNoResults: document.getElementById('search-no-results'),
+        };
+      }
 
-  // 加载搜索数据
-  async function loadSearchData() {
-    if (searchData.length > 0) return;
+    // 加载搜索数据
+    async function loadSearchData() {
+      if (searchData.length > 0) return;
 
-    try {
-      const response = await fetch('/search.json');
-      searchData = await response.json();
+      try {
+        const response = await fetch('/search.json');
+        searchData = await response.json();
 
-      // 初始化 Fuse.js
-      fuse = new Fuse(searchData, {
-        keys: [
-          { name: 'title', weight: 3 },
-          { name: 'description', weight: 2 },
-          { name: 'tags', weight: 1 },
-        ],
-        threshold: 0.4,
-        ignoreLocation: true,
-        minMatchCharLength: 2,
-      });
-    } catch (error) {
-      console.error('Failed to load search data:', error);
-    }
-  }
+        // 初始化 Fuse.js
+        fuse = new Fuse(searchData, {
+          keys: [
+            { name: 'title', weight: 3 },
+            { name: 'description', weight: 2 },
+            { name: 'tags', weight: 1 },
+            ],
+          threshold: 0.4,
+          ignoreLocation: true,
+          minMatchCharLength: 2,
+          });
+        } catch (error) {
+        console.error('Failed to load search data:', error);
+        }
+      }
 
-  // 打开搜索模态框
-  function openSearch() {
-    const { modal, searchInput } = getElements();
-    if (!modal) return;
+    // 打开搜索模态框
+    function openSearch() {
+      const { modal, searchInput } = getElements();
+      if (!modal) return;
 
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    searchInput?.focus();
-    loadSearchData();
-  }
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      searchInput?.focus();
+      loadSearchData();
+      }
 
-  // 关闭搜索模态框
-  function closeSearch() {
-    const { modal, searchInput, searchResultsList, searchEmpty, searchNoResults } = getElements();
-    if (!modal) return;
+    // 关闭搜索模态框
+    function closeSearch() {
+      const { modal, searchInput, searchResultsList, searchEmpty, searchNoResults } = getElements();
+      if (!modal) return;
 
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-    if (searchInput) searchInput.value = '';
-    if (searchResultsList) searchResultsList.innerHTML = '';
-    if (searchEmpty) searchEmpty.classList.remove('hidden');
-    if (searchNoResults) searchNoResults.classList.add('hidden');
-    selectedIndex = -1;
-  }
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+      if (searchInput) searchInput.value = '';
+      if (searchResultsList) searchResultsList.innerHTML = '';
+      if (searchEmpty) searchEmpty.classList.remove('hidden');
+      if (searchNoResults) searchNoResults.classList.add('hidden');
+      selectedIndex = -1;
+      }
 
-  // 执行搜索
-  function performSearch(query: string) {
-    const { searchResultsList, searchEmpty, searchNoResults } = getElements();
-    if (!fuse || !searchResultsList || !searchEmpty || !searchNoResults) return;
+    // 执行搜索
+    function performSearch(query: string) {
+      const { searchResultsList, searchEmpty, searchNoResults } = getElements();
+      if (!fuse || !searchResultsList || !searchEmpty || !searchNoResults) return;
 
-    selectedIndex = -1;
+      selectedIndex = -1;
 
-    if (!query.trim()) {
-      searchResultsList.innerHTML = '';
-      searchEmpty.classList.remove('hidden');
+      if (!query.trim()) {
+        searchResultsList.innerHTML = '';
+        searchEmpty.classList.remove('hidden');
+        searchNoResults.classList.add('hidden');
+        return;
+        }
+
+      const results = fuse.search(query).slice(0, 10);
+
+      searchEmpty.classList.add('hidden');
+
+      if (results.length === 0) {
+        searchResultsList.innerHTML = '';
+        searchNoResults.classList.remove('hidden');
+        return;
+        }
+
       searchNoResults.classList.add('hidden');
-      return;
-    }
 
-    const results = fuse.search(query).slice(0, 10);
-
-    searchEmpty.classList.add('hidden');
-
-    if (results.length === 0) {
-      searchResultsList.innerHTML = '';
-      searchNoResults.classList.remove('hidden');
-      return;
-    }
-
-    searchNoResults.classList.add('hidden');
-
-    searchResultsList.innerHTML = results
-      .map(
+      searchResultsList.innerHTML = results
+        .map(
         (result, index) => `
         <li>
           <a
@@ -222,18 +229,18 @@
                   ${result.item.description}
                 </p>
                 ${
-                  result.item.tags.length > 0
-                    ? `<div class="flex flex-wrap gap-1">
+          result.item.tags.length > 0
+            ? `<div class="flex flex-wrap gap-1">
                         ${result.item.tags
-                          .slice(0, 3)
-                          .map(
-                            (tag) =>
-                              `<span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--bg-tertiary); color: var(--text-tertiary);">${tag}</span>`
-                          )
-                          .join('')}
+            .slice(0, 3)
+            .map(
+            (tag) =>
+              `<span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--bg-tertiary); color: var(--text-tertiary);">${tag}</span>`
+            )
+            .join('')}
                       </div>`
-                    : ''
-                }
+            : ''
+          }
               </div>
               <svg class="w-4 h-4 ml-2 flex-shrink-0 mt-0.5" style="color: var(--text-tertiary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -242,131 +249,131 @@
           </a>
         </li>
       `
-      )
-      .join('');
+        )
+        .join('');
 
-    // 更新选中状态
-    updateSelectedItem();
-  }
-
-  // 高亮匹配文本
-  function highlightMatch(text: string, query: string): string {
-    if (!query.trim()) return text;
-
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<mark class="bg-misaka-blue/20 text-misaka-blue rounded px-0.5">$1</mark>');
-  }
-
-  // 更新选中项样式
-  function updateSelectedItem() {
-    const items = document.querySelectorAll('.search-result-item');
-    items.forEach((item, index) => {
-      if (index === selectedIndex) {
-        item.setAttribute('style', 'background-color: var(--bg-secondary);');
-        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      } else {
-        item.setAttribute('style', 'background-color: transparent;');
+      // 更新选中状态
+      updateSelectedItem();
       }
-    });
-  }
 
-  // 键盘导航
-  function handleKeyboardNavigation(e: KeyboardEvent) {
-    const items = document.querySelectorAll('.search-result-item');
-    const itemCount = items.length;
+    // 高亮匹配文本
+    function highlightMatch(text: string, query: string): string {
+      if (!query.trim()) return text;
 
-    if (itemCount === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        selectedIndex = (selectedIndex + 1) % itemCount;
-        updateSelectedItem();
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        selectedIndex = selectedIndex <= 0 ? itemCount - 1 : selectedIndex - 1;
-        updateSelectedItem();
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < itemCount) {
-          (items[selectedIndex] as HTMLAnchorElement).click();
-        }
-        break;
-    }
-  }
-
-  // 全局事件监听器（避免重复绑定）
-  let globalListenersAttached = false;
-
-  function attachGlobalListeners() {
-    if (globalListenersAttached) return;
-
-    // 监听 open-search 事件
-    window.addEventListener('open-search', openSearch);
-
-    // 全局 ESC 关闭
-    document.addEventListener('keydown', (e) => {
-      const { modal } = getElements();
-      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
-        closeSearch();
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<mark class="bg-misaka-blue/20 text-misaka-blue rounded px-0.5">$1</mark>');
       }
-    });
 
-    // 鼠标悬停更新选中项
-    document.addEventListener('mouseover', (e) => {
-      const target = e.target as HTMLElement;
-      const resultItem = target.closest('.search-result-item');
-      if (resultItem) {
-        const index = parseInt(resultItem.getAttribute('data-index') || '-1');
-        if (index >= 0) {
-          selectedIndex = index;
+    // 更新选中项样式
+    function updateSelectedItem() {
+      const items = document.querySelectorAll('.search-result-item');
+      items.forEach((item, index) => {
+        if (index === selectedIndex) {
+          item.setAttribute('style', 'background-color: var(--bg-secondary);');
+          item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          } else {
+          item.setAttribute('style', 'background-color: transparent;');
+          }
+        });
+      }
+
+    // 键盘导航
+    function handleKeyboardNavigation(e: KeyboardEvent) {
+      const items = document.querySelectorAll('.search-result-item');
+      const itemCount = items.length;
+
+      if (itemCount === 0) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          selectedIndex = (selectedIndex + 1) % itemCount;
           updateSelectedItem();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          selectedIndex = selectedIndex <= 0 ? itemCount - 1 : selectedIndex - 1;
+          updateSelectedItem();
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (selectedIndex >= 0 && selectedIndex < itemCount) {
+            (items[selectedIndex] as HTMLAnchorElement).click();
+            }
+          break;
         }
       }
-    });
 
-    globalListenersAttached = true;
-  }
+    // 全局事件监听器（避免重复绑定）
+    let globalListenersAttached = false;
 
-  // 防止模态框监听器重复绑定的标志位
-  let modalListenersAttached = false;
+    function attachGlobalListeners() {
+      if (globalListenersAttached) return;
 
-  // 初始化模态框事件监听器
-  function initModalListeners() {
-    // 防止重复绑定
-    if (modalListenersAttached) return;
+      // 监听 open-search 事件
+      window.addEventListener('open-search', openSearch);
 
-    const { backdrop, searchClose, searchInput } = getElements();
+      // 全局 ESC 关闭
+      document.addEventListener('keydown', (e) => {
+        const { modal } = getElements();
+        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+          closeSearch();
+          }
+        });
 
-    backdrop?.addEventListener('click', closeSearch);
-    searchClose?.addEventListener('click', closeSearch);
+      // 鼠标悬停更新选中项
+      document.addEventListener('mouseover', (e) => {
+        const target = e.target as HTMLElement;
+        const resultItem = target.closest('.search-result-item');
+        if (resultItem) {
+          const index = parseInt(resultItem.getAttribute('data-index') || '-1');
+          if (index >= 0) {
+            selectedIndex = index;
+            updateSelectedItem();
+            }
+          }
+        });
 
-    searchInput?.addEventListener('input', (e) => {
-      performSearch((e.target as HTMLInputElement).value);
-    });
-
-    searchInput?.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeSearch();
-      } else {
-        handleKeyboardNavigation(e);
+      globalListenersAttached = true;
       }
-    });
 
-    modalListenersAttached = true;
-  }
+    // 防止模态框监听器重复绑定的标志位
+    let modalListenersAttached = false;
 
-  // 初始化（首次加载）
-  attachGlobalListeners();
-  initModalListeners();
+    // 初始化模态框事件监听器
+    function initModalListeners() {
+      // 防止重复绑定
+      if (modalListenersAttached) return;
 
-  // View Transitions 支持（页面导航后重新初始化）
-  document.addEventListener('astro:page-load', () => {
+      const { backdrop, searchClose, searchInput } = getElements();
+
+      backdrop?.addEventListener('click', closeSearch);
+      searchClose?.addEventListener('click', closeSearch);
+
+      searchInput?.addEventListener('input', (e) => {
+        performSearch((e.target as HTMLInputElement).value);
+        });
+
+      searchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSearch();
+          } else {
+          handleKeyboardNavigation(e);
+          }
+        });
+
+      modalListenersAttached = true;
+      }
+
+    // 初始化（首次加载）
     attachGlobalListeners();
     initModalListeners();
-  });
+
+    // View Transitions 支持（页面导航后重新初始化）
+    document.addEventListener('astro:page-load', () => {
+      attachGlobalListeners();
+      initModalListeners();
+      });
 </script>
 
 <style>

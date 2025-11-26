@@ -229,7 +229,7 @@ async function saveFriend() {
     return;
   }
 
-  const friendData = { name, url, avatar, description };
+  const friendData = {name, url, avatar, description};
 
   // 添加 note 如果提供
   if (note) {

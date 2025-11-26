@@ -2,31 +2,31 @@
     <!-- 定义滤镜：电磁发光效果 -->
     <defs>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="10" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            <feGaussianBlur stdDeviation="10" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
         </filter>
         <linearGradient id="bolt-gradient" x1="256" y1="100" x2="256" y2="412" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#38bdf8" />
-            <stop offset="1" stop-color="#00bfff" />
+            <stop stop-color="#38bdf8"/>
+            <stop offset="1" stop-color="#00bfff"/>
         </linearGradient>
     </defs>
 
     <!-- 背景：深蓝灰 -->
-    <rect width="512" height="512" rx="128" fill="#0f172a" />
+    <rect width="512" height="512" rx="128" fill="#0f172a"/>
 
     <!-- 装饰：科技网格/电路纹理 (低透明度) -->
-    <path d="M128 128 H384 M128 256 H384 M128 384 H384" stroke="#1e293b" stroke-width="4" />
-    <path d="M128 128 V384 M256 128 V384 M384 128 V384" stroke="#1e293b" stroke-width="4" />
+    <path d="M128 128 H384 M128 256 H384 M128 384 H384" stroke="#1e293b" stroke-width="4"/>
+    <path d="M128 128 V384 M256 128 V384 M384 128 V384" stroke="#1e293b" stroke-width="4"/>
 
     <!-- 御坂网络圆环：电路板绿 -->
     <g stroke="#4ade80" stroke-width="24" stroke-linecap="round" filter="url(#glow)">
         <!-- 左侧圆弧 -->
-        <path d="M256 448 C 149.96 448 64 362.04 64 256 C 64 208.5 81.5 165 110 132" />
+        <path d="M256 448 C 149.96 448 64 362.04 64 256 C 64 208.5 81.5 165 110 132"/>
         <!-- 右侧圆弧 -->
-        <path d="M256 64 C 362.04 64 448 149.96 448 256 C 448 303.5 430.5 347 402 380" />
+        <path d="M256 64 C 362.04 64 448 149.96 448 256 C 448 303.5 430.5 347 402 380"/>
         <!-- 节点装饰 -->
-        <circle cx="110" cy="132" r="16" fill="#4ade80" stroke="none" />
-        <circle cx="402" cy="380" r="16" fill="#4ade80" stroke="none" />
+        <circle cx="110" cy="132" r="16" fill="#4ade80" stroke="none"/>
+        <circle cx="402" cy="380" r="16" fill="#4ade80" stroke="none"/>
     </g>
 
     <!-- 核心：超电磁炮闪电 -->

@@ -5,12 +5,12 @@ import Layout from '../layouts/Layout.astro';
 import Card from '../components/Card.astro';
 import NetworkStats from '../components/NetworkStats.astro';
 import {SITE_TITLE, SITE_DESCRIPTION} from '../consts';
+import {sortPostsByTime} from '../utils/sortPosts';
 
-// 获取所有博客文章，按日期排序
-const posts = (await getCollection('blog'))
-    .filter(post => !post.data.draft)
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-    .slice(0, 6); // 首页只显示最新的 6 篇文章
+// 获取所有博客文章，按文件名时间排序（新文章在前）
+const posts = sortPostsByTime(
+    (await getCollection('blog')).filter(post => !post.data.draft)
+).slice(0, 6); // 首页只显示最新的 6 篇文章
 ---
 
 <Layout title={SITE_TITLE} description={SITE_DESCRIPTION}>

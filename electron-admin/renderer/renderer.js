@@ -1,8 +1,8 @@
 // 导入友链管理模块
-import { initFriendsManager, loadFriends } from './friends-manager.js';
+import {initFriendsManager, loadFriends} from './friends-manager.js';
 
 // 导入个人名片管理模块
-import { loadProfile } from './profile-manager.js';
+import {loadProfile} from './profile-manager.js';
 
 // ==================== 全局状态 ====================
 let allPosts = [];
@@ -494,7 +494,7 @@ function collectFrontmatter() {
   const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
   const draft = document.getElementById('editDraft')?.checked || false;
 
-  return { title, description, pubDate, updatedDate, tags, draft };
+  return {title, description, pubDate, updatedDate, tags, draft};
 }
 
 function updateStats() {
@@ -571,7 +571,6 @@ window.addEventListener('DOMContentLoaded', () => {
     alert('初始化失败: ' + err.message);
   });
 });
-
 
 
 // ==================== 视图切换 ====================

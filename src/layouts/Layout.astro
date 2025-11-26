@@ -7,8 +7,8 @@ import SearchModal from '../components/SearchModal.astro';
 import {SITE_TITLE, SITE_DESCRIPTION} from '../consts';
 
 interface Props {
-    title?: string;
-    description?: string;
+  title?: string;
+  description?: string;
 }
 
 const {title = SITE_TITLE, description = SITE_DESCRIPTION} = Astro.props;
@@ -17,27 +17,27 @@ const {title = SITE_TITLE, description = SITE_DESCRIPTION} = Astro.props;
 <!doctype html>
 <html lang="zh-CN">
 <head>
-    <BaseHead title={title} description={description}/>
+  <BaseHead title={title} description={description}/>
 </head>
 <body class="min-h-screen flex flex-col" style="margin: 0; padding: 0;">
 
 <!-- 网格背景层 -->
 <div class="fixed inset-0 -z-10 opacity-10">
-    <div class="absolute inset-0"
-         style="background-image: repeating-linear-gradient(0deg, #4ade80 0px, transparent 1px, transparent 50px), repeating-linear-gradient(90deg, #4ade80 0px, transparent 1px, transparent 50px);"></div>
+  <div class="absolute inset-0"
+       style="background-image: repeating-linear-gradient(0deg, #4ade80 0px, transparent 1px, transparent 50px), repeating-linear-gradient(90deg, #4ade80 0px, transparent 1px, transparent 50px);"></div>
 </div>
 
 <!-- 主内容区 -->
 <Header/>
 
 <main class="flex-1 container mx-auto px-4 py-8 max-w-6xl">
-    <slot/>
+  <slot/>
 </main>
 
 <Footer/>
 
 <!-- 搜索模态框 -->
-<SearchModal />
+<SearchModal/>
 
 </body>
 </html>

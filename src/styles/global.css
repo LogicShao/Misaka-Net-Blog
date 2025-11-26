@@ -2,309 +2,309 @@
 /* 加载 Google Fonts - Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-    :root {
-        /* Misaka Network 主题色 - 深色模式（默认） */
-        --misaka-dark: #1e293b;
-        --misaka-circuit: #4ade80;
-        --misaka-light: #f0f8ff;
-        --misaka-blue: #00bfff;
-        --misaka-accent: #38bdf8;
-        --misaka-bg: #0f172a;
-        --misaka-gray: #64748b;
+  :root {
+    /* Misaka Network 主题色 - 深色模式（默认） */
+    --misaka-dark: #1e293b;
+    --misaka-circuit: #4ade80;
+    --misaka-light: #f0f8ff;
+    --misaka-blue: #00bfff;
+    --misaka-accent: #38bdf8;
+    --misaka-bg: #0f172a;
+    --misaka-gray: #64748b;
 
-        /* 深色模式专用 - 使用更亮的颜色 */
-        --bg-primary: #0f172a;
-        --bg-secondary: #1e293b;
-        --text-primary: #f0f8ff; /* 使用更亮的alice blue */
-        --text-secondary: #e2e8f0;
-        --text-muted: #94a3b8;
-        --border-color: rgba(74, 222, 128, 0.2);
+    /* 深色模式专用 - 使用更亮的颜色 */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f0f8ff; /* 使用更亮的alice blue */
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: rgba(74, 222, 128, 0.2);
+  }
+
+  /* 浅色模式 */
+  :root:not(.dark) {
+    --misaka-bg: #f8fafc;
+    --misaka-dark: #e2e8f0;
+    --misaka-light: #1e293b;
+    --misaka-gray: #475569;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --border-color: rgba(74, 222, 128, 0.4);
+  }
+
+  /* 加载 Google Fonts - Inter */
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', sans-serif;
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* 考虑固定头部高度 */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    background-attachment: fixed;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply antialiased;
+  }
+
+  /* 页面首次加载动画 - 克制的淡入效果 */
+  /* 仅使用 opacity，避免 transform 破坏 position: fixed */
+  body {
+    opacity: 0;
+    animation: pageEnter 0.4s ease-out forwards;
+  }
+
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
     }
-
-    /* 浅色模式 */
-    :root:not(.dark) {
-        --misaka-bg: #f8fafc;
-        --misaka-dark: #e2e8f0;
-        --misaka-light: #1e293b;
-        --misaka-gray: #475569;
-
-        --bg-primary: #ffffff;
-        --bg-secondary: #f1f5f9;
-        --text-primary: #0f172a;
-        --text-secondary: #334155;
-        --text-muted: #64748b;
-        --border-color: rgba(74, 222, 128, 0.4);
+    to {
+      opacity: 1;
     }
+  }
 
-    /* 加载 Google Fonts - Inter */
+  /* View Transitions 导航时不需要此动画 */
+  body.navigated {
+    animation: none;
+    opacity: 1;
+  }
 
-    html {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', sans-serif;
-        scroll-behavior: smooth;
-        scroll-padding-top: 80px; /* 考虑固定头部高度 */
-    }
+  /* 电路板背景效果 - 深色模式 */
+  .dark body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 1;
+    z-index: -1;
+    pointer-events: none;
+  }
 
-    body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--bg-primary);
-        color: var(--text-secondary);
-        background-attachment: fixed;
-        transition: background-color 0.3s ease, color 0.3s ease;
-        @apply antialiased;
-    }
+  /* 电路板背景效果 - 浅色模式 */
+  :root:not(.dark) body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 1;
+    z-index: -1;
+    pointer-events: none;
+  }
 
-    /* 页面首次加载动画 - 克制的淡入效果 */
-    /* 仅使用 opacity，避免 transform 破坏 position: fixed */
-    body {
-        opacity: 0;
-        animation: pageEnter 0.4s ease-out forwards;
-    }
+  /* 标题 - 增强对比度 */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    @apply font-bold tracking-tight;
+    color: var(--text-primary);
+  }
 
-    @keyframes pageEnter {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
+  h1 {
+    @apply text-4xl md:text-5xl;
+    font-weight: 800;
+  }
 
-    /* View Transitions 导航时不需要此动画 */
-    body.navigated {
-        animation: none;
-        opacity: 1;
-    }
+  h2 {
+    @apply text-3xl md:text-4xl;
+    font-weight: 700;
+  }
 
-    /* 电路板背景效果 - 深色模式 */
-    .dark body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 1;
-        z-index: -1;
-        pointer-events: none;
-    }
+  h3 {
+    @apply text-2xl md:text-3xl;
+    font-weight: 700;
+  }
 
-    /* 电路板背景效果 - 浅色模式 */
-    :root:not(.dark) body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 1;
-        z-index: -1;
-        pointer-events: none;
-    }
+  h4 {
+    @apply text-xl md:text-2xl;
+    font-weight: 600;
+  }
 
-    /* 标题 - 增强对比度 */
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        @apply font-bold tracking-tight;
-        color: var(--text-primary);
-    }
+  a {
+    @apply text-misaka-blue hover:text-misaka-accent transition-colors duration-200;
+  }
 
-    h1 {
-        @apply text-4xl md:text-5xl;
-        font-weight: 800;
-    }
+  code {
+    @apply font-mono text-sm px-1.5 py-0.5 rounded;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+  }
 
-    h2 {
-        @apply text-3xl md:text-4xl;
-        font-weight: 700;
-    }
+  /* 深色模式下的代码颜色 */
+  .dark code {
+    color: var(--text-secondary);
+  }
 
-    h3 {
-        @apply text-2xl md:text-3xl;
-        font-weight: 700;
-    }
+  /* 浅色模式下的代码颜色 - 增强对比度 */
+  :root:not(.dark) code {
+    color: #f1f5f9;
+    background-color: #334155;
+    border-color: #1e293b;
+  }
 
-    h4 {
-        @apply text-xl md:text-2xl;
-        font-weight: 600;
-    }
+  pre {
+    @apply rounded-lg p-4 overflow-x-auto;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+  }
 
-    a {
-        @apply text-misaka-blue hover:text-misaka-accent transition-colors duration-200;
-    }
+  pre code {
+    @apply bg-transparent border-0 p-0;
+  }
 
-    code {
-        @apply font-mono text-sm px-1.5 py-0.5 rounded;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-    }
+  blockquote {
+    @apply border-l-4 border-misaka-blue pl-4 italic my-4;
+    color: var(--text-muted);
+  }
 
-    /* 深色模式下的代码颜色 */
-    .dark code {
-        color: var(--text-secondary);
-    }
+  img {
+    @apply rounded-lg shadow-lg;
+  }
 
-    /* 浅色模式下的代码颜色 - 增强对比度 */
-    :root:not(.dark) code {
-        color: #f1f5f9;
-        background-color: #334155;
-        border-color: #1e293b;
-    }
-
-    pre {
-        @apply rounded-lg p-4 overflow-x-auto;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-    }
-
-    pre code {
-        @apply bg-transparent border-0 p-0;
-    }
-
-    blockquote {
-        @apply border-l-4 border-misaka-blue pl-4 italic my-4;
-        color: var(--text-muted);
-    }
-
-    img {
-        @apply rounded-lg shadow-lg;
-    }
-
-    hr {
-        border-color: var(--border-color);
-        @apply my-8;
-    }
+  hr {
+    border-color: var(--border-color);
+    @apply my-8;
+  }
 }
 
 @layer components {
-    /* 电流效果按钮 */
-    .btn-misaka {
-        @apply px-6 py-2 bg-gradient-to-r from-misaka-blue to-misaka-accent text-white font-semibold rounded-lg;
-        @apply hover:shadow-lg hover:shadow-misaka-blue/50 transition-all duration-300;
-        @apply border border-misaka-blue/30;
-    }
+  /* 电流效果按钮 */
+  .btn-misaka {
+    @apply px-6 py-2 bg-gradient-to-r from-misaka-blue to-misaka-accent text-white font-semibold rounded-lg;
+    @apply hover:shadow-lg hover:shadow-misaka-blue/50 transition-all duration-300;
+    @apply border border-misaka-blue/30;
+  }
 
-    /* 卡片样式 - 支持深色/浅色模式 */
-    .card-misaka {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        @apply backdrop-blur-sm rounded-xl p-6;
-        @apply hover:border-misaka-blue/50 transition-all duration-300;
-        @apply shadow-lg hover:shadow-misaka-blue/20;
-    }
+  /* 卡片样式 - 支持深色/浅色模式 */
+  .card-misaka {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    @apply backdrop-blur-sm rounded-xl p-6;
+    @apply hover:border-misaka-blue/50 transition-all duration-300;
+    @apply shadow-lg hover:shadow-misaka-blue/20;
+  }
 
-    /* 浅色模式卡片增强对比 */
-    :root:not(.dark) .card-misaka {
-        background-color: #f8fafc;
-        border-color: rgba(74, 222, 128, 0.4);
-        @apply shadow-md hover:shadow-lg;
-    }
+  /* 浅色模式卡片增强对比 */
+  :root:not(.dark) .card-misaka {
+    background-color: #f8fafc;
+    border-color: rgba(74, 222, 128, 0.4);
+    @apply shadow-md hover:shadow-lg;
+  }
 
-    /* 标签样式 */
-    .tag-misaka {
-        @apply inline-block px-3 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit;
-        @apply border border-misaka-circuit/30 rounded-full;
-        @apply hover:bg-misaka-circuit/20 transition-colors duration-200;
-    }
+  /* 标签样式 */
+  .tag-misaka {
+    @apply inline-block px-3 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit;
+    @apply border border-misaka-circuit/30 rounded-full;
+    @apply hover:bg-misaka-circuit/20 transition-colors duration-200;
+  }
 
-    /* 电路板分隔线 */
-    .divider-circuit {
-        @apply h-px bg-gradient-to-r from-transparent via-misaka-circuit to-transparent my-8;
-    }
+  /* 电路板分隔线 */
+  .divider-circuit {
+    @apply h-px bg-gradient-to-r from-transparent via-misaka-circuit to-transparent my-8;
+  }
 
-    /* 发光效果文本 - 深色模式 */
-    .dark .text-glow {
-        text-shadow: 0 0 10px var(--misaka-blue), 0 0 20px var(--misaka-blue);
-    }
+  /* 发光效果文本 - 深色模式 */
+  .dark .text-glow {
+    text-shadow: 0 0 10px var(--misaka-blue), 0 0 20px var(--misaka-blue);
+  }
 
-    /* 发光效果文本 - 浅色模式（减弱） */
-    :root:not(.dark) .text-glow {
-        text-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
-	}
+  /* 发光效果文本 - 浅色模式（减弱） */
+  :root:not(.dark) .text-glow {
+    text-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
+  }
 
-    /* 网络状态面板 - 支持深色/浅色模式 */
-    .network-panel {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        @apply backdrop-blur-md rounded-lg p-4;
-        @apply shadow-lg shadow-misaka-circuit/10;
-    }
+  /* 网络状态面板 - 支持深色/浅色模式 */
+  .network-panel {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    @apply backdrop-blur-md rounded-lg p-4;
+    @apply shadow-lg shadow-misaka-circuit/10;
+  }
 
-    /* 浅色模式面板增强对比 */
-    :root:not(.dark) .network-panel {
-        background-color: #f8fafc;
-        border-color: rgba(74, 222, 128, 0.4);
-        @apply shadow-md;
-	}
+  /* 浅色模式面板增强对比 */
+  :root:not(.dark) .network-panel {
+    background-color: #f8fafc;
+    border-color: rgba(74, 222, 128, 0.4);
+    @apply shadow-md;
+  }
 }
 
 @layer utilities {
-    /* 无障碍性 - 屏幕阅读器专用 */
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
-    }
+  /* 无障碍性 - 屏幕阅读器专用 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
 
-    /* 渐变背景 - 深色模式 */
-    .dark .bg-misaka-gradient {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-    }
+  /* 渐变背景 - 深色模式 */
+  .dark .bg-misaka-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  }
 
-    /* 渐变背景 - 浅色模式 */
-    :root:not(.dark) .bg-misaka-gradient {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
-    }
+  /* 渐变背景 - 浅色模式 */
+  :root:not(.dark) .bg-misaka-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+  }
 
-    /* 脉冲动画 */
-    .pulse-circuit {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
+  /* 脉冲动画 */
+  .pulse-circuit {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
 
 /* 代码块样式优化 - 深色模式 */
 .dark .astro-code {
-    @apply rounded-lg border !important;
-    border-color: var(--border-color) !important;
-    padding: 1rem !important;
-    background-color: var(--bg-secondary) !important;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  @apply rounded-lg border !important;
+  border-color: var(--border-color) !important;
+  padding: 1rem !important;
+  background-color: var(--bg-secondary) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
 }
 
 /* 代码块样式优化 - 浅色模式 */
 :root:not(.dark) .astro-code {
-    @apply rounded-lg border !important;
-    border-color: #1e293b !important;
-    padding: 1rem !important;
-    background-color: #334155 !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  @apply rounded-lg border !important;
+  border-color: #1e293b !important;
+  padding: 1rem !important;
+  background-color: #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
 }
 
 /* Markdown 内容样式 */
 .prose {
-    @apply max-w-none;
+  @apply max-w-none;
 }
 
 /* 移除 Tailwind Typography 默认添加的代码块反引号 */
 .prose code::before,
 .prose code::after {
-    content: '' !important;
+  content: '' !important;
 }
 
 .prose h1,
@@ -313,22 +313,22 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .prose p {
-    color: var(--text-secondary);
-    @apply leading-relaxed mb-4;
+  color: var(--text-secondary);
+  @apply leading-relaxed mb-4;
 }
 
 .prose strong {
-    color: var(--text-primary);
-    @apply font-semibold;
+  color: var(--text-primary);
+  @apply font-semibold;
 }
 
 .prose ul, .prose ol {
-    color: var(--text-secondary);
-    @apply ml-3 mb-4;
+  color: var(--text-secondary);
+  @apply ml-3 mb-4;
 }
 
 /* 嵌套列表缩进控制 */
@@ -336,224 +336,224 @@
 .prose ul ol,
 .prose ol ul,
 .prose ol ol {
-    @apply ml-3 mt-2;
+  @apply ml-3 mt-2;
 }
 
 .prose li {
-    @apply mb-2;
+  @apply mb-2;
 }
 
 .prose a {
-    @apply text-misaka-blue hover:text-misaka-accent underline decoration-misaka-blue/30;
-    @apply hover:decoration-misaka-accent transition-colors;
+  @apply text-misaka-blue hover:text-misaka-accent underline decoration-misaka-blue/30;
+  @apply hover:decoration-misaka-accent transition-colors;
 }
 
 /* 表格样式 - 深色模式 */
 .dark .prose table {
-    @apply w-full border-collapse my-6;
-    border: 1px solid var(--border-color);
+  @apply w-full border-collapse my-6;
+  border: 1px solid var(--border-color);
 }
 
 .dark .prose thead {
-    background-color: var(--bg-secondary);
-    border-bottom: 2px solid var(--misaka-circuit);
+  background-color: var(--bg-secondary);
+  border-bottom: 2px solid var(--misaka-circuit);
 }
 
 .dark .prose th {
-    @apply px-4 py-3 text-left font-semibold;
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+  @apply px-4 py-3 text-left font-semibold;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .dark .prose td {
-    @apply px-4 py-3;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+  @apply px-4 py-3;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .dark .prose tbody tr {
-    background-color: rgba(15, 23, 42, 0.5);
-    transition: background-color 0.2s ease;
+  background-color: rgba(15, 23, 42, 0.5);
+  transition: background-color 0.2s ease;
 }
 
 .dark .prose tbody tr:hover {
-    background-color: rgba(30, 41, 59, 0.8);
+  background-color: rgba(30, 41, 59, 0.8);
 }
 
 /* 表格样式 - 浅色模式 */
 :root:not(.dark) .prose table {
-    @apply w-full border-collapse my-6;
-    border: 1px solid #e2e8f0;
+  @apply w-full border-collapse my-6;
+  border: 1px solid #e2e8f0;
 }
 
 :root:not(.dark) .prose thead {
-    background-color: #f1f5f9;
-    border-bottom: 2px solid var(--misaka-circuit);
+  background-color: #f1f5f9;
+  border-bottom: 2px solid var(--misaka-circuit);
 }
 
 :root:not(.dark) .prose th {
-    @apply px-4 py-3 text-left font-semibold;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
+  @apply px-4 py-3 text-left font-semibold;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
 
 :root:not(.dark) .prose td {
-    @apply px-4 py-3;
-    color: #334155;
-    border: 1px solid #e2e8f0;
+  @apply px-4 py-3;
+  color: #334155;
+  border: 1px solid #e2e8f0;
 }
 
 :root:not(.dark) .prose tbody tr {
-    background-color: #ffffff;
-    transition: background-color 0.2s ease;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
 }
 
 :root:not(.dark) .prose tbody tr:hover {
-    background-color: #f8fafc;
+  background-color: #f8fafc;
 }
 
 /* KaTeX 数学公式样式 - 深色模式适配 */
 .dark .katex {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex-display {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex-html {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 /* 行内数学公式 */
 .dark .katex .base {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mord {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mbin {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mrel {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mopen {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mclose {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mpunct {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mop {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 /* 特殊符号和运算符 */
 .dark .katex .boldsymbol {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .amsrm {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mathbb {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .dark .katex .mathcal {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 /* 确保数学公式在深色模式下有足够的对比度 */
 .dark .katex-display {
-    @apply p-4 rounded-lg;
-    background-color: rgba(30, 41, 59, 0.5);
-    border: 1px solid var(--border-color);
+  @apply p-4 rounded-lg;
+  background-color: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--border-color);
 }
 
 /* 行内数学公式背景 */
 .dark .katex:not(.katex-display) {
-    background-color: rgba(30, 41, 59, 0.3);
-    @apply px-1 rounded;
+  background-color: rgba(30, 41, 59, 0.3);
+  @apply px-1 rounded;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .card-misaka {
-        @apply p-4;
-    }
+  .card-misaka {
+    @apply p-4;
+  }
 
-    .network-panel {
-        @apply p-3;
-    }
+  .network-panel {
+    @apply p-3;
+  }
 }
 
 /* View Transitions - 页面切换动画 */
 /* 克制的淡入淡出效果，保持简洁优雅 */
 @layer utilities {
-    /* 旧内容淡出 */
-    ::view-transition-old(root) {
-        animation: fade-out 0.25s ease-in-out;
-    }
+  /* 旧内容淡出 */
+  ::view-transition-old(root) {
+    animation: fade-out 0.25s ease-in-out;
+  }
 
-    /* 新内容淡入 */
-    ::view-transition-new(root) {
-        animation: fade-in 0.25s ease-in-out;
-    }
+  /* 新内容淡入 */
+  ::view-transition-new(root) {
+    animation: fade-in 0.25s ease-in-out;
+  }
 
-    /* 淡出动画 */
-    @keyframes fade-out {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
+  /* 淡出动画 */
+  @keyframes fade-out {
+    from {
+      opacity: 1;
     }
+    to {
+      opacity: 0;
+    }
+  }
 
-    /* 淡入动画 */
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+  /* 淡入动画 */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
     }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 /* 减少不必要的动画（尊重用户偏好设置） */
 @media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
+  html {
+    scroll-behavior: auto;
+  }
 
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-        animation: none;
-    }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 
-    /* 禁用页面首次加载动画 */
-    body {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
+  /* 禁用页面首次加载动画 */
+  body {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

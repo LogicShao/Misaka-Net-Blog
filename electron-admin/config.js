@@ -1,8 +1,8 @@
 // config.js - 配置文件管理模块
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { app } from 'electron';
+import {fileURLToPath} from 'url';
+import {app} from 'electron';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,10 +24,10 @@ export async function loadConfig() {
     const data = await fs.readFile(CONFIG_FILE, 'utf-8');
     const config = JSON.parse(data);
     console.log('[Config] Loaded config:', config);
-    return { ...DEFAULT_CONFIG, ...config };
+    return {...DEFAULT_CONFIG, ...config};
   } catch (error) {
     console.log('[Config] No config file found, using defaults');
-    return { ...DEFAULT_CONFIG };
+    return {...DEFAULT_CONFIG};
   }
 }
 
@@ -38,7 +38,7 @@ export async function saveConfig(config) {
   try {
     // 确保用户数据目录存在
     const userDataDir = app.getPath('userData');
-    await fs.mkdir(userDataDir, { recursive: true });
+    await fs.mkdir(userDataDir, {recursive: true});
 
     await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
     console.log('[Config] Saved config:', config);
@@ -57,7 +57,7 @@ export async function validateBlogDirectory(dirPath) {
     // 检查目录是否存在
     const stat = await fs.stat(dirPath);
     if (!stat.isDirectory()) {
-      return { valid: false, error: '选择的路径不是目录' };
+      return {valid: false, error: '选择的路径不是目录'};
     }
 
     // 检查是否包含关键文件/目录
@@ -84,7 +84,7 @@ export async function validateBlogDirectory(dirPath) {
       );
 
       const hasAstro = packageJson.dependencies?.astro ||
-                      packageJson.devDependencies?.astro;
+        packageJson.devDependencies?.astro;
 
       if (!hasAstro) {
         return {
@@ -93,12 +93,12 @@ export async function validateBlogDirectory(dirPath) {
         };
       }
     } catch (error) {
-      return { valid: false, error: '无法读取 package.json' };
+      return {valid: false, error: '无法读取 package.json'};
     }
 
-    return { valid: true };
+    return {valid: true};
   } catch (error) {
-    return { valid: false, error: `目录访问失败：${error.message}` };
+    return {valid: false, error: `目录访问失败：${error.message}`};
   }
 }
 

@@ -106,7 +106,7 @@
       log(`⏰ Start rendering diagram ${index} at:`, new Date().toISOString());
 
       const renderResult = await mermaid.render(`mermaid-${index}-${Date.now()}`, code);
-      const { svg } = renderResult;
+      const {svg} = renderResult;
 
       log(`✅ Diagram ${index} rendered successfully!`);
       log(`📏 SVG length: ${svg.length} chars`);
@@ -128,7 +128,7 @@
         const svgElement = container.querySelector('svg');
         if (svgElement) {
           window.dispatchEvent(new CustomEvent('open-mermaid-viewer', {
-            detail: { svg: svgElement.outerHTML, id: `mermaid-${index}` }
+            detail: {svg: svgElement.outerHTML, id: `mermaid-${index}`}
           }));
         }
       });
@@ -210,7 +210,7 @@
     let renderedCount = 0;
 
     while (renderQueue.length > 0) {
-      const { block, index } = renderQueue.shift();
+      const {block, index} = renderQueue.shift();
 
       log(`📊 Rendering ${renderedCount + 1}/${totalToRender} (diagram #${index})`);
 
@@ -245,9 +245,9 @@
 
     // 🔧 如果已经渲染完成（图表数量等于预期数量），跳过
     if (existingDiagrams.length > 0 &&
-        newMermaidBlocks.length === 0 &&
-        hasInitializedOnce &&
-        !isRendering) {
+      newMermaidBlocks.length === 0 &&
+      hasInitializedOnce &&
+      !isRendering) {
       log('✅ All diagrams already rendered, skipping');
       return;
     }
@@ -317,7 +317,7 @@
       totalDiagramsExpected = mermaidBlocks.length;  // 设置预期数量
 
       mermaidBlocks.forEach((block, index) => {
-        renderQueue.push({ block, index });
+        renderQueue.push({block, index});
       });
 
       log(`📋 Added ${renderQueue.length} diagrams to render queue`);
@@ -368,7 +368,7 @@
 
   // 主题切换支持（重新渲染所有图表）
   window.addEventListener('theme-changed', async (event) => {
-    const { theme } = event.detail;
+    const {theme} = event.detail;
     log(`🎨 Theme changed to: ${theme}`);
 
     // 🔧 如果正在初始化或渲染，延迟主题切换
@@ -376,7 +376,7 @@
       logWarn('⚠️ Rendering in progress, delaying theme change...');
       // 等待一段时间后重试
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
+        window.dispatchEvent(new CustomEvent('theme-changed', {detail: {theme}}));
       }, 500);
       return;
     }
@@ -403,8 +403,8 @@
           fontFamily: 'system-ui, -apple-system, sans-serif',
           fontSize: '14px',
         },
-        flowchart: { curve: 'basis', padding: 20, nodeSpacing: 50, rankSpacing: 50, htmlLabels: true },
-        sequence: { actorMargin: 50, width: 150, height: 65, boxMargin: 10 },
+        flowchart: {curve: 'basis', padding: 20, nodeSpacing: 50, rankSpacing: 50, htmlLabels: true},
+        sequence: {actorMargin: 50, width: 150, height: 65, boxMargin: 10},
         securityLevel: 'loose',
         suppressErrorRendering: false,
       });

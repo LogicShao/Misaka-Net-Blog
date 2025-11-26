@@ -11,8 +11,8 @@
     <!-- Background: A dark, rounded square with a subtle gradient -->
     <defs>
         <linearGradient id="misaka-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#0f172a" />
-            <stop offset="100%" style="stop-color:#1e293b" />
+            <stop offset="0%" style="stop-color:#0f172a"/>
+            <stop offset="100%" style="stop-color:#1e293b"/>
         </linearGradient>
     </defs>
     <rect width="64" height="64" rx="12" fill="url(#misaka-gradient)"/>

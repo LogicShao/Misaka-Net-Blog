@@ -1,46 +1,46 @@
 ---
 export interface Props {
-    name: string;
-    url: string;
-    avatar: string;
-    description: string;
+  name: string;
+  url: string;
+  avatar: string;
+  description: string;
 }
 
 const {name, url, avatar, description} = Astro.props;
 ---
 
 <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="friend-card group block rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all duration-300 hover:border-[var(--misaka-circuit)] hover:shadow-lg hover:shadow-[var(--misaka-circuit)]/20 hover:-translate-y-1"
+  href={url}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="friend-card group block rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 transition-all duration-300 hover:border-[var(--misaka-circuit)] hover:shadow-lg hover:shadow-[var(--misaka-circuit)]/20 hover:-translate-y-1"
 >
-    <div class="flex items-start gap-4">
-        <div class="flex-shrink-0">
-            <img
-                    src={avatar}
-                    alt={`${name} avatar`}
-                    class="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600 group-hover:border-[var(--misaka-circuit)] transition-colors duration-300"
-                    loading="lazy"
-            />
-        </div>
-        <div class="flex-1 min-w-0">
-            <h3
-                    class="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-[var(--misaka-circuit)] transition-colors duration-300"
-            >
-                {name}
-            </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {description}
-            </p>
-        </div>
-        <div class="flex-shrink-0 text-gray-400 group-hover:text-[var(--misaka-circuit)] transition-colors duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                        fill-rule="evenodd"
-                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                        clip-rule="evenodd"></path>
-            </svg>
-        </div>
+  <div class="flex items-start gap-4">
+    <div class="flex-shrink-0">
+      <img
+        src={avatar}
+        alt={`${name} avatar`}
+        class="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600 group-hover:border-[var(--misaka-circuit)] transition-colors duration-300"
+        loading="lazy"
+      />
     </div>
+    <div class="flex-1 min-w-0">
+      <h3
+        class="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate group-hover:text-[var(--misaka-circuit)] transition-colors duration-300"
+      >
+        {name}
+      </h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+        {description}
+      </p>
+    </div>
+    <div class="flex-shrink-0 text-gray-400 group-hover:text-[var(--misaka-circuit)] transition-colors duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+          clip-rule="evenodd"></path>
+      </svg>
+    </div>
+  </div>
 </a>

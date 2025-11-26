@@ -8,7 +8,7 @@ export interface Props {
   baseUrl: string;
 }
 
-const { currentPage, totalPages, baseUrl } = Astro.props;
+const {currentPage, totalPages, baseUrl} = Astro.props;
 
 // 生成页码数组，显示当前页附近的页码
 function generatePageNumbers(current: number, total: number): (number | string)[] {
@@ -131,7 +131,8 @@ const hasNextPage = currentPage < totalPages;
   <!-- 页面信息 -->
   <div class="pagination-info">
     <span class="font-mono text-sm" style="color: var(--text-muted);">
-      第 <span class="text-misaka-blue font-semibold">{currentPage}</span> 页 / 共 <span class="text-misaka-circuit font-semibold">{totalPages}</span> 页
+      第 <span class="text-misaka-blue font-semibold">{currentPage}</span> 页 / 共 <span
+      class="text-misaka-circuit font-semibold">{totalPages}</span> 页
     </span>
   </div>
 </nav>

@@ -6,13 +6,14 @@ import Layout from '../../layouts/Layout.astro';
 import Card from '../../components/Card.astro';
 import NetworkStats from '../../components/NetworkStats.astro';
 import Pagination from '../../components/Pagination.astro';
+import { sortPostsByTime } from '../../utils/sortPosts';
 
 // 定义分页路径
 export const getStaticPaths = (async ({ paginate }) => {
-  // 获取所有博客文章，过滤草稿，按日期排序
-  const allPosts = (await getCollection('blog'))
-    .filter(post => !post.data.draft)
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  // 获取所有博客文章，过滤草稿，按文件名时间排序（新文章在前）
+  const allPosts = sortPostsByTime(
+    (await getCollection('blog')).filter(post => !post.data.draft)
+  );
 
   // 使用 paginate 函数创建分页，每页 5 篇文章
   return paginate(allPosts, {
