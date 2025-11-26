@@ -70,8 +70,17 @@
   const IS_DEV = import.meta.env.DEV;
   const log = (...args) => IS_DEV && console.log(...args);
 
+  // 防止重复绑定的标志位
+  let isThemeToggleInitialized = false;
+
   // 主题切换逻辑
   function setupThemeToggle() {
+    // 防止重复初始化
+    if (isThemeToggleInitialized) {
+      log('[ThemeToggle] Already initialized, skipping...');
+      return;
+    }
+
     const button = document.getElementById('theme-toggle');
 
     if (!button) return;
@@ -100,6 +109,9 @@
         }
       }));
     });
+
+    isThemeToggleInitialized = true;
+    log('[ThemeToggle] Initialized successfully');
   }
 
   // 页面加载时初始化

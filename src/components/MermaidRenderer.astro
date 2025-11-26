@@ -7,16 +7,25 @@
 <div id="mermaid-container" class="hidden"></div>
 
 <script>
-  // 🔧 开发/生产环境检测
-  const IS_DEV = import.meta.env.DEV;
-  const log = (...args) => IS_DEV && console.log(...args);
-  const logError = (...args) => console.error(...args);  // 错误始终输出
+  // 🔧 强制调试模式 - 始终输出日志
+  const DEBUG_MODE = true;  // 设置为 false 可关闭调试
+  const log = (...args) => DEBUG_MODE && console.log('[Mermaid]', new Date().toISOString(), ...args);
+  const logError = (...args) => console.error('[Mermaid ERROR]', new Date().toISOString(), ...args);
+  const logWarn = (...args) => console.warn('[Mermaid WARN]', new Date().toISOString(), ...args);
+
+  // 页面加载标记
+  log('🚀 Script loaded, readyState:', document.readyState);
 
   // 动态加载 Mermaid.js
   async function loadMermaid() {
+    log('📦 loadMermaid() called');
+
     if (typeof window.mermaid !== 'undefined') {
+      log('✅ Mermaid already loaded');
       return window.mermaid;
     }
+
+    log('⬇️ Loading Mermaid from CDN...');
 
     // 从 CDN 加载 Mermaid
     return new Promise((resolve, reject) => {
@@ -24,23 +33,33 @@
       script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
       script.type = 'module';
       script.onload = () => {
+        log('✅ Mermaid CDN script loaded');
         if (window.mermaid) {
+          log('✅ window.mermaid available');
           resolve(window.mermaid);
         } else {
+          logError('❌ window.mermaid not available after load');
           reject(new Error('Mermaid failed to load'));
         }
       };
-      script.onerror = () => reject(new Error('Failed to load Mermaid script'));
+      script.onerror = () => {
+        logError('❌ Failed to load Mermaid script from CDN');
+        reject(new Error('Failed to load Mermaid script'));
+      };
       document.head.appendChild(script);
     });
   }
 
   // 带超时的 Promise 包装函数
-  function withTimeout(promise, timeoutMs = 5000) {
+  function withTimeout(promise, timeoutMs = 10000) {
+    log(`⏱️ Setting timeout for ${timeoutMs}ms`);
     return Promise.race([
       promise,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Rendering timeout after ' + timeoutMs + 'ms')), timeoutMs)
+        setTimeout(() => {
+          logError(`❌ TIMEOUT after ${timeoutMs}ms`);
+          reject(new Error('Rendering timeout after ' + timeoutMs + 'ms'));
+        }, timeoutMs)
       )
     ]);
   }
@@ -52,35 +71,53 @@
   // 保存所有 Mermaid 图表的原始代码，用于主题切换时重新渲染
   const mermaidDiagrams = [];
 
+  // 🔧 防止首次加载后立即触发的 astro:page-load 导致重复初始化
+  let hasInitializedOnce = false;
+
   // 初始化 Mermaid
   async function initMermaid() {
+    log('🎬 initMermaid() called');
+    log('📊 Current state: isInitialized =', isInitialized, ', isInitializing =', isInitializing);
+
+    // 🔍 检查是否已经有渲染好的图表（防止重复初始化）
+    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
+    if (existingDiagrams.length > 0 && hasInitializedOnce) {
+      log('✅ Found', existingDiagrams.length, 'existing rendered diagrams, skipping re-initialization');
+      log('ℹ️ This is likely a false astro:page-load event after initial load');
+      return;
+    }
+
     // 防止重复初始化
     if (isInitialized || isInitializing) {
-      log('[Mermaid] Already initialized or initializing, skipping...');
+      logWarn('⚠️ Already initialized or initializing, skipping...', { isInitialized, isInitializing });
       return;
     }
 
     isInitializing = true;
+    log('🔄 Set isInitializing = true');
 
     try {
-      log('[Mermaid] Starting initialization...');
+      log('🔍 Searching for mermaid blocks...');
 
       // 查找所有 mermaid 代码块（Shiki 使用 data-language 属性）
       const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
 
+      log(`📋 Found ${mermaidBlocks.length} mermaid blocks`);
+
       if (mermaidBlocks.length === 0) {
-        log('[Mermaid] No mermaid blocks found');
+        log('ℹ️ No mermaid blocks found, marking as initialized');
         isInitializing = false;
         isInitialized = true;
         return;
       }
 
-      log(`[Mermaid] Found ${mermaidBlocks.length} mermaid blocks`);
-
+      log('📦 Loading Mermaid library...');
       const mermaid = await loadMermaid();
+      log('✅ Mermaid library loaded successfully');
 
       // 配置 Mermaid 主题
       const isDark = document.documentElement.classList.contains('dark');
+      log('🎨 Detected theme:', isDark ? 'dark' : 'light');
 
       mermaid.initialize({
         startOnLoad: false,
@@ -113,20 +150,30 @@
         suppressErrorRendering: false,
       });
 
+      log('✅ Mermaid initialized with theme:', isDark ? 'dark' : 'default');
+      log('🔄 Starting to render', mermaidBlocks.length, 'diagrams...');
+
       // 渲染每个 mermaid 块
       for (let i = 0; i < mermaidBlocks.length; i++) {
+        log(`\n📊 ========== Processing diagram #${i + 1}/${mermaidBlocks.length} ==========`);
+
         const block = mermaidBlocks[i];
         const pre = block.parentElement;
+        log(`🔍 Block ${i}: has parent:`, !!pre);
+
         // 提取纯文本内容（去除 Shiki 添加的 HTML 标签）
         const code = block.textContent || block.innerText || '';
+        log(`📝 Code length: ${code.length} chars`);
+        log(`📝 Code preview (first 100 chars):`, code.substring(0, 100));
 
         // 跳过空代码块
         if (!code.trim()) {
-          log(`[Mermaid] Skipping empty diagram ${i}`);
+          logWarn(`⚠️ Skipping empty diagram ${i}`);
           continue;
         }
 
         try {
+          log(`🎨 Creating DOM containers for diagram ${i}...`);
           // 创建外层包装容器
           const wrapper = document.createElement('div');
           wrapper.className = 'mermaid-wrapper my-8 relative';
@@ -142,23 +189,35 @@
             overflow-x: auto;
           `;
 
-          // 使用 Mermaid 渲染（带 5秒超时保护，减少等待时间）
-          log(`[Mermaid] Rendering diagram ${i}...`);
+          log(`🚀 Rendering diagram ${i} with Mermaid.render()...`);
+          log(`⏰ Render start time:`, new Date().toISOString());
+
+          // 使用 Mermaid 渲染（带 10秒超时保护）
           const renderResult = await withTimeout(
             mermaid.render(`mermaid-${i}-${Date.now()}`, code),
-            5000  // 5秒超时（从10秒减少）
+            10000  // 10秒超时（给复杂图表更多时间）
           );
+
+          log(`✅ Diagram ${i} rendered successfully!`);
+          log(`⏰ Render end time:`, new Date().toISOString());
+
           const { svg } = renderResult;
+          log(`📏 SVG length: ${svg.length} chars`);
+
           container.innerHTML = svg;
-          log(`[Mermaid] Diagram ${i} rendered successfully`);
+          log(`✅ SVG inserted into container`);
 
           // 渲染数学公式（如果页面已加载 KaTeX）
           if (typeof window.katex !== 'undefined') {
+            log(`📐 KaTeX available, rendering math in diagram ${i}...`);
             renderMathInSVG(container);
           } else {
+            log(`📐 KaTeX not loaded, attempting to load for diagram ${i}...`);
             // 尝试加载 KaTeX 并渲染数学公式
             loadKaTeXAndRender(container);
           }
+
+          log(`🔘 Creating zoom button for diagram ${i}...`);
 
           // 创建放大按钮
           const zoomButton = document.createElement('button');
@@ -188,9 +247,12 @@
           wrapper.appendChild(container);
           wrapper.appendChild(zoomButton);
 
+          log(`🔄 Replacing original <pre> with rendered diagram ${i}...`);
+
           // 替换原始代码块
           if (pre && pre.parentElement) {
             pre.parentElement.replaceChild(wrapper, pre);
+            log(`✅ Diagram ${i} inserted into DOM`);
 
             // 🎯 保存图表信息，用于主题切换时重新渲染
             mermaidDiagrams.push({
@@ -199,10 +261,16 @@
               wrapper: wrapper,
               container: container
             });
+            log(`💾 Diagram ${i} saved to cache (total cached: ${mermaidDiagrams.length})`);
+          } else {
+            logWarn(`⚠️ Diagram ${i}: parent element not found, cannot replace`);
           }
         } catch (error) {
-          logError(`[Mermaid] Rendering error for diagram ${i}:`, error);
-          logError(`[Mermaid] Failed code (first 200 chars):`, code.substring(0, 200));
+          logError(`❌ RENDERING ERROR for diagram ${i}:`);
+          logError(`   Error type: ${error.name}`);
+          logError(`   Error message: ${error.message}`);
+          logError(`   Error stack:`, error.stack);
+          logError(`   Failed code (first 200 chars):`, code.substring(0, 200));
 
           // 渲染失败时保留原始代码块，但添加错误提示
           const errorDiv = document.createElement('div');
@@ -224,35 +292,87 @@
             pre.parentElement.insertBefore(errorDiv, pre);
             // 仍然移除原始的 pre 标签，避免重复显示
             pre.remove();
+            log(`⚠️ Error UI inserted for diagram ${i}`);
           }
 
           // 继续处理下一个图表，不要因为一个失败而中断
+          log(`⏭️ Continuing to next diagram...`);
           continue;
         }
+
+        log(`✅ Diagram ${i} processing complete`);
       }
+
+      log(`\n🎉 All ${mermaidBlocks.length} diagrams processed!`);
     } catch (error) {
-      logError('[Mermaid] Failed to initialize:', error);
+      logError('❌ FATAL ERROR during initialization:');
+      logError('   Error type:', error.name);
+      logError('   Error message:', error.message);
+      logError('   Error stack:', error.stack);
       isInitializing = false;
     } finally {
       // 标记初始化完成
       if (!isInitialized) {
         isInitialized = true;
         isInitializing = false;
-        log('[Mermaid] Initialization complete');
+        hasInitializedOnce = true;  // 🔧 标记已初始化过一次
+        log('✅ Initialization complete. Final state: isInitialized =', isInitialized);
+        log('📊 Total diagrams cached:', mermaidDiagrams.length);
       }
     }
   }
 
   // 页面加载完成后初始化
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMermaid);
-  } else {
+  function initOnPageLoad() {
+    log('\n🔄 ========== PAGE LOAD EVENT ==========');
+    log('📍 Trigger: initOnPageLoad()');
+    log('📊 Before reset: isInitialized =', isInitialized, ', isInitializing =', isInitializing);
+
+    // 重置初始化状态（页面刷新时确保重新初始化）
+    isInitialized = false;
+    isInitializing = false;
+
+    // 清空已保存的图表列表
+    mermaidDiagrams.length = 0;
+
+    log('🔄 State reset complete. Starting initialization...');
+
+    // 初始化 Mermaid
     initMermaid();
+  }
+
+  log('📌 Setting up event listeners...');
+
+  if (document.readyState === 'loading') {
+    log('⏳ Document still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', initOnPageLoad);
+  } else {
+    log('✅ Document already loaded, initializing immediately...');
+    // DOM 已加载完成，立即初始化
+    initOnPageLoad();
   }
 
   // View Transitions 支持 - 页面导航后重新初始化
   document.addEventListener('astro:page-load', () => {
-    log('[Mermaid] astro:page-load event fired, reinitializing...');
+    log('\n🔄 ========== ASTRO PAGE LOAD EVENT ==========');
+    log('📍 Trigger: astro:page-load');
+    log('📊 Before reset: isInitialized =', isInitialized, ', isInitializing =', isInitializing);
+
+    // 🔍 检查是否真的有新的 Mermaid 代码块需要渲染
+    const newMermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
+
+    log('📊 New mermaid blocks found:', newMermaidBlocks.length);
+    log('📊 Existing rendered diagrams:', existingDiagrams.length);
+
+    // 如果没有新的代码块，且已经有渲染好的图表，说明是假事件
+    if (newMermaidBlocks.length === 0 && existingDiagrams.length > 0) {
+      log('✅ This is a false page-load event, keeping existing diagrams');
+      return;
+    }
+
+    // 真正的页面导航 - 重置所有状态
+    log('🔄 True navigation detected, resetting state...');
 
     // 重置初始化状态
     isInitialized = false;
@@ -260,6 +380,8 @@
 
     // 清空已保存的图表列表
     mermaidDiagrams.length = 0;
+
+    log('🔄 State reset complete. Starting initialization...');
 
     // 重新初始化
     initMermaid();
@@ -418,7 +540,7 @@
         // 重新渲染（带超时保护）
         const renderResult = await withTimeout(
           mermaid.render(`${diagram.id}-rerender-${Date.now()}`, diagram.code),
-          5000  // 5秒超时（从10秒减少）
+          10000  // 10秒超时
         );
         const { svg } = renderResult;
 

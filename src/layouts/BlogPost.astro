@@ -8,8 +8,9 @@ import Tag from '../components/Tag.astro';
 import PrevNextNav from '../components/PrevNextNav.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
-import MermaidRenderer from '../components/MermaidRenderer.astro';
+import MermaidRendererOptimized from '../components/MermaidRendererOptimized.astro';
 import MermaidViewer from '../components/MermaidViewer.astro';
+import CrashDetector from '../components/CrashDetector.astro';
 import ScrollProgress from '../components/ScrollProgress.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & {
@@ -21,8 +22,11 @@ const {title, description, pubDate, updatedDate, heroImage, tags = [], prevPost,
 ---
 
 <Layout title={`${title} - Misaka Network`} description={description}>
-    <!-- 滚动进度条 -->
+    <!-- 滚动进度条（仅博客文章页） -->
     <ScrollProgress />
+
+    <!-- 崩溃检测器（调试用） -->
+    <CrashDetector />
 
     <!-- Table of Contents -->
     <TableOfContents/>
@@ -144,8 +148,8 @@ const {title, description, pubDate, updatedDate, heroImage, tags = [], prevPost,
     <!-- Copy Code Button Component -->
     <CopyCodeButton/>
 
-    <!-- Mermaid Renderer Component -->
-    <MermaidRenderer/>
+    <!-- Mermaid Renderer Component (Optimized) -->
+    <MermaidRendererOptimized/>
 
     <!-- Mermaid Viewer Component (全屏查看器) -->
     <MermaidViewer/>

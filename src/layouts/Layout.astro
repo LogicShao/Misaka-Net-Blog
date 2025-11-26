@@ -19,9 +19,11 @@ const {title = SITE_TITLE, description = SITE_DESCRIPTION} = Astro.props;
 <html lang="zh-CN">
 <head>
     <BaseHead title={title} description={description}/>
-    <ViewTransitions />
+    <!-- 🔧 临时禁用 View Transitions 以修复 Mermaid 渲染问题 -->
+    <!-- <ViewTransitions /> -->
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col" style="margin: 0; padding: 0;">
+
 <!-- 网格背景层 -->
 <div class="fixed inset-0 -z-10 opacity-10">
     <div class="absolute inset-0"

@@ -1,0 +1,60 @@
+---
+// 崩溃检测组件 - 用于检测页面无响应情况
+---
+
+<script>
+  // 🚨 崩溃检测器 - 检测页面是否响应
+  const CRASH_DETECTOR_ENABLED = true;
+  const HEARTBEAT_INTERVAL = 1000;  // 每秒心跳
+  const MAX_FREEZE_TIME = 3000;     // 超过 3 秒视为冻结
+
+  if (CRASH_DETECTOR_ENABLED) {
+    console.log('[CrashDetector] 🚨 Crash detector enabled');
+
+    let lastHeartbeat = Date.now();
+    let freezeCount = 0;
+
+    // 主线程心跳检测
+    setInterval(() => {
+      const now = Date.now();
+      const timeSinceLastBeat = now - lastHeartbeat;
+
+      if (timeSinceLastBeat > MAX_FREEZE_TIME) {
+        freezeCount++;
+        console.error('[CrashDetector] ⚠️⚠️⚠️ PAGE FREEZE DETECTED!');
+        console.error('[CrashDetector] Freeze duration:', timeSinceLastBeat, 'ms');
+        console.error('[CrashDetector] Freeze count:', freezeCount);
+        console.error('[CrashDetector] This indicates a blocking operation or infinite loop!');
+
+        // 打印堆栈跟踪
+        console.error('[CrashDetector] Current stack trace:');
+        console.trace();
+      }
+
+      lastHeartbeat = now;
+    }, HEARTBEAT_INTERVAL);
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        console.log('[CrashDetector] 📴 Page hidden');
+      } else {
+        console.log('[CrashDetector] 👁️ Page visible again');
+        lastHeartbeat = Date.now();  // 重置心跳
+        freezeCount = 0;
+      }
+    });
+
+    // 监听浏览器卡死前的警告
+    window.addEventListener('beforeunload', () => {
+      console.log('[CrashDetector] 🚪 Page about to unload');
+    });
+
+    // 定期报告状态
+    setInterval(() => {
+      console.log('[CrashDetector] 💓 Heartbeat OK -', new Date().toISOString());
+    }, 5000);  // 每 5 秒报告一次
+
+    console.log('[CrashDetector] ✅ Monitoring started');
+  }
+</script>

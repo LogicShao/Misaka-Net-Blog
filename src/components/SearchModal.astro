@@ -115,13 +115,18 @@
   let searchData: SearchItem[] = [];
   let selectedIndex = -1;
 
-  const modal = document.getElementById('search-modal');
-  const backdrop = document.getElementById('search-backdrop');
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const searchClose = document.getElementById('search-close');
-  const searchResultsList = document.getElementById('search-results-list');
-  const searchEmpty = document.getElementById('search-empty');
-  const searchNoResults = document.getElementById('search-no-results');
+  // 获取 DOM 元素（支持 View Transitions）
+  function getElements() {
+    return {
+      modal: document.getElementById('search-modal'),
+      backdrop: document.getElementById('search-backdrop'),
+      searchInput: document.getElementById('search-input') as HTMLInputElement,
+      searchClose: document.getElementById('search-close'),
+      searchResultsList: document.getElementById('search-results-list'),
+      searchEmpty: document.getElementById('search-empty'),
+      searchNoResults: document.getElementById('search-no-results'),
+    };
+  }
 
   // 加载搜索数据
   async function loadSearchData() {
@@ -149,6 +154,7 @@
 
   // 打开搜索模态框
   function openSearch() {
+    const { modal, searchInput } = getElements();
     if (!modal) return;
 
     modal.classList.remove('hidden');
@@ -159,6 +165,7 @@
 
   // 关闭搜索模态框
   function closeSearch() {
+    const { modal, searchInput, searchResultsList, searchEmpty, searchNoResults } = getElements();
     if (!modal) return;
 
     modal.classList.add('hidden');
@@ -172,6 +179,7 @@
 
   // 执行搜索
   function performSearch(query: string) {
+    const { searchResultsList, searchEmpty, searchNoResults } = getElements();
     if (!fuse || !searchResultsList || !searchEmpty || !searchNoResults) return;
 
     selectedIndex = -1;
@@ -289,42 +297,75 @@
     }
   }
 
-  // 事件监听
-  window.addEventListener('open-search', openSearch);
+  // 全局事件监听器（避免重复绑定）
+  let globalListenersAttached = false;
 
-  backdrop?.addEventListener('click', closeSearch);
-  searchClose?.addEventListener('click', closeSearch);
+  function attachGlobalListeners() {
+    if (globalListenersAttached) return;
 
-  searchInput?.addEventListener('input', (e) => {
-    performSearch((e.target as HTMLInputElement).value);
-  });
+    // 监听 open-search 事件
+    window.addEventListener('open-search', openSearch);
 
-  searchInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeSearch();
-    } else {
-      handleKeyboardNavigation(e);
-    }
-  });
-
-  // 全局 ESC 关闭
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
-      closeSearch();
-    }
-  });
-
-  // 鼠标悬停更新选中项
-  document.addEventListener('mouseover', (e) => {
-    const target = e.target as HTMLElement;
-    const resultItem = target.closest('.search-result-item');
-    if (resultItem) {
-      const index = parseInt(resultItem.getAttribute('data-index') || '-1');
-      if (index >= 0) {
-        selectedIndex = index;
-        updateSelectedItem();
+    // 全局 ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      const { modal } = getElements();
+      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        closeSearch();
       }
-    }
+    });
+
+    // 鼠标悬停更新选中项
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target as HTMLElement;
+      const resultItem = target.closest('.search-result-item');
+      if (resultItem) {
+        const index = parseInt(resultItem.getAttribute('data-index') || '-1');
+        if (index >= 0) {
+          selectedIndex = index;
+          updateSelectedItem();
+        }
+      }
+    });
+
+    globalListenersAttached = true;
+  }
+
+  // 防止模态框监听器重复绑定的标志位
+  let modalListenersAttached = false;
+
+  // 初始化模态框事件监听器
+  function initModalListeners() {
+    // 防止重复绑定
+    if (modalListenersAttached) return;
+
+    const { backdrop, searchClose, searchInput } = getElements();
+
+    backdrop?.addEventListener('click', closeSearch);
+    searchClose?.addEventListener('click', closeSearch);
+
+    searchInput?.addEventListener('input', (e) => {
+      performSearch((e.target as HTMLInputElement).value);
+    });
+
+    searchInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSearch();
+      } else {
+        handleKeyboardNavigation(e);
+      }
+    });
+
+    modalListenersAttached = true;
+  }
+
+  // 初始化（首次加载）
+  attachGlobalListeners();
+  initModalListeners();
+
+  // View Transitions 支持（页面导航后重新初始化）
+  document.addEventListener('astro:page-load', () => {
+    attachGlobalListeners();
+    initModalListeners();
   });
 </script>
 

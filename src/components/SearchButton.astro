@@ -20,20 +20,39 @@
 </button>
 
 <script>
-  const searchButton = document.getElementById('search-button');
-  if (searchButton) {
-    searchButton.addEventListener('click', () => {
-      const event = new CustomEvent('open-search');
-      window.dispatchEvent(event);
-    });
+  function initSearchButton() {
+    const searchButton = document.getElementById('search-button');
+    if (searchButton) {
+      searchButton.addEventListener('click', () => {
+        const event = new CustomEvent('open-search');
+        window.dispatchEvent(event);
+      });
+    }
   }
 
-  // 快捷键支持 (Cmd/Ctrl + K)
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      const event = new CustomEvent('open-search');
-      window.dispatchEvent(event);
-    }
+  // 快捷键支持 (Cmd/Ctrl + K) - 使用 once 标志避免重复绑定
+  let keyboardListenerAttached = false;
+  function initKeyboardShortcut() {
+    if (keyboardListenerAttached) return;
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const event = new CustomEvent('open-search');
+        window.dispatchEvent(event);
+      }
+    });
+
+    keyboardListenerAttached = true;
+  }
+
+  // 初始化（首次加载）
+  initSearchButton();
+  initKeyboardShortcut();
+
+  // View Transitions 支持（页面导航后重新初始化）
+  document.addEventListener('astro:page-load', () => {
+    initSearchButton();
+    initKeyboardShortcut();
   });
 </script>

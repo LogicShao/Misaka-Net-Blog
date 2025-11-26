@@ -1,0 +1,562 @@
+---
+// MermaidRendererOptimized.astro - 优化版 Mermaid 渲染器
+// 使用懒加载 + 渲染队列避免超时和阻塞
+---
+
+<!-- Mermaid 渲染容器 -->
+<div id="mermaid-container" class="hidden"></div>
+
+<script>
+  // 🔧 调试模式
+  const DEBUG_MODE = false;  // 设置为 false 可关闭调试
+  const log = (...args) => DEBUG_MODE && console.log('[Mermaid]', new Date().toISOString(), ...args);
+  const logError = (...args) => console.error('[Mermaid ERROR]', new Date().toISOString(), ...args);
+  const logWarn = (...args) => console.warn('[Mermaid WARN]', new Date().toISOString(), ...args);
+
+  log('🚀 Optimized Mermaid Renderer loaded');
+
+  // 防止重复初始化的标志位
+  let isInitialized = false;
+  let isInitializing = false;
+  let hasInitializedOnce = false;
+
+  // 保存所有 Mermaid 图表的原始代码
+  const mermaidDiagrams = [];
+
+  // 🎯 渲染队列 - 避免同时渲染太多图表
+  const renderQueue = [];
+  let isRendering = false;
+  let totalDiagramsExpected = 0;  // 预期要渲染的图表总数
+
+  // 🔧 渲染完成的 Promise，用于等待渲染完成
+  let renderCompletionPromise = null;
+  let renderCompletionResolve = null;
+
+  // 动态加载 Mermaid.js
+  async function loadMermaid() {
+    log('📦 loadMermaid() called');
+
+    if (typeof window.mermaid !== 'undefined') {
+      log('✅ Mermaid already loaded');
+      return window.mermaid;
+    }
+
+    log('⬇️ Loading Mermaid from CDN...');
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+      script.type = 'module';
+      script.onload = () => {
+        log('✅ Mermaid CDN script loaded');
+        if (window.mermaid) {
+          resolve(window.mermaid);
+        } else {
+          logError('❌ window.mermaid not available after load');
+          reject(new Error('Mermaid failed to load'));
+        }
+      };
+      script.onerror = () => {
+        logError('❌ Failed to load Mermaid script from CDN');
+        reject(new Error('Failed to load Mermaid script'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // 🎯 渲染单个图表（带重试机制）
+  async function renderSingleDiagram(block, index, mermaid) {
+    // 🔧 检查元素是否仍在 DOM 中
+    if (!block || !block.isConnected) {
+      logWarn(`⚠️ Diagram ${index}: element not in DOM, skipping`);
+      return null;
+    }
+
+    const pre = block.parentElement;
+    if (!pre || !pre.isConnected) {
+      logWarn(`⚠️ Diagram ${index}: parent element not in DOM, skipping`);
+      return null;
+    }
+
+    const code = block.textContent || block.innerText || '';
+
+    if (!code.trim()) {
+      logWarn(`⚠️ Skipping empty diagram ${index}`);
+      return null;
+    }
+
+    try {
+      log(`🎨 Rendering diagram ${index}...`);
+
+      // 创建容器
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-wrapper my-8 relative';
+
+      const container = document.createElement('div');
+      container.className = 'mermaid-diagram flex justify-center';
+      container.style.cssText = `
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        overflow-x: auto;
+      `;
+
+      // 🚀 渲染（不使用超时，让浏览器自己决定）
+      log(`⏰ Start rendering diagram ${index} at:`, new Date().toISOString());
+
+      const renderResult = await mermaid.render(`mermaid-${index}-${Date.now()}`, code);
+      const { svg } = renderResult;
+
+      log(`✅ Diagram ${index} rendered successfully!`);
+      log(`📏 SVG length: ${svg.length} chars`);
+
+      container.innerHTML = svg;
+
+      // 创建放大按钮
+      const zoomButton = document.createElement('button');
+      zoomButton.className = 'mermaid-zoom-button';
+      zoomButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+        </svg>
+      `;
+      zoomButton.setAttribute('aria-label', '全屏查看流程图');
+      zoomButton.setAttribute('title', '全屏查看 (支持拖拽和缩放)');
+
+      zoomButton.addEventListener('click', () => {
+        const svgElement = container.querySelector('svg');
+        if (svgElement) {
+          window.dispatchEvent(new CustomEvent('open-mermaid-viewer', {
+            detail: { svg: svgElement.outerHTML, id: `mermaid-${index}` }
+          }));
+        }
+      });
+
+      wrapper.appendChild(container);
+      wrapper.appendChild(zoomButton);
+
+      // 🔧 再次检查父元素是否仍在 DOM 中
+      if (!pre.isConnected || !pre.parentElement) {
+        logWarn(`⚠️ Diagram ${index}: parent element removed during rendering`);
+        return null;
+      }
+
+      // 替换原始代码块
+      pre.parentElement.replaceChild(wrapper, pre);
+
+      // 保存图表信息
+      mermaidDiagrams.push({
+        id: `mermaid-${index}`,
+        code: code,
+        wrapper: wrapper,
+        container: container
+      });
+
+      log(`✅ Diagram ${index} inserted into DOM`);
+      return wrapper;
+    } catch (error) {
+      logError(`❌ Rendering error for diagram ${index}:`);
+      logError(`   Error message: ${error.message}`);
+      logError(`   Failed code (first 200 chars):`, code.substring(0, 200));
+
+      // 渲染失败时显示错误信息
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'mermaid-error p-4 my-4 rounded-lg';
+      errorDiv.style.cssText = `
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: var(--text-primary);
+      `;
+      errorDiv.innerHTML = `
+        <p class="font-semibold mb-2">⚠️ Mermaid 渲染失败 (图表 #${index})</p>
+        <p class="text-sm mb-2">错误信息: ${error.message}</p>
+        <details class="text-xs">
+          <summary class="cursor-pointer hover:text-misaka-blue">查看代码</summary>
+          <pre class="mt-2 p-2 bg-black bg-opacity-20 rounded overflow-x-auto"><code>${code}</code></pre>
+        </details>
+      `;
+
+      if (pre && pre.parentElement && pre.isConnected) {
+        pre.parentElement.insertBefore(errorDiv, pre);
+        pre.remove();
+      }
+
+      return null;
+    }
+  }
+
+  // 🎯 处理渲染队列（逐个渲染，避免阻塞）
+  async function processRenderQueue(mermaid) {
+    if (isRendering) {
+      log('⚠️ Already rendering, skipping duplicate call');
+      return;
+    }
+
+    if (renderQueue.length === 0) {
+      log('ℹ️ Render queue is empty');
+      return;
+    }
+
+    isRendering = true;
+    const totalToRender = renderQueue.length;
+    log(`🔄 Processing render queue (${totalToRender} items)...`);
+
+    // 🔧 创建渲染完成 Promise
+    renderCompletionPromise = new Promise(resolve => {
+      renderCompletionResolve = resolve;
+    });
+
+    let renderedCount = 0;
+
+    while (renderQueue.length > 0) {
+      const { block, index } = renderQueue.shift();
+
+      log(`📊 Rendering ${renderedCount + 1}/${totalToRender} (diagram #${index})`);
+
+      await renderSingleDiagram(block, index, mermaid);
+      renderedCount++;
+
+      // 🔧 每渲染一个图表后，给浏览器一点时间处理其他任务
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    isRendering = false;
+    log(`✅ Queue processing complete. Rendered: ${renderedCount}/${totalToRender}`);
+    log(`📊 Total diagrams in cache: ${mermaidDiagrams.length}`);
+
+    // 🔧 标记渲染完成
+    if (renderCompletionResolve) {
+      renderCompletionResolve();
+      renderCompletionResolve = null;
+    }
+  }
+
+  // 初始化 Mermaid
+  async function initMermaid() {
+    log('🎬 initMermaid() called');
+
+    // 检查是否已经有渲染好的图表
+    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
+    const newMermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+
+    log(`📊 Existing diagrams: ${existingDiagrams.length}`);
+    log(`📊 New mermaid blocks: ${newMermaidBlocks.length}`);
+
+    // 🔧 如果已经渲染完成（图表数量等于预期数量），跳过
+    if (existingDiagrams.length > 0 &&
+        newMermaidBlocks.length === 0 &&
+        hasInitializedOnce &&
+        !isRendering) {
+      log('✅ All diagrams already rendered, skipping');
+      return;
+    }
+
+    if (isInitialized || isInitializing) {
+      logWarn('⚠️ Already initialized or initializing, skipping');
+      return;
+    }
+
+    isInitializing = true;
+
+    try {
+      log('🔍 Searching for mermaid blocks...');
+
+      const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+      log(`📋 Found ${mermaidBlocks.length} mermaid blocks`);
+
+      if (mermaidBlocks.length === 0) {
+        log('ℹ️ No mermaid blocks found');
+        isInitializing = false;
+        isInitialized = true;
+        return;
+      }
+
+      log('📦 Loading Mermaid library...');
+      const mermaid = await loadMermaid();
+      log('✅ Mermaid library loaded');
+
+      // 配置 Mermaid
+      const isDark = document.documentElement.classList.contains('dark');
+      log('🎨 Theme:', isDark ? 'dark' : 'light');
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: {
+          primaryColor: isDark ? '#4ade80' : '#4ade80',
+          primaryTextColor: isDark ? '#f0f8ff' : '#0f172a',
+          primaryBorderColor: isDark ? '#4ade80' : '#4ade80',
+          lineColor: isDark ? '#38bdf8' : '#38bdf8',
+          secondaryColor: isDark ? '#1e293b' : '#e0f2fe',
+          tertiaryColor: isDark ? '#0f172a' : '#f0f9ff',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontSize: '14px',
+        },
+        flowchart: {
+          curve: 'basis',
+          padding: 20,
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          htmlLabels: true,
+        },
+        sequence: {
+          actorMargin: 50,
+          width: 150,
+          height: 65,
+          boxMargin: 10,
+        },
+        securityLevel: 'loose',
+        suppressErrorRendering: false,
+      });
+
+      log('✅ Mermaid initialized');
+
+      // 🎯 将所有图表添加到队列
+      renderQueue.length = 0;  // 清空队列
+      totalDiagramsExpected = mermaidBlocks.length;  // 设置预期数量
+
+      mermaidBlocks.forEach((block, index) => {
+        renderQueue.push({ block, index });
+      });
+
+      log(`📋 Added ${renderQueue.length} diagrams to render queue`);
+      log(`🎯 Expected to render: ${totalDiagramsExpected} diagrams`);
+
+      // 🚀 开始处理队列
+      await processRenderQueue(mermaid);
+
+      // 🔧 等待渲染完成
+      if (renderCompletionPromise) {
+        log('⏳ Waiting for all diagrams to render...');
+        await renderCompletionPromise;
+        log('✅ All rendering complete');
+      }
+
+      log('🎉 All diagrams processed!');
+
+    } catch (error) {
+      logError('❌ FATAL ERROR during initialization:');
+      logError('   Error message:', error.message);
+      logError('   Error stack:', error.stack);
+      isInitializing = false;
+    } finally {
+      if (!isInitialized) {
+        isInitialized = true;
+        isInitializing = false;
+        hasInitializedOnce = true;
+        log('✅ Initialization complete. Total diagrams:', mermaidDiagrams.length);
+      }
+    }
+  }
+
+  // 页面加载时初始化
+  function initOnPageLoad() {
+    log('\n🔄 ========== PAGE LOAD EVENT ==========');
+    initMermaid();
+  }
+
+  log('📌 Setting up event listeners...');
+
+  if (document.readyState === 'loading') {
+    log('⏳ Waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', initOnPageLoad);
+  } else {
+    log('✅ DOM ready, initializing...');
+    initOnPageLoad();
+  }
+
+  // View Transitions 支持
+  document.addEventListener('astro:page-load', () => {
+    log('\n🔄 ========== ASTRO PAGE LOAD EVENT ==========');
+
+    // 🔧 如果正在渲染，直接跳过（不要等待，避免阻塞）
+    if (isRendering) {
+      logWarn('⚠️ Rendering in progress, skipping this event');
+      return;
+    }
+
+    const newMermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"] code');
+    const existingDiagrams = document.querySelectorAll('.mermaid-wrapper');
+
+    log('📊 New blocks:', newMermaidBlocks.length);
+    log('📊 Existing diagrams:', existingDiagrams.length);
+    log('📊 Expected diagrams:', totalDiagramsExpected);
+    log('📊 Diagrams in cache:', mermaidDiagrams.length);
+
+    // 🔧 改进检测逻辑：
+    // 1. 如果没有新代码块，且已渲染图表数量等于预期数量，说明是假事件
+    // 2. 如果已渲染图表数量等于或大于预期数量，也跳过
+    if (newMermaidBlocks.length === 0 &&
+        existingDiagrams.length > 0 &&
+        existingDiagrams.length >= totalDiagramsExpected) {
+      log('✅ False page-load event, all diagrams already rendered');
+      return;
+    }
+
+    // 🔧 如果新代码块数量和已渲染图表数量加起来等于预期，说明渲染未完成
+    if (newMermaidBlocks.length > 0 &&
+        existingDiagrams.length > 0 &&
+        newMermaidBlocks.length + existingDiagrams.length === totalDiagramsExpected) {
+      logWarn('⚠️ Rendering was interrupted, resuming...');
+      // 不重置状态，继续渲染
+      return;
+    }
+
+    log('🔄 True navigation detected, resetting...');
+    isInitialized = false;
+    isInitializing = false;
+    mermaidDiagrams.length = 0;
+    renderQueue.length = 0;
+    totalDiagramsExpected = 0;
+
+    initMermaid();
+  });
+
+  // 主题切换支持（重新渲染所有图表）
+  window.addEventListener('theme-changed', async (event) => {
+    const { theme } = event.detail;
+    log(`🎨 Theme changed to: ${theme}`);
+
+    // 🔧 如果正在初始化或渲染，延迟主题切换
+    if (isRendering) {
+      logWarn('⚠️ Rendering in progress, delaying theme change...');
+      // 等待一段时间后重试
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
+      }, 500);
+      return;
+    }
+
+    if (mermaidDiagrams.length === 0) {
+      log('ℹ️ No diagrams to rerender');
+      return;
+    }
+
+    try {
+      const mermaid = await loadMermaid();
+      const isDark = document.documentElement.classList.contains('dark');
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: {
+          primaryColor: isDark ? '#4ade80' : '#4ade80',
+          primaryTextColor: isDark ? '#f0f8ff' : '#0f172a',
+          primaryBorderColor: isDark ? '#4ade80' : '#4ade80',
+          lineColor: isDark ? '#38bdf8' : '#38bdf8',
+          secondaryColor: isDark ? '#1e293b' : '#e0f2fe',
+          tertiaryColor: isDark ? '#0f172a' : '#f0f9ff',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          fontSize: '14px',
+        },
+        flowchart: { curve: 'basis', padding: 20, nodeSpacing: 50, rankSpacing: 50, htmlLabels: true },
+        sequence: { actorMargin: 50, width: 150, height: 65, boxMargin: 10 },
+        securityLevel: 'loose',
+        suppressErrorRendering: false,
+      });
+
+      log(`🔄 Rerendering ${mermaidDiagrams.length} diagrams for theme change...`);
+
+      for (let i = 0; i < mermaidDiagrams.length; i++) {
+        const diagram = mermaidDiagrams[i];
+
+        try {
+          const renderResult = await mermaid.render(`${diagram.id}-rerender-${Date.now()}`, diagram.code);
+          diagram.container.innerHTML = renderResult.svg;
+          log(`✅ Diagram ${i + 1}/${mermaidDiagrams.length} rerendered`);
+        } catch (error) {
+          logError(`❌ Failed to rerender diagram ${i}:`, error.message);
+        }
+
+        // 每渲染一个图表后稍微延迟
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      log('✅ All diagrams rerendered for theme change');
+    } catch (error) {
+      logError('❌ Theme change rerender failed:', error.message);
+    }
+  });
+</script>
+
+<style>
+  /* Mermaid 包装容器 */
+  :global(.mermaid-wrapper) {
+    position: relative;
+  }
+
+  /* Mermaid 图表样式优化 */
+  :global(.mermaid-diagram svg) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 放大按钮样式 */
+  :global(.mermaid-zoom-button) {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0.7;
+  }
+
+  :global(.mermaid-zoom-button:hover) {
+    opacity: 1;
+    background-color: rgba(74, 222, 128, 0.1);
+    border-color: #4ade80;
+    color: #4ade80;
+    transform: scale(1.1);
+  }
+
+  :global(.mermaid-zoom-button:active) {
+    transform: scale(0.95);
+  }
+
+  /* 响应式处理 */
+  @media (max-width: 768px) {
+    :global(.mermaid-diagram) {
+      padding: 1rem !important;
+      font-size: 12px;
+    }
+
+    :global(.mermaid-zoom-button) {
+      top: 0.5rem;
+      left: 0.5rem;
+      padding: 0.375rem;
+    }
+  }
+
+  /* 深色模式下的额外样式 */
+  :global(.dark .mermaid-diagram) {
+    background-color: var(--bg-secondary);
+  }
+
+  /* 流程图节点样式增强 */
+  :global(.mermaid-diagram .node rect),
+  :global(.mermaid-diagram .node circle),
+  :global(.mermaid-diagram .node polygon) {
+    stroke-width: 2px;
+  }
+
+  /* 连接线样式 */
+  :global(.mermaid-diagram .edgePath .path) {
+    stroke-width: 2px;
+  }
+
+  /* 文本样式 */
+  :global(.mermaid-diagram .nodeLabel),
+  :global(.mermaid-diagram .edgeLabel) {
+    font-weight: 500;
+  }
+</style>
