@@ -6,8 +6,19 @@ import {getCollection} from 'astro:content';
 const allPosts = await getCollection('blog');
 const totalPosts = allPosts.length;
 
-// 获取所有标签
-const allTags = [...new Set(allPosts.flatMap(post => post.data.tags || []))];
+// 统计标签出现频率
+const tagFrequency = new Map<string, number>();
+allPosts.forEach(post => {
+	(post.data.tags || []).forEach(tag => {
+		tagFrequency.set(tag, (tagFrequency.get(tag) || 0) + 1);
+	});
+});
+
+// 按频率排序标签
+const allTags = [...tagFrequency.entries()]
+	.sort((a, b) => b[1] - a[1])  // 按频率降序排序
+	.map(([tag]) => tag);
+
 const totalTags = allTags.length;
 
 // 计算总字数（粗略估计）
