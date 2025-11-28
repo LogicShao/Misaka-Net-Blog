@@ -1,23 +1,23 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content';
+import {type CollectionEntry, getCollection, render} from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
-import { sortPostsByTime } from '../../utils/sortPosts';
+import {sortPostsByTime} from '../../utils/sortPosts';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: {slug: post.id},
+    props: post,
+  }));
 }
 type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
-const { Content } = await render(post);
+const {Content} = await render(post);
 
 // 获取所有文章并按文件名时间排序（新文章在前）
 const allPosts = sortPostsByTime(
-    (await getCollection('blog')).filter((p) => !p.data.draft)
+  (await getCollection('blog')).filter((p) => !p.data.draft)
 );
 
 // 找到当前文章的索引
@@ -30,5 +30,5 @@ const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : undefined;
 ---
 
 <BlogPost {...post.data} prevPost={prevPost} nextPost={nextPost}>
-	<Content />
+  <Content/>
 </BlogPost>

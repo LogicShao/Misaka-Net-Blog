@@ -9,145 +9,145 @@ import {sortPostsByTime} from '../utils/sortPosts';
 
 // 获取所有博客文章，按文件名时间排序（新文章在前）
 const posts = sortPostsByTime(
-    (await getCollection('blog')).filter(post => !post.data.draft)
+  (await getCollection('blog')).filter(post => !post.data.draft)
 ).slice(0, 6); // 首页只显示最新的 6 篇文章
 ---
 
 <Layout title={SITE_TITLE} description={SITE_DESCRIPTION}>
-    <!-- Hero Section -->
-    <section class="mb-16 text-center">
-        <div class="relative">
-            <!-- 标题 -->
-            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-glow" style="color: var(--text-primary);">
-                Misaka Network
-            </h1>
+  <!-- Hero Section -->
+  <section class="mb-16 text-center">
+    <div class="relative">
+      <!-- 标题 -->
+      <h1 class="text-5xl md:text-7xl font-bold mb-6 text-glow" style="color: var(--text-primary);">
+        Misaka Network
+      </h1>
 
-            <!-- 副标题 -->
-            <p class="text-xl md:text-2xl text-misaka-circuit font-mono mb-4">
-                御坂网络 / SYSTEM_ID: 10032
-			</p>
+      <!-- 副标题 -->
+      <p class="text-xl md:text-2xl text-misaka-circuit font-mono mb-4">
+        御坂网络 / SYSTEM_ID: 10032
+      </p>
 
-            <!-- 描述 -->
-            <p class="text-lg max-w-2xl mx-auto leading-relaxed" style="color: var(--text-secondary);">
-                科学实验日志与技术观测站 - 记录代码、思考与实验的数字空间
-			</p>
+      <!-- 描述 -->
+      <p class="text-lg max-w-2xl mx-auto leading-relaxed" style="color: var(--text-secondary);">
+        科学实验日志与技术观测站 - 记录代码、思考与实验的数字空间
+      </p>
 
-            <!-- 电磁效果装饰 -->
-            <div class="flex justify-center mt-8 space-x-4">
-                <div class="w-20 h-1 bg-gradient-to-r from-transparent via-misaka-blue to-transparent"></div>
-                <div class="w-3 h-3 bg-misaka-blue rounded-full animate-pulse"></div>
-                <div class="w-20 h-1 bg-gradient-to-r from-transparent via-misaka-circuit to-transparent"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left Column - Blog Posts (占 2/3) -->
-        <div class="lg:col-span-2">
-            <!-- Section Header -->
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold mb-2 flex items-center space-x-3" style="color: var(--text-primary);">
-                    <svg class="w-8 h-8 text-misaka-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span>Latest Experiments</span>
-                </h2>
-                <p class="font-mono text-sm" style="color: var(--text-muted);">
-                    // 最新实验记录
-                </p>
-            </div>
-
-            <!-- Blog Post Cards -->
-            <div class="space-y-8">
-                {posts.map(post => (
-                        <Card
-                                title={post.data.title}
-                                description={post.data.description}
-                                pubDate={post.data.pubDate}
-                                heroImage={post.data.heroImage?.src}
-                                tags={post.data.tags}
-                                slug={post.id}
-                        />
-                ))}
-            </div>
-
-            <!-- View All Link -->
-            <div class="mt-8 text-center">
-                <a
-                        href="/blog"
-                        class="btn-misaka inline-flex items-center space-x-2"
-                >
-                    <span>查看全部文章</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
-
-        <!-- Right Column - Sidebar (占 1/3) -->
-        <div class="space-y-8">
-            <!-- Network Stats -->
-            <NetworkStats/>
-
-            <!-- About Card -->
-            <div class="network-panel">
-                <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
-                    // About MISAKA
-                </h3>
-                <div class="space-y-3 text-sm" style="color: var(--text-secondary);">
-                    <p>
-                        Level 5 超能力者，学园都市第三位，代号"超电磁炮"。
-                    </p>
-                    <p>
-                        这里记录着关于代码、技术与实验的一切。
-                    </p>
-                    <a
-                            href="/about"
-                            class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono mt-4"
-                    >
-                        <span>了解更多</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="network-panel">
-                <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
-                    // Quick Access
-                </h3>
-                <div class="space-y-2">
-                    <a
-                            href="/blog"
-                            class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
-                            style="color: var(--text-secondary);"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                        </svg>
-                        <span>所有文章</span>
-                    </a>
-                    <a
-                            href="/rss.xml"
-                            class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
-                            style="color: var(--text-secondary);"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
-                        </svg>
-                        <span>RSS 订阅</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+      <!-- 电磁效果装饰 -->
+      <div class="flex justify-center mt-8 space-x-4">
+        <div class="w-20 h-1 bg-gradient-to-r from-transparent via-misaka-blue to-transparent"></div>
+        <div class="w-3 h-3 bg-misaka-blue rounded-full animate-pulse"></div>
+        <div class="w-20 h-1 bg-gradient-to-r from-transparent via-misaka-circuit to-transparent"></div>
+      </div>
     </div>
+  </section>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column - Blog Posts (占 2/3) -->
+    <div class="lg:col-span-2">
+      <!-- Section Header -->
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold mb-2 flex items-center space-x-3" style="color: var(--text-primary);">
+          <svg class="w-8 h-8 text-misaka-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Latest Experiments</span>
+        </h2>
+        <p class="font-mono text-sm" style="color: var(--text-muted);">
+          // 最新实验记录
+        </p>
+      </div>
+
+      <!-- Blog Post Cards -->
+      <div class="space-y-8">
+        {posts.map(post => (
+          <Card
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            heroImage={post.data.heroImage?.src}
+            tags={post.data.tags}
+            slug={post.id}
+          />
+        ))}
+      </div>
+
+      <!-- View All Link -->
+      <div class="mt-8 text-center">
+        <a
+          href="/blog"
+          class="btn-misaka inline-flex items-center space-x-2"
+        >
+          <span>查看全部文章</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Column - Sidebar (占 1/3) -->
+    <div class="space-y-8">
+      <!-- Network Stats -->
+      <NetworkStats/>
+
+      <!-- About Card -->
+      <div class="network-panel">
+        <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
+          // About MISAKA
+        </h3>
+        <div class="space-y-3 text-sm" style="color: var(--text-secondary);">
+          <p>
+            Level 5 超能力者，学园都市第三位，代号"超电磁炮"。
+          </p>
+          <p>
+            这里记录着关于代码、技术与实验的一切。
+          </p>
+          <a
+            href="/about"
+            class="inline-flex items-center space-x-2 text-misaka-blue hover:text-misaka-accent transition-colors font-mono mt-4"
+          >
+            <span>了解更多</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="network-panel">
+        <h3 class="text-lg font-bold text-misaka-circuit mb-4 font-mono">
+          // Quick Access
+        </h3>
+        <div class="space-y-2">
+          <a
+            href="/blog"
+            class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
+            style="color: var(--text-secondary);"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+            </svg>
+            <span>所有文章</span>
+          </a>
+          <a
+            href="/rss.xml"
+            class="flex items-center space-x-2 hover:text-misaka-blue transition-colors p-2 rounded hover:bg-misaka-circuit/10"
+            style="color: var(--text-secondary);"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+            </svg>
+            <span>RSS 订阅</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </Layout>

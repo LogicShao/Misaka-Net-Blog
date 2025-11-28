@@ -3,7 +3,7 @@
 import {getCollection} from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Card from '../../components/Card.astro';
-import { sortPostsByTime } from '../../utils/sortPosts';
+import {sortPostsByTime} from '../../utils/sortPosts';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('blog');

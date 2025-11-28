@@ -37,16 +37,22 @@ export interface FriendLink {
 }
 
 export const FRIEND_LINKS: FriendLink[] = [
-  {
-    name: '夏夜流萤',
-    url: 'https://blog.cuteleaf.cn',
-    avatar: 'https://q1.qlogo.cn/g?b=qq&nk=7618557&s=640',
-    description: '飞萤之火自无梦的长夜亮起，绽放在终竟的明天。'
-  },
-  {
-    name: 'johntime',
-    url: 'https://blog.johntime.top/',
-    avatar: 'https://blog.johntime.top/assets/images/avatar.webp',
-    description: '热爱技术，喜欢折腾，记录生活。'
-  }
+	{
+        name: '夏夜流萤',
+        url: 'https://blog.cuteleaf.cn',
+        avatar: 'https://q1.qlogo.cn/g?b=qq&nk=7618557&s=640',
+        description: '飞萤之火自无梦的长夜亮起，绽放在终竟的明天。'
+    },
+	{
+        name: 'johntime',
+        url: 'https://blog.johntime.top/',
+        avatar: 'https://blog.johntime.top/assets/images/avatar.webp',
+        description: '热爱技术，喜欢折腾，记录生活。'
+    },
+	{
+        name: 'iMaeGoo’s Blog',
+        url: 'https://www.imaegoo.com',
+        avatar: 'https://cdn.jsdelivr.net/npm/imaegoo/avatar.jpg',
+        description: '虹墨空间站'
+    }
 ];

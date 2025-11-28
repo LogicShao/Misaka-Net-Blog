@@ -1,15 +1,15 @@
 ---
 // Misaka Network - Blog List Page (带分页)
-import { getCollection } from 'astro:content';
-import type { GetStaticPaths } from 'astro';
+import {getCollection} from 'astro:content';
+import type {GetStaticPaths} from 'astro';
 import Layout from '../../layouts/Layout.astro';
 import Card from '../../components/Card.astro';
 import NetworkStats from '../../components/NetworkStats.astro';
 import Pagination from '../../components/Pagination.astro';
-import { sortPostsByTime } from '../../utils/sortPosts';
+import {sortPostsByTime} from '../../utils/sortPosts';
 
 // 定义分页路径
-export const getStaticPaths = (async ({ paginate }) => {
+export const getStaticPaths = (async ({paginate}) => {
   // 获取所有博客文章，过滤草稿，按文件名时间排序（新文章在前）
   const allPosts = sortPostsByTime(
     (await getCollection('blog')).filter(post => !post.data.draft)
@@ -22,7 +22,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 }) satisfies GetStaticPaths;
 
 // 从 Astro.props 获取分页数据
-const { page } = Astro.props;
+const {page} = Astro.props;
 ---
 
 <Layout
@@ -80,7 +80,7 @@ const { page } = Astro.props;
 
     <!-- Right Column - Sidebar (占 1/3) -->
     <div class="space-y-8">
-      <NetworkStats />
+      <NetworkStats/>
     </div>
   </div>
 </Layout>
