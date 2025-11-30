@@ -54,5 +54,11 @@ export const FRIEND_LINKS: FriendLink[] = [
         url: 'https://www.imaegoo.com',
         avatar: 'https://cdn.jsdelivr.net/npm/imaegoo/avatar.jpg',
         description: '虹墨空间站'
+    },
+	{
+        name: 'Remik1r3n Blog',
+        url: 'https://blog.remiki.ren',
+        avatar: 'https://s2.loli.net/2025/09/19/dJtaOl2fVGKUb8n.jpg',
+        description: 'Remi 的 Blog'
     }
 ];

@@ -207,6 +207,7 @@ function showEditForm(post) {
       <div id="tabContent"></div>
       <div class="editor-actions">
         <button class="btn btn-success" onclick="savePost()">💾 保存更改</button>
+        <button class="btn btn-warning" onclick="fixChineseBold()">🔧 修复中文加粗</button>
         <button class="btn btn-danger" onclick="deletePost()">🗑️ 删除文章</button>
         <button class="btn btn-secondary" onclick="cancelEdit()">❌ 取消</button>
       </div>
@@ -398,6 +399,37 @@ async function deletePost() {
     cancelEdit();
   } else {
     showError('删除失败: ' + result.error);
+  }
+}
+
+async function fixChineseBold() {
+  if (!currentPost) return;
+
+  const confirmed = confirm(`确定要修复文章《${currentPost.frontmatter.title}》中的中文加粗格式吗？\n\n此操作会在 **中文** 前后自动添加空格（如果尚未存在）。`);
+  if (!confirmed) return;
+
+  try {
+    const result = await window.electronAPI.fixChineseBold(currentPost.id);
+
+    if (result.success) {
+      if (result.modified) {
+        showSuccess('中文加粗格式修复成功！');
+        // 重新加载文章以显示修改后的内容
+        await loadPosts();
+        // 重新加载当前文章到编辑器
+        const updatedPost = await window.electronAPI.getPost(currentPost.id);
+        if (updatedPost) {
+          currentPost = updatedPost;
+          showEditForm(currentPost);
+        }
+      } else {
+        showSuccess('文章无需修复');
+      }
+    } else {
+      showError('修复失败: ' + result.error);
+    }
+  } catch (error) {
+    showError('修复失败: ' + error.message);
   }
 }
 

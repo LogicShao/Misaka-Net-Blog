@@ -561,6 +561,58 @@ ipcMain.handle('delete-post', async (event, postId) => {
   }
 });
 
+// 修复中文加粗格式
+ipcMain.handle('fix-chinese-bold', async (event, postId) => {
+  try {
+    const filePath = path.join(BLOG_DIR, postId);
+
+    // 读取文章内容
+    const content = await fs.readFile(filePath, 'utf-8');
+
+    // 修复中文加粗格式
+    let fixed = content;
+
+    // 第一步：在 ** 前面添加空格（如果前面是非空白字符）
+    fixed = fixed.replace(
+      /([^\s\n])(\*\*[^*]*?[\u4e00-\u9fa5][^*]*?\*\*)/g,
+      (match, before, bold) => {
+        return before + ' ' + bold;
+      }
+    );
+
+    // 第二步：在 ** 后面添加空格（如果后面是非空白字符）
+    fixed = fixed.replace(
+      /(\*\*[^*]*?[\u4e00-\u9fa5][^*]*?\*\*)([^\s\n])/g,
+      (match, bold, after) => {
+        return bold + ' ' + after;
+      }
+    );
+
+    // 检查是否有改动
+    if (content === fixed) {
+      return {
+        success: true,
+        modified: false,
+        message: '文章无需修复'
+      };
+    }
+
+    // 写入修复后的内容
+    await fs.writeFile(filePath, fixed, 'utf-8');
+
+    return {
+      success: true,
+      modified: true,
+      message: '中文加粗格式修复成功'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+});
+
 // 构建博客
 ipcMain.handle('build-blog', async () => {
   try {

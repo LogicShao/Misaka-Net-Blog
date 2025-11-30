@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createPost: (data) => ipcRenderer.invoke('create-post', data),
   updatePost: (data) => ipcRenderer.invoke('update-post', data),
   deletePost: (postId) => ipcRenderer.invoke('delete-post', postId),
+  fixChineseBold: (postId) => ipcRenderer.invoke('fix-chinese-bold', postId),
 
   // 构建管理
   buildBlog: () => ipcRenderer.invoke('build-blog'),

@@ -11,7 +11,8 @@
     "new": "node scripts/new-post.js",
     "friends": "node scripts/manage-friends.js",
     "friends:test": "node scripts/test-friends.js",
-    "admin": "node admin-server.js"
+    "admin": "node admin-server.js",
+    "fix-bold": "node scripts/fix-chinese-bold.js"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.10",
