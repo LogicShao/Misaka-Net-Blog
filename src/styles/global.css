@@ -1,6 +1,22 @@
-/* Misaka Network Blog - Global Styles */
-/* 加载 Google Fonts - Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+﻿/* Misaka Network Blog - Global Styles */
+/* 鍔犺浇 Google Fonts - Inter */
+@font-face {
+  font-family: 'Atkinson';
+  src: url('/fonts/atkinson-regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson';
+  src: url('/fonts/atkinson-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -9,7 +25,7 @@
 
 @layer base {
   :root {
-    /* Misaka Network 主题色 - 深色模式（默认） */
+    /* Misaka Network 涓婚鑹?- 娣辫壊妯″紡锛堥粯璁わ級 */
     --misaka-dark: #1e293b;
     --misaka-circuit: #4ade80;
     --misaka-light: #f0f8ff;
@@ -17,17 +33,22 @@
     --misaka-accent: #38bdf8;
     --misaka-bg: #0f172a;
     --misaka-gray: #64748b;
+    --font-body: 'Atkinson', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+    --font-display: 'Space Grotesk', 'Atkinson', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --radius-card: 16px;
+    --radius-chip: 999px;
 
-    /* 深色模式专用 - 使用更亮的颜色 */
+    /* 娣辫壊妯″紡涓撶敤 - 浣跨敤鏇翠寒鐨勯鑹?*/
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
-    --text-primary: #f0f8ff; /* 使用更亮的alice blue */
+    --text-primary: #f0f8ff; /* 浣跨敤鏇翠寒鐨刟lice blue */
     --text-secondary: #e2e8f0;
     --text-muted: #94a3b8;
     --border-color: rgba(74, 222, 128, 0.2);
   }
 
-  /* 浅色模式 */
+  /* 娴呰壊妯″紡 */
   :root:not(.dark) {
     --misaka-bg: #f8fafc;
     --misaka-dark: #e2e8f0;
@@ -42,11 +63,11 @@
     --border-color: rgba(74, 222, 128, 0.4);
   }
 
-  /* 加载 Google Fonts - Inter */
+  /* 鍔犺浇 Google Fonts - Inter */
   html {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', sans-serif;
+    font-family: var(--font-body);
     scroll-behavior: smooth;
-    scroll-padding-top: 80px; /* 考虑固定头部高度 */
+    scroll-padding-top: 80px; /* 鑰冭檻鍥哄畾澶撮儴楂樺害 */
   }
 
   body {
@@ -59,8 +80,8 @@
     @apply antialiased;
   }
 
-  /* 页面首次加载动画 - 克制的淡入效果 */
-  /* 仅使用 opacity，避免 transform 破坏 position: fixed */
+  /* 椤甸潰棣栨鍔犺浇鍔ㄧ敾 - 鍏嬪埗鐨勬贰鍏ユ晥鏋?*/
+  /* 浠呬娇鐢?opacity锛岄伩鍏?transform 鐮村潖 position: fixed */
   body {
     opacity: 0;
     animation: pageEnter 0.4s ease-out forwards;
@@ -75,13 +96,13 @@
     }
   }
 
-  /* View Transitions 导航时不需要此动画 */
+  /* View Transitions 瀵艰埅鏃朵笉闇€瑕佹鍔ㄧ敾 */
   body.navigated {
     animation: none;
     opacity: 1;
   }
 
-  /* 电路板背景效果 - 深色模式 */
+  /* 鐢佃矾鏉胯儗鏅晥鏋?- 娣辫壊妯″紡 */
   .dark body::before {
     content: '';
     position: fixed;
@@ -91,11 +112,11 @@
     height: 100%;
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     opacity: 1;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
   }
 
-  /* 电路板背景效果 - 浅色模式 */
+  /* 鐢佃矾鏉胯儗鏅晥鏋?- 娴呰壊妯″紡 */
   :root:not(.dark) body::before {
     content: '';
     position: fixed;
@@ -105,13 +126,32 @@
     height: 100%;
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234ade80' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     opacity: 1;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
   }
 
-  /* 标题 - 增强对比度 */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    opacity: 0.06;
+    z-index: -1;
+    pointer-events: none;
+    mix-blend-mode: soft-light;
+  }
+
+  :root:not(.dark) body::after {
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+  }
+
+  /* 鏍囬 - 澧炲己瀵规瘮搴?*/
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'system-ui', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-family: var(--font-display);
     @apply font-bold tracking-tight;
     color: var(--text-primary);
   }
@@ -142,17 +182,17 @@
 
   code {
     @apply font-mono text-sm px-1.5 py-0.5 rounded;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-family: var(--font-mono);
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
   }
 
-  /* 深色模式下的代码颜色 */
+  /* 娣辫壊妯″紡涓嬬殑浠ｇ爜棰滆壊 */
   .dark code {
     color: var(--text-secondary);
   }
 
-  /* 浅色模式下的代码颜色 - 增强对比度 */
+  /* 娴呰壊妯″紡涓嬬殑浠ｇ爜棰滆壊 - 澧炲己瀵规瘮搴?*/
   :root:not(.dark) code {
     color: #f1f5f9;
     background-color: #334155;
@@ -161,7 +201,7 @@
 
   pre {
     @apply rounded-lg p-4 overflow-x-auto;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-family: var(--font-mono);
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
   }
@@ -186,69 +226,114 @@
 }
 
 @layer components {
-  /* 电流效果按钮 */
+  /* 鐢垫祦鏁堟灉鎸夐挳 */
   .btn-misaka {
     @apply px-6 py-2 bg-gradient-to-r from-misaka-blue to-misaka-accent text-white font-semibold rounded-lg;
-    @apply hover:shadow-lg hover:shadow-misaka-blue/50 transition-all duration-300;
     @apply border border-misaka-blue/30;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 8px 18px rgba(0, 191, 255, 0.18);
   }
 
-  /* 卡片样式 - 支持深色/浅色模式 */
+  .btn-misaka:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 191, 255, 0.24);
+    border-color: rgba(0, 191, 255, 0.45);
+  }
+
+  /* 鍗＄墖鏍峰紡 - 鏀寔娣辫壊/娴呰壊妯″紡 */
   .card-misaka {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    @apply backdrop-blur-sm rounded-xl p-6;
-    @apply hover:border-misaka-blue/50 transition-all duration-300;
-    @apply shadow-lg hover:shadow-misaka-blue/20;
+    border-radius: var(--radius-card);
+    @apply backdrop-blur-sm p-6;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
   }
 
-  /* 浅色模式卡片增强对比 */
+  .card-misaka:hover {
+    transform: translateY(-3px);
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 16px 32px rgba(0, 191, 255, 0.18);
+  }
+
+  /* 娴呰壊妯″紡鍗＄墖澧炲己瀵规瘮 */
   :root:not(.dark) .card-misaka {
     background-color: #f8fafc;
-    border-color: rgba(74, 222, 128, 0.4);
-    @apply shadow-md hover:shadow-lg;
+    border-color: rgba(74, 222, 128, 0.35);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   }
 
-  /* 标签样式 */
+  :root:not(.dark) .card-misaka:hover {
+    border-color: rgba(0, 191, 255, 0.35);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  /* 鏍囩鏍峰紡 */
   .tag-misaka {
-    @apply inline-block px-3 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit;
-    @apply border border-misaka-circuit/30 rounded-full;
-    @apply hover:bg-misaka-circuit/20 transition-colors duration-200;
+    @apply inline-block px-3 py-1 text-xs font-mono;
+    border-radius: var(--radius-chip);
+    background-color: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    color: var(--misaka-circuit);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   }
 
-  /* 电路板分隔线 */
+  .tag-misaka:hover {
+    transform: translateY(-1px);
+    background-color: rgba(74, 222, 128, 0.16);
+    border-color: rgba(74, 222, 128, 0.5);
+    box-shadow: 0 8px 16px rgba(74, 222, 128, 0.18);
+  }
+
+  /* 鐢佃矾鏉垮垎闅旂嚎 */
   .divider-circuit {
     @apply h-px bg-gradient-to-r from-transparent via-misaka-circuit to-transparent my-8;
   }
 
-  /* 发光效果文本 - 深色模式 */
+  .hero-glow {
+    position: absolute;
+    inset: -80px -40px;
+    background: radial-gradient(closest-side, rgba(0, 191, 255, 0.25), rgba(15, 23, 42, 0) 70%);
+    filter: blur(18px);
+    opacity: 0.75;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  :root:not(.dark) .hero-glow {
+    background: radial-gradient(closest-side, rgba(56, 189, 248, 0.2), rgba(248, 250, 252, 0) 70%);
+    opacity: 0.55;
+  }
+
+  /* 鍙戝厜鏁堟灉鏂囨湰 - 娣辫壊妯″紡 */
   .dark .text-glow {
-    text-shadow: 0 0 10px var(--misaka-blue), 0 0 20px var(--misaka-blue);
+    text-shadow: 0 0 12px rgba(0, 191, 255, 0.35), 0 0 24px rgba(56, 189, 248, 0.25);
   }
 
-  /* 发光效果文本 - 浅色模式（减弱） */
+  /* 鍙戝厜鏁堟灉鏂囨湰 - 娴呰壊妯″紡锛堝噺寮憋級 */
   :root:not(.dark) .text-glow {
-    text-shadow: 0 0 5px rgba(0, 191, 255, 0.3);
+    text-shadow: 0 0 6px rgba(0, 191, 255, 0.25);
   }
 
-  /* 网络状态面板 - 支持深色/浅色模式 */
+  /* 缃戠粶鐘舵€侀潰鏉?- 鏀寔娣辫壊/娴呰壊妯″紡 */
   .network-panel {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    @apply backdrop-blur-md rounded-lg p-4;
-    @apply shadow-lg shadow-misaka-circuit/10;
+    border-radius: var(--radius-card);
+    @apply backdrop-blur-md p-4;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.18);
   }
 
-  /* 浅色模式面板增强对比 */
+  /* 娴呰壊妯″紡闈㈡澘澧炲己瀵规瘮 */
   :root:not(.dark) .network-panel {
     background-color: #f8fafc;
-    border-color: rgba(74, 222, 128, 0.4);
-    @apply shadow-md;
+    border-color: rgba(74, 222, 128, 0.35);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
   }
 }
 
 @layer utilities {
-  /* 无障碍性 - 屏幕阅读器专用 */
+  /* 鏃犻殰纰嶆€?- 灞忓箷闃呰鍣ㄤ笓鐢?*/
   .sr-only {
     position: absolute;
     width: 1px;
@@ -261,47 +346,83 @@
     border-width: 0;
   }
 
-  /* 渐变背景 - 深色模式 */
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(74, 222, 128, 0.3) 0px, transparent 1px, transparent 50px),
+      repeating-linear-gradient(90deg, rgba(74, 222, 128, 0.3) 0px, transparent 1px, transparent 50px);
+  }
+
+  :root:not(.dark) .grid-overlay {
+    opacity: 0.05;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(74, 222, 128, 0.25) 0px, transparent 1px, transparent 50px),
+      repeating-linear-gradient(90deg, rgba(74, 222, 128, 0.25) 0px, transparent 1px, transparent 50px);
+  }
+
+  /* 娓愬彉鑳屾櫙 - 娣辫壊妯″紡 */
   .dark .bg-misaka-gradient {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   }
 
-  /* 渐变背景 - 浅色模式 */
+  /* 娓愬彉鑳屾櫙 - 娴呰壊妯″紡 */
   :root:not(.dark) .bg-misaka-gradient {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
   }
 
-  /* 脉冲动画 */
+  /* 鑴夊啿鍔ㄧ敾 */
   .pulse-circuit {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  .stagger-item {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: stagger-in 0.6s ease forwards;
+    animation-delay: var(--stagger-delay, 0ms);
+  }
+
+  @keyframes stagger-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-/* 代码块样式优化 - 深色模式 */
+/* 浠ｇ爜鍧楁牱寮忎紭鍖?- 娣辫壊妯″紡 */
 .dark .astro-code {
   @apply rounded-lg border !important;
   border-color: var(--border-color) !important;
   padding: 1rem !important;
   background-color: var(--bg-secondary) !important;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
-/* 代码块样式优化 - 浅色模式 */
+/* 浠ｇ爜鍧楁牱寮忎紭鍖?- 娴呰壊妯″紡 */
 :root:not(.dark) .astro-code {
   @apply rounded-lg border !important;
   border-color: #1e293b !important;
   padding: 1rem !important;
   background-color: #334155 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-family: var(--font-mono) !important;
 }
 
-/* Markdown 内容样式 */
+/* Markdown 鍐呭鏍峰紡 */
 .prose {
   @apply max-w-none;
 }
 
-/* 移除 Tailwind Typography 默认添加的代码块反引号 */
+/* 绉婚櫎 Tailwind Typography 榛樿娣诲姞鐨勪唬鐮佸潡鍙嶅紩鍙?*/
 .prose code::before,
 .prose code::after {
   content: '' !important;
@@ -331,7 +452,7 @@
   @apply ml-3 mb-4;
 }
 
-/* 嵌套列表缩进控制 */
+/* 宓屽鍒楄〃缂╄繘鎺у埗 */
 .prose ul ul,
 .prose ul ol,
 .prose ol ul,
@@ -348,7 +469,7 @@
   @apply hover:decoration-misaka-accent transition-colors;
 }
 
-/* 表格样式 - 深色模式 */
+/* 琛ㄦ牸鏍峰紡 - 娣辫壊妯″紡 */
 .dark .prose table {
   @apply w-full border-collapse my-6;
   border: 1px solid var(--border-color);
@@ -380,7 +501,7 @@
   background-color: rgba(30, 41, 59, 0.8);
 }
 
-/* 表格样式 - 浅色模式 */
+/* 琛ㄦ牸鏍峰紡 - 娴呰壊妯″紡 */
 :root:not(.dark) .prose table {
   @apply w-full border-collapse my-6;
   border: 1px solid #e2e8f0;
@@ -412,7 +533,7 @@
   background-color: #f8fafc;
 }
 
-/* KaTeX 数学公式样式 - 深色模式适配 */
+/* KaTeX 鏁板鍏紡鏍峰紡 - 娣辫壊妯″紡閫傞厤 */
 .dark .katex {
   color: var(--text-primary);
 }
@@ -425,7 +546,7 @@
   color: var(--text-primary);
 }
 
-/* 行内数学公式 */
+/* 琛屽唴鏁板鍏紡 */
 .dark .katex .base {
   color: var(--text-primary);
 }
@@ -458,7 +579,7 @@
   color: var(--text-primary);
 }
 
-/* 特殊符号和运算符 */
+/* 鐗规畩绗﹀彿鍜岃繍绠楃 */
 .dark .katex .boldsymbol {
   color: var(--text-primary);
 }
@@ -475,20 +596,20 @@
   color: var(--text-primary);
 }
 
-/* 确保数学公式在深色模式下有足够的对比度 */
+/* 纭繚鏁板鍏紡鍦ㄦ繁鑹叉ā寮忎笅鏈夎冻澶熺殑瀵规瘮搴?*/
 .dark .katex-display {
   @apply p-4 rounded-lg;
   background-color: rgba(30, 41, 59, 0.5);
   border: 1px solid var(--border-color);
 }
 
-/* 行内数学公式背景 */
+/* 琛屽唴鏁板鍏紡鑳屾櫙 */
 .dark .katex:not(.katex-display) {
   background-color: rgba(30, 41, 59, 0.3);
   @apply px-1 rounded;
 }
 
-/* 响应式设计 */
+/* 鍝嶅簲寮忚璁?*/
 @media (max-width: 768px) {
   .card-misaka {
     @apply p-4;
@@ -499,20 +620,20 @@
   }
 }
 
-/* View Transitions - 页面切换动画 */
-/* 克制的淡入淡出效果，保持简洁优雅 */
+/* View Transitions - 椤甸潰鍒囨崲鍔ㄧ敾 */
+/* 鍏嬪埗鐨勬贰鍏ユ贰鍑烘晥鏋滐紝淇濇寔绠€娲佷紭闆?*/
 @layer utilities {
-  /* 旧内容淡出 */
+  /* 鏃у唴瀹规贰鍑?*/
   ::view-transition-old(root) {
     animation: fade-out 0.25s ease-in-out;
   }
 
-  /* 新内容淡入 */
+  /* 鏂板唴瀹规贰鍏?*/
   ::view-transition-new(root) {
     animation: fade-in 0.25s ease-in-out;
   }
 
-  /* 淡出动画 */
+  /* 娣″嚭鍔ㄧ敾 */
   @keyframes fade-out {
     from {
       opacity: 1;
@@ -522,7 +643,7 @@
     }
   }
 
-  /* 淡入动画 */
+  /* 娣″叆鍔ㄧ敾 */
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -533,7 +654,7 @@
   }
 }
 
-/* 减少不必要的动画（尊重用户偏好设置） */
+/* 鍑忓皯涓嶅繀瑕佺殑鍔ㄧ敾锛堝皧閲嶇敤鎴峰亸濂借缃級 */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -544,7 +665,7 @@
     animation: none;
   }
 
-  /* 禁用页面首次加载动画 */
+  /* 绂佺敤椤甸潰棣栨鍔犺浇鍔ㄧ敾 */
   body {
     animation: none !important;
     opacity: 1 !important;
@@ -556,4 +677,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
 }
+
