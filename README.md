@@ -64,8 +64,8 @@ draft: false
 ```
 
 ## 管理端
-- **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3201 (ADMIN_PORT configurable)
-- PORT: set ADMIN_PORT env var`
+- **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3201`
+- **端口配置**：在 `.env` 中设置 `ADMIN_PORT`（示例见 `.env.example`）
 
 ## 项目结构（摘要）
 ```text

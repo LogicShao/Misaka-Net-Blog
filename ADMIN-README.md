@@ -30,8 +30,10 @@ npm run admin
 服务器启动后，在浏览器中打开：
 
 ```
-http://localhost:3201 (ADMIN_PORT configurable)
+http://localhost:3201
 ```
+
+如需修改端口，请在 `.env` 中设置 `ADMIN_PORT`（示例见 `.env.example`）。
 
 ### 停止服务器
 
@@ -135,13 +137,13 @@ Misaka-Net-Blog/
 
 ⚠️ **端口冲突**
 
-默认使用端口 `3201`，如果端口被占用，请修改 `admin-server.js` 中的 `PORT` 变量。
+默认使用端口 `3201`，如果端口被占用，请在 `.env` 中设置 `ADMIN_PORT`。
 
 ## 常见问题
 
 **Q: 如何修改默认端口？**
 
-A: 编辑 `admin-server.js` 文件，修改第 10 行的 `PORT` 常量。
+A: 在 `.env` 中设置 `ADMIN_PORT`（示例见 `.env.example`）。
 
 **Q: 文章列表为空？**
 
@@ -169,6 +171,7 @@ A: 使用 Git 提交或直接复制 `src/content/blog/` 目录。
 ## 许可证
 
 与主项目保持一致
+
 
 
 
