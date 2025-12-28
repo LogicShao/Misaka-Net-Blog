@@ -35,7 +35,7 @@
     --misaka-gray: #64748b;
     --font-body: 'Atkinson', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
     --font-display: 'Space Grotesk', 'Atkinson', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Mono', 'Segoe UI Mono', 'Consolas', 'SFMono-Regular', 'Menlo', 'Monaco', 'Liberation Mono', 'DejaVu Sans Mono', 'Noto Sans Mono', monospace;
     --radius-card: 16px;
     --radius-chip: 999px;
 
@@ -684,4 +684,3 @@
     animation: none !important;
   }
 }
-
