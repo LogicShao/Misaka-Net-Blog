@@ -1,4 +1,4 @@
-# Misaka Blog 管理后台
+﻿# Misaka Blog 管理后台
 
 本地博客管理系统，提供 Web 界面来管理博客文章。
 
@@ -79,13 +79,21 @@ http://localhost:3001
 
 后端服务器提供以下 REST API：
 
+- `GET /api/info` - 获取博客目录信息
 - `GET /api/posts` - 获取所有文章列表
 - `GET /api/posts/:id` - 获取单篇文章详情
 - `POST /api/posts` - 创建新文章
 - `PUT /api/posts/:id` - 更新文章
 - `DELETE /api/posts/:id` - 删除文章
+- `POST /api/posts/:id/fix-bold` - 修复中文加粗格式
 - `POST /api/build` - 触发博客构建
 - `GET /api/build/status` - 获取构建状态
+- `GET /api/friends` - 获取友链列表
+- `POST /api/friends` - 添加友链
+- `PUT /api/friends/:index` - 更新友链
+- `DELETE /api/friends/:index` - 删除友链
+- `GET /api/profile` - 获取个人名片
+- `PUT /api/profile` - 更新个人名片
 
 ## 文件结构
 
@@ -93,7 +101,12 @@ http://localhost:3001
 Misaka-Net-Blog/
 ├── admin-server.js          # Express 后端服务器
 ├── admin-ui/
-│   └── index.html          # Web 管理界面
+│   ├── index.html          # Web 管理界面
+│   ├── renderer.js         # 页面主逻辑
+│   ├── friends-manager.js  # 友链管理
+│   ├── profile-manager.js  # 名片管理
+│   ├── api.js              # API 封装
+│   └── styles.css          # 样式
 ├── src/content/blog/       # 博客文章目录
 └── package.json            # 项目配置
 ```
@@ -156,3 +169,5 @@ A: 使用 Git 提交或直接复制 `src/content/blog/` 目录。
 ## 许可证
 
 与主项目保持一致
+
+

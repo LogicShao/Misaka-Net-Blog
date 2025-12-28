@@ -1,7 +1,9 @@
-/**
+﻿/**
  * 友链管理模块
  * Misaka Blog Admin - 友链 CRUD 操作
  */
+
+import {adminAPI} from './api.js';
 
 // 全局状态
 let currentFriends = [];
@@ -50,7 +52,7 @@ export async function loadFriends() {
   friendList.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>加载中...</p></div>';
 
   try {
-    const response = await window.electronAPI.getFriends();
+    const response = await adminAPI.getFriends();
 
     if (response.success) {
       currentFriends = response.data;
@@ -241,10 +243,10 @@ async function saveFriend() {
 
     if (isNewFriend) {
       // 添加新友链
-      response = await window.electronAPI.addFriend(friendData);
+      response = await adminAPI.addFriend(friendData);
     } else {
       // 更新友链
-      response = await window.electronAPI.updateFriend(currentEditingFriendIndex, friendData);
+      response = await adminAPI.updateFriend(currentEditingFriendIndex, friendData);
     }
 
     if (response.success) {
@@ -280,7 +282,7 @@ async function deleteFriend() {
   }
 
   try {
-    const response = await window.electronAPI.deleteFriend(currentEditingFriendIndex);
+    const response = await adminAPI.deleteFriend(currentEditingFriendIndex);
 
     if (response.success) {
       showSuccess('友链删除成功');
@@ -366,3 +368,5 @@ function escapeHtml(text) {
   };
   return text.replace(/[&<>"']/g, m => map[m]);
 }
+
+

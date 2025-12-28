@@ -1,8 +1,10 @@
-// 导入友链管理模块
+﻿// 导入友链管理模块
 import {initFriendsManager, loadFriends} from './friends-manager.js';
 
 // 导入个人名片管理模块
 import {loadProfile} from './profile-manager.js';
+
+import {adminAPI} from './api.js';
 
 // ==================== 全局状态 ====================
 let allPosts = [];
@@ -39,15 +41,13 @@ const elements = {
 // ==================== 初始化 ====================
 async function init() {
   console.log('[Renderer] App init started');
-  console.log('[Renderer] window.electronAPI type:', typeof window.electronAPI);
-  console.log('[Renderer] window.electronAPI value:', window.electronAPI);
 
-  if (!window.electronAPI) {
-    console.error('[Renderer] ERROR: electronAPI not found! Preload script may not have loaded correctly.');
+  if (!adminAPI) {
+    console.error('[Renderer] ERROR: Admin API not available.');
     elements.postList.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">❌</div>
-        <p>Error: Cannot load Electron API</p>
+        <p>Admin API unavailable</p>
         <p class="hint">Check Developer Console for details</p>
       </div>
     `;
@@ -61,7 +61,6 @@ async function init() {
     await loadPosts();
     console.log('[Renderer] Setting up event listeners...');
     setupEventListeners();
-    setupMenuListeners();
     console.log('[Renderer] Initializing friends manager...');
     initFriendsManager();
     console.log('[Renderer] App init completed successfully');
@@ -106,21 +105,20 @@ function setupEventListeners() {
 }
 
 // 菜单快捷键监听
-function setupMenuListeners() {
-  window.electronAPI.onMenuNewPost(showNewPostForm);
-  window.electronAPI.onMenuRefresh(loadPosts);
-  window.electronAPI.onMenuBuild(buildBlog);
-}
 
 // ==================== 文章管理 ====================
 // 加载博客目录信息
 async function loadBlogInfo() {
   try {
-    const result = await window.electronAPI.getBlogInfo();
-    if (result.success && result.data.blogRoot) {
-      // 显示博客根目录路径
-      elements.blogPath.textContent = result.data.blogRoot;
-      elements.blogPath.title = result.data.blogRoot;
+    const result = await adminAPI.getBlogInfo();
+    if (result.success && result.data) {
+      const blogPath = result.data.blogDir || result.data.blogRoot;
+      if (blogPath) {
+        elements.blogPath.textContent = blogPath;
+        elements.blogPath.title = blogPath;
+      } else {
+        elements.blogPath.textContent = '未设置';
+      }
     } else {
       elements.blogPath.textContent = '未设置';
     }
@@ -135,8 +133,8 @@ async function loadPosts() {
   console.log('[Renderer] loadPosts() started');
   showLoading(elements.postList);
 
-  console.log('[Renderer] Calling electronAPI.getPosts()...');
-  const result = await window.electronAPI.getPosts();
+  console.log('[Renderer] Calling admin API getPosts()...');
+  const result = await adminAPI.getPosts();
   console.log('[Renderer] getPosts() result:', result);
 
   if (result.success) {
@@ -187,7 +185,7 @@ function renderPostList(posts) {
 }
 
 async function loadPost(postId) {
-  const result = await window.electronAPI.getPost(postId);
+  const result = await adminAPI.getPost(postId);
 
   if (result.success) {
     currentPost = result.data;
@@ -346,7 +344,7 @@ async function createPost() {
     return;
   }
 
-  const result = await window.electronAPI.createPost({
+  const result = await adminAPI.createPost({
     filename,
     frontmatter,
     content,
@@ -371,7 +369,7 @@ async function savePost() {
     currentPost.content = document.getElementById('editContent')?.value || '';
   }
 
-  const result = await window.electronAPI.updatePost({
+  const result = await adminAPI.updatePost({
     postId: currentPost.id,
     frontmatter: currentPost.frontmatter,
     content: currentPost.content,
@@ -391,7 +389,7 @@ async function deletePost() {
   const confirmed = confirm(`确定要删除文章《${currentPost.frontmatter.title}》吗？\n此操作不可恢复！`);
   if (!confirmed) return;
 
-  const result = await window.electronAPI.deletePost(currentPost.id);
+  const result = await adminAPI.deletePost(currentPost.id);
 
   if (result.success) {
     showSuccess('文章已删除');
@@ -409,7 +407,7 @@ async function fixChineseBold() {
   if (!confirmed) return;
 
   try {
-    const result = await window.electronAPI.fixChineseBold(currentPost.id);
+    const result = await adminAPI.fixChineseBold(currentPost.id);
 
     if (result.success) {
       if (result.modified) {
@@ -417,10 +415,12 @@ async function fixChineseBold() {
         // 重新加载文章以显示修改后的内容
         await loadPosts();
         // 重新加载当前文章到编辑器
-        const updatedPost = await window.electronAPI.getPost(currentPost.id);
-        if (updatedPost) {
-          currentPost = updatedPost;
+        const updatedPost = await adminAPI.getPost(currentPost.id);
+        if (updatedPost.success) {
+          currentPost = updatedPost.data;
           showEditForm(currentPost);
+        } else {
+          showError('加载更新后的文章失败: ' + updatedPost.error);
         }
       } else {
         showSuccess('文章无需修复');
@@ -452,7 +452,7 @@ async function buildBlog() {
 
   showBuildModal();
 
-  const result = await window.electronAPI.buildBlog();
+  const result = await adminAPI.buildBlog();
 
   if (result.success) {
     elements.buildStatusText.textContent = '✅ 构建成功！';
@@ -678,3 +678,7 @@ window.savePost = savePost;
 window.deletePost = deletePost;
 window.cancelEdit = cancelEdit;
 window.createPost = createPost;
+
+
+
+

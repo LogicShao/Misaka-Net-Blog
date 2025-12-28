@@ -1,3 +1,5 @@
+﻿import {adminAPI} from './api.js';
+
 // ==================== 个人名片管理器 ====================
 
 /**
@@ -5,7 +7,7 @@
  */
 export async function loadProfile() {
   try {
-    const result = await window.electronAPI.getProfile();
+    const result = await adminAPI.getProfile();
 
     if (!result.success) {
       throw new Error(result.error);
@@ -218,7 +220,7 @@ async function saveProfile() {
       return;
     }
 
-    const result = await window.electronAPI.updateProfile(profileData);
+    const result = await adminAPI.updateProfile(profileData);
 
     if (!result.success) {
       throw new Error(result.error);
@@ -304,3 +306,4 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+

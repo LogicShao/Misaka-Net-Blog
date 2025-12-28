@@ -1,10 +1,10 @@
 ﻿# 改进待办
 
 ## 结构与功能
-- [ ] 对齐管理端 UI：补齐 `admin-ui` 或改为复用 `electron-admin/renderer`，并更新 `ADMIN-README.md` 的说明。
+- [x] 对齐管理端 UI：补齐 `admin-ui` 并更新 `ADMIN-README.md` 的说明。
 - [ ] 管理端安全最小化：仅监听 `127.0.0.1`，加入简单认证/令牌、CORS 白名单与基础限流。
 - [ ] Frontmatter 解析改用 `gray-matter`/YAML 解析器，避免多行与数组场景出错，写回格式保持稳定。
-- [ ] 抽出文章 CRUD 与构建逻辑为共享模块，供 Web 管理端与 Electron 管理端复用。
+- [ ] 抽出文章 CRUD 与构建逻辑为共享模块，供 Web 管理端复用。
 
 ## 质量与运维
 - [ ] 增加 CI：`astro build` + `astro check` + 基础 lint（如 ESLint）作为质量门禁。

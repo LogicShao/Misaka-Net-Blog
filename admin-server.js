@@ -16,10 +16,20 @@ const PORT = 3001;
 // 中间件
 app.use(cors());
 app.use(express.json());
-app.use(express.static('admin-ui'));
+app.use(express.static(path.join(__dirname, 'admin-ui')));
 
 const BLOG_DIR = path.join(__dirname, 'src', 'content', 'blog');
 const CONSTS_FILE = path.join(__dirname, 'src', 'consts.ts');
+
+app.get('/api/info', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      blogRoot: __dirname,
+      blogDir: BLOG_DIR,
+    },
+  });
+});
 
 // 解析 Markdown frontmatter
 function parseFrontmatter(content) {

@@ -23,7 +23,7 @@
 - KaTeX 数学公式、RSS、Sitemap、SEO
 - 搜索索引（Fuse.js）
 - 友链/标签/草稿支持
-- 本地管理端（Web 与 Electron）
+- 本地管理端（Web）
 
 ## 快速开始
 **前置要求**：Node.js 18+
@@ -65,7 +65,6 @@ draft: false
 
 ## 管理端
 - **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3001`
-- **桌面端**：进入 `electron-admin/` 后运行 `npm start`
 
 ## 项目结构（摘要）
 ```text
@@ -75,7 +74,7 @@ src/                站点源码
   content/blog/     博客内容
 public/             静态资源
 scripts/            脚本工具
-electron-admin/     桌面管理端
+admin-ui/           Web 管理端
 ```
 
 ## 部署
