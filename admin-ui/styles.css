@@ -1,4 +1,4 @@
-/* 全局重置和基础样式 */
+﻿/* 全局重置和基础样式 */
 * {
   margin: 0;
   padding: 0;
@@ -945,24 +945,40 @@ body {
 }
 
 .profile-editor {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6);
 }
 
-.profile-editor > h2 {
+.profile-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.profile-editor-title h2 {
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-2);
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.profile-editor > h2::before {
-  content: '👤';
-  font-size: 28px;
+.profile-editor-subtitle {
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 360px;
+  gap: var(--space-6);
+  align-items: start;
 }
 
 .profile-form {
@@ -970,6 +986,39 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   box-shadow: var(--shadow-md);
+}
+
+.profile-preview-panel {
+  position: sticky;
+  top: var(--space-6);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.profile-preview-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.profile-preview-note {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.profile-preview-live {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 
 /* 表单分节 */
@@ -1110,6 +1159,26 @@ body {
   gap: var(--space-3);
 }
 
+.profile-preview-empty {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: var(--space-4);
+  text-align: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+}
+
+@media (max-width: 1100px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-preview-panel {
+    position: static;
+  }
+}
+
 .profile-link {
   display: flex;
   align-items: center;
@@ -1133,3 +1202,5 @@ body {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
+
+

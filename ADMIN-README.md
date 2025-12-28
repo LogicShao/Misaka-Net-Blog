@@ -30,7 +30,7 @@ npm run admin
 服务器启动后，在浏览器中打开：
 
 ```
-http://localhost:3001
+http://localhost:3201 (ADMIN_PORT configurable)
 ```
 
 ### 停止服务器
@@ -135,7 +135,7 @@ Misaka-Net-Blog/
 
 ⚠️ **端口冲突**
 
-默认使用端口 `3001`，如果端口被占用，请修改 `admin-server.js` 中的 `PORT` 变量。
+默认使用端口 `3201`，如果端口被占用，请修改 `admin-server.js` 中的 `PORT` 变量。
 
 ## 常见问题
 
@@ -169,5 +169,8 @@ A: 使用 Git 提交或直接复制 `src/content/blog/` 目录。
 ## 许可证
 
 与主项目保持一致
+
+
+
 
 

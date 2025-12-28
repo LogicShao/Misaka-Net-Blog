@@ -29,9 +29,15 @@ function displayProfileForm(profile = {}) {
   if (!container) return;
 
   container.innerHTML = `
-    <div class="profile-editor">
-      <h2>个人名片设置</h2>
+  <div class="profile-editor">
+    <div class="profile-editor-header">
+      <div class="profile-editor-title">
+        <h2>个人名片设置</h2>
+        <p class="profile-editor-subtitle">左侧编辑，右侧实时预览保存后的展示效果</p>
+      </div>
+    </div>
 
+    <div class="profile-layout">
       <form id="profile-form" class="profile-form">
         <div class="form-section">
           <h3>基本信息 <span class="required-mark">*必填</span></h3>
@@ -139,15 +145,43 @@ function displayProfileForm(profile = {}) {
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">💾 保存更改</button>
-          <button type="button" class="btn btn-secondary" id="preview-profile-btn">👁️ 预览名片</button>
+          <button type="submit" class="btn btn-primary">保存更改</button>
+          <button type="button" class="btn btn-secondary" id="preview-profile-btn">全屏预览</button>
         </div>
       </form>
+
+      <aside class="profile-preview-panel">
+        <div class="profile-preview-title">
+          <span>实时预览</span>
+          <span class="profile-preview-note">保存后会同步到站点</span>
+        </div>
+        <div class="profile-preview-card profile-preview-live">
+          <div class="profile-header">
+            <img
+              id="profile-preview-avatar"
+              src="${escapeHtml(profile.avatar || '/favicon1.svg')}"
+              alt="${escapeHtml(profile.name || '未设置姓名')}"
+              class="profile-avatar"
+              onerror="this.src='/favicon1.svg'"
+            />
+            <div class="profile-info">
+              <h3 id="profile-preview-name">${escapeHtml(profile.name || '未设置姓名')}</h3>
+              <p class="profile-bio" id="profile-preview-bio">${escapeHtml(profile.bio || '未设置简介')}</p>
+              <p class="profile-location" id="profile-preview-location"${profile.location ? '' : ' style="display:none;"'}>
+                位置: ${escapeHtml(profile.location || '')}
+              </p>
+            </div>
+          </div>
+          <div class="profile-links" id="profile-preview-links"></div>
+        </div>
+      </aside>
     </div>
-  `;
+  </div>
+`;
 
   // 绑定事件
   setupProfileFormEvents();
+  renderLivePreview(profile);
 }
 
 /**
@@ -163,6 +197,10 @@ function setupProfileFormEvents() {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       await saveProfile();
+    });
+
+    form.addEventListener('input', () => {
+      renderLivePreview();
     });
   }
 
@@ -182,8 +220,95 @@ function setupProfileFormEvents() {
 }
 
 /**
- * 更新头像预览
+ * 收集表单数据
  */
+function collectProfileFormData() {
+  const form = document.getElementById('profile-form');
+  if (!form) {
+    return {
+      name: '',
+      avatar: '',
+      bio: '',
+      location: '',
+      email: '',
+      github: '',
+      bilibili: '',
+      website: ''
+    };
+  }
+
+  const formData = new FormData(form);
+  return {
+    name: (formData.get('name') || '').trim(),
+    avatar: (formData.get('avatar') || '').trim(),
+    bio: (formData.get('bio') || '').trim(),
+    location: (formData.get('location') || '').trim(),
+    email: (formData.get('email') || '').trim(),
+    github: (formData.get('github') || '').trim(),
+    bilibili: (formData.get('bilibili') || '').trim(),
+    website: (formData.get('website') || '').trim()
+  };
+}
+
+function renderLivePreview(profileOverride) {
+  const profile = profileOverride || collectProfileFormData();
+  const avatar = document.getElementById('profile-preview-avatar');
+  const name = document.getElementById('profile-preview-name');
+  const bio = document.getElementById('profile-preview-bio');
+  const location = document.getElementById('profile-preview-location');
+  const links = document.getElementById('profile-preview-links');
+
+  if (avatar) {
+    avatar.src = profile.avatar || '/favicon1.svg';
+    avatar.alt = profile.name || '未设置姓名';
+  }
+  if (name) {
+    name.textContent = profile.name || '未设置姓名';
+  }
+  if (bio) {
+    bio.textContent = profile.bio || '未设置简介';
+  }
+  if (location) {
+    if (profile.location) {
+      location.textContent = `位置: ${profile.location}`;
+      location.style.display = 'flex';
+    } else {
+      location.textContent = '';
+      location.style.display = 'none';
+    }
+  }
+  if (links) {
+    renderPreviewLinks(links, profile);
+  }
+}
+
+function renderPreviewLinks(container, profile) {
+  const items = [];
+
+  if (profile.email) {
+    items.push({label: 'Email', href: `mailto:${profile.email}`});
+  }
+  if (profile.github) {
+    items.push({label: 'GitHub', href: profile.github});
+  }
+  if (profile.bilibili) {
+    items.push({label: 'Bilibili', href: profile.bilibili});
+  }
+  if (profile.website) {
+    items.push({label: 'Website', href: profile.website});
+  }
+
+  if (items.length === 0) {
+    container.innerHTML = '<div class="profile-preview-empty">暂无社交链接</div>';
+    return;
+  }
+
+  container.innerHTML = items.map((item) => {
+    const href = escapeHtml(item.href);
+    return `<a href="${href}" target="_blank" class="profile-link" rel="noopener noreferrer">${item.label}</a>`;
+  }).join('');
+}
+
 function updateAvatarPreview(avatarUrl) {
   const preview = document.getElementById('avatar-preview');
   if (!preview) return;
@@ -200,19 +325,7 @@ function updateAvatarPreview(avatarUrl) {
  */
 async function saveProfile() {
   try {
-    const form = document.getElementById('profile-form');
-    const formData = new FormData(form);
-
-    const profileData = {
-      name: formData.get('name').trim(),
-      avatar: formData.get('avatar').trim(),
-      bio: formData.get('bio').trim(),
-      location: formData.get('location').trim(),
-      email: formData.get('email').trim(),
-      github: formData.get('github').trim(),
-      bilibili: formData.get('bilibili').trim(),
-      website: formData.get('website').trim()
-    };
+    const profileData = collectProfileFormData();
 
     // 验证必填字段
     if (!profileData.name || !profileData.avatar || !profileData.bio) {
@@ -226,7 +339,7 @@ async function saveProfile() {
       throw new Error(result.error);
     }
 
-    alert('✅ 个人名片更新成功！');
+    alert('个人名片更新成功！');
 
     // 重新加载显示更新后的数据
     await loadProfile();
@@ -240,19 +353,7 @@ async function saveProfile() {
  * 预览个人名片（弹窗显示）
  */
 function previewProfile() {
-  const form = document.getElementById('profile-form');
-  const formData = new FormData(form);
-
-  const profile = {
-    name: formData.get('name').trim(),
-    avatar: formData.get('avatar').trim(),
-    bio: formData.get('bio').trim(),
-    location: formData.get('location').trim(),
-    email: formData.get('email').trim(),
-    github: formData.get('github').trim(),
-    bilibili: formData.get('bilibili').trim(),
-    website: formData.get('website').trim()
-  };
+  const profile = collectProfileFormData();
 
   // 创建预览模态框
   const modal = document.createElement('div');
@@ -260,8 +361,8 @@ function previewProfile() {
   modal.innerHTML = `
     <div class="modal-content profile-preview-modal">
       <div class="modal-header">
-        <h2>👁️ 名片预览</h2>
-        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+        <h2>名片预览</h2>
+        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">关闭</button>
       </div>
       <div class="modal-body">
         <div class="profile-preview-card">
@@ -273,14 +374,14 @@ function previewProfile() {
             <div class="profile-info">
               <h3>${escapeHtml(profile.name || '未设置姓名')}</h3>
               <p class="profile-bio">${escapeHtml(profile.bio || '未设置简介')}</p>
-              ${profile.location ? `<p class="profile-location">📍 ${escapeHtml(profile.location)}</p>` : ''}
+              ${profile.location ? `<p class="profile-location">位置: ${escapeHtml(profile.location)}</p>` : ''}
             </div>
           </div>
           <div class="profile-links">
-            ${profile.email ? `<a href="mailto:${escapeHtml(profile.email)}" class="profile-link">📧 Email</a>` : ''}
-            ${profile.github ? `<a href="${escapeHtml(profile.github)}" target="_blank" class="profile-link">🐙 GitHub</a>` : ''}
-            ${profile.bilibili ? `<a href="${escapeHtml(profile.bilibili)}" target="_blank" class="profile-link">📺 Bilibili</a>` : ''}
-            ${profile.website ? `<a href="${escapeHtml(profile.website)}" target="_blank" class="profile-link">🌐 Website</a>` : ''}
+            ${profile.email ? `<a href="mailto:${escapeHtml(profile.email)}" class="profile-link">Email</a>` : ''}
+            ${profile.github ? `<a href="${escapeHtml(profile.github)}" target="_blank" class="profile-link">GitHub</a>` : ''}
+            ${profile.bilibili ? `<a href="${escapeHtml(profile.bilibili)}" target="_blank" class="profile-link">Bilibili</a>` : ''}
+            ${profile.website ? `<a href="${escapeHtml(profile.website)}" target="_blank" class="profile-link">Website</a>` : ''}
           </div>
         </div>
       </div>
@@ -296,7 +397,6 @@ function previewProfile() {
     }
   });
 }
-
 /**
  * 转义 HTML 特殊字符
  */
@@ -306,4 +406,25 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

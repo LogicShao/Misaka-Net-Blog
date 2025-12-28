@@ -64,7 +64,8 @@ draft: false
 ```
 
 ## 管理端
-- **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3001`
+- **Web 管理端**：`npm run admin`，默认地址 `http://localhost:3201 (ADMIN_PORT configurable)
+- PORT: set ADMIN_PORT env var`
 
 ## 项目结构（摘要）
 ```text
@@ -82,4 +83,8 @@ admin-ui/           Web 管理端
 
 ## 许可
 MIT License
+
+
+
+
 

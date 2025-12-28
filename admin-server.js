@@ -11,7 +11,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const HOST = '127.0.0.1';
+const portEnv = process.env.ADMIN_PORT;
+const PORT = portEnv && !Number.isNaN(Number(portEnv)) ? Number(portEnv) : 3201;
 
 // 中间件
 app.use(cors());
@@ -835,9 +837,9 @@ app.put('/api/profile', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   console.log(`\n🎉 博客管理后台已启动！`);
-  console.log(`📝 管理界面: http://localhost:${PORT}`);
-  console.log(`🔧 API 地址: http://localhost:${PORT}/api`);
+  console.log(`📝 管理界面: http://${HOST}:${PORT}`);
+  console.log(`🔧 API 地址: http://${HOST}:${PORT}/api`);
   console.log(`\n按 Ctrl+C 停止服务器\n`);
 });
