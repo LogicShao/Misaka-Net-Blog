@@ -37,6 +37,39 @@ const cumulativeShareData = (() => {
   });
 })();
 
+const maxNetworkTags = 20;
+const maxNetworkEdges = 60;
+const networkTags = sortedTags.slice(0, maxNetworkTags);
+const networkTagSet = new Set(networkTags.map(({tag}) => tag));
+const edgeCounts = new Map<string, number>();
+
+allPosts.forEach((post) => {
+  const tags = (post.data.tags || []).filter(tag => networkTagSet.has(tag));
+  const uniqueTags = Array.from(new Set(tags));
+
+  for (let i = 0; i < uniqueTags.length; i++) {
+    for (let j = i + 1; j < uniqueTags.length; j++) {
+      const pair = [uniqueTags[i], uniqueTags[j]].sort();
+      const key = JSON.stringify(pair);
+      edgeCounts.set(key, (edgeCounts.get(key) || 0) + 1);
+    }
+  }
+});
+
+const networkEdges = Array.from(edgeCounts.entries())
+  .map(([key, weight]) => {
+    const [source, target] = JSON.parse(key) as [string, string];
+    return {source, target, weight};
+  })
+  .sort((a, b) => b.weight - a.weight)
+  .slice(0, maxNetworkEdges);
+
+const tagNetworkData = {
+  nodes: networkTags.map(({tag, count}) => ({id: tag, weight: count})),
+  edges: networkEdges
+};
+const hasTagNetworkData = tagNetworkData.nodes.length > 1 && tagNetworkData.edges.length > 0;
+
 // ==================== 词云数据生成 ====================
 /**
  * 清理 Markdown 语法
@@ -320,6 +353,28 @@ const colorSchemes = [
           <canvas id="tagCumulativeChart"></canvas>
         </div>
       </div>
+    )}
+
+    {hasTags && (
+      hasTagNetworkData ? (
+        <div class="chart-container">
+          <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+            标签共现网络图
+          </h3>
+          <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+            基于标签共现次数，展示主题之间的关联强度
+          </p>
+          <div class="network-graph-container">
+            <canvas id="tagNetworkCanvas"></canvas>
+          </div>
+        </div>
+      ) : (
+        <div class="chart-container text-center py-10">
+          <p class="text-sm font-mono" style="color: var(--text-muted);">
+            暂无足够共现数据
+          </p>
+        </div>
+      )
     )}
   </div>
 
@@ -961,6 +1016,151 @@ const colorSchemes = [
   document.addEventListener('astro:page-load', initializeCumulativeChart);
 </script>
 
+<!-- Tag Network Graph Initialization Script -->
+<script define:vars={{tagNetworkData}}>
+  let networkResizeTimeout;
+  let networkObserver;
+  let networkResizeBound = false;
+
+  function drawTagNetwork(ctx, width, height) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const nodes = tagNetworkData.nodes || [];
+    const edges = tagNetworkData.edges || [];
+    if (nodes.length < 2 || edges.length === 0) return;
+
+    const colors = {
+      node: isDark ? ['#4ade80', '#38bdf8', '#22d3ee', '#34d399'] : ['#22c55e', '#3b82f6', '#0ea5e9', '#16a34a'],
+      edge: isDark ? '74, 222, 128' : '34, 197, 94',
+      text: isDark ? '#e2e8f0' : '#0f172a',
+      ring: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.85)'
+    };
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const padding = 64;
+    const radius = Math.max(80, Math.min(width, height) / 2 - padding);
+
+    const maxNodeWeight = Math.max(...nodes.map(node => node.weight));
+    const maxEdgeWeight = Math.max(...edges.map(edge => edge.weight));
+
+    const fontMono = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-mono')
+      .trim() || 'monospace';
+
+    const positions = new Map();
+    nodes.forEach((node, index) => {
+      const angle = (Math.PI * 2 * index) / nodes.length - Math.PI / 2;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      positions.set(node.id, {x, y, angle});
+    });
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.lineCap = 'round';
+
+    edges.forEach((edge) => {
+      const from = positions.get(edge.source);
+      const to = positions.get(edge.target);
+      if (!from || !to) return;
+
+      const ratio = maxEdgeWeight > 0 ? edge.weight / maxEdgeWeight : 0;
+      const alpha = 0.15 + ratio * 0.45;
+      ctx.strokeStyle = `rgba(${colors.edge}, ${alpha})`;
+      ctx.lineWidth = 0.6 + ratio * 1.8;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+    });
+
+    ctx.font = `12px ${fontMono}`;
+    ctx.textBaseline = 'middle';
+
+    nodes.forEach((node, index) => {
+      const position = positions.get(node.id);
+      if (!position) return;
+
+      const ratio = maxNodeWeight > 0 ? node.weight / maxNodeWeight : 0;
+      const size = 6 + ratio * 10;
+      const color = colors.node[index % colors.node.length];
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(position.x, position.y, size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = colors.ring;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      const labelOffset = size + 6;
+      const labelX = position.x + Math.cos(position.angle) * labelOffset;
+      const labelY = position.y + Math.sin(position.angle) * labelOffset;
+      ctx.fillStyle = colors.text;
+      ctx.textAlign = Math.cos(position.angle) >= 0 ? 'left' : 'right';
+      ctx.fillText(`#${node.id}`, labelX, labelY);
+    });
+  }
+
+  function initializeTagNetwork() {
+    const canvas = document.getElementById('tagNetworkCanvas');
+    if (!canvas) return;
+
+    const nodes = tagNetworkData.nodes || [];
+    const edges = tagNetworkData.edges || [];
+    if (nodes.length < 2 || edges.length === 0) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = container.clientWidth;
+    const height = container.clientHeight || 520;
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    drawTagNetwork(ctx, width, height);
+
+    if (!networkResizeBound) {
+      networkResizeBound = true;
+      window.addEventListener('resize', () => {
+        clearTimeout(networkResizeTimeout);
+        networkResizeTimeout = setTimeout(() => {
+          initializeTagNetwork();
+        }, 200);
+      });
+    }
+
+    if (networkObserver) {
+      networkObserver.disconnect();
+    }
+
+    networkObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          initializeTagNetwork();
+        }
+      });
+    });
+
+    networkObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  // 首次加载 - 等待所有外部资源加载完成
+  window.addEventListener('load', initializeTagNetwork);
+
+  // View Transitions 支持
+  document.addEventListener('astro:page-load', initializeTagNetwork);
+</script>
+
 <style>
   /* 词云容器样式 - 增强版 */
   .wordcloud-container {
@@ -1066,6 +1266,63 @@ const colorSchemes = [
   }
 
   :global(.dark) .wordcloud-container:hover {
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.2),
+    0 0 0 1px rgba(74, 222, 128, 0.2),
+    inset 0 1px 0 rgba(74, 222, 128, 0.1);
+  }
+
+  /* 标签共现网络图容器样式 */
+  .network-graph-container {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background: linear-gradient(135deg,
+    var(--bg-secondary) 0%,
+    var(--bg-primary) 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .network-graph-container:hover {
+    border-color: rgba(74, 222, 128, 0.6);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.15),
+    0 0 0 1px rgba(74, 222, 128, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+  }
+
+  #tagNetworkCanvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  @media (max-width: 768px) {
+    .network-graph-container {
+      height: 420px;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .network-graph-container {
+      height: 360px;
+    }
+  }
+
+  :global(.dark) .network-graph-container {
+    background: linear-gradient(135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(15, 23, 42, 0.9) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(74, 222, 128, 0.05);
+  }
+
+  :global(.dark) .network-graph-container:hover {
     border-color: rgba(74, 222, 128, 0.4);
     box-shadow: 0 8px 24px rgba(74, 222, 128, 0.2),
     0 0 0 1px rgba(74, 222, 128, 0.2),
