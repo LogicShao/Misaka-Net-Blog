@@ -323,6 +323,29 @@ const colorSchemes = [
     )}
   </div>
 
+  <!-- Word Cloud Section -->
+  {hasWordCloudData ? (
+    <div class="mb-12 mt-12 network-panel">
+      <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+        ☁️ 内容词云
+      </h2>
+      <p class="text-sm mb-6" style="color: var(--text-muted);">
+        基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
+      </p>
+
+      <!-- Word Cloud Canvas -->
+      <div class="wordcloud-container">
+        <canvas id="wordCloudCanvas"></canvas>
+      </div>
+    </div>
+  ) : (
+    <div class="mb-12 mt-12 network-panel text-center py-12">
+      <p class="text-lg" style="color: var(--text-muted);">
+        暂无足够内容生成词云
+      </p>
+    </div>
+  )}
+
   <!-- Tags Grid -->
   <div class="mb-8">
     <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
@@ -376,29 +399,6 @@ const colorSchemes = [
     <div class="network-panel text-center py-12">
       <p class="text-lg" style="color: var(--text-muted);">
         暂无标签数据
-      </p>
-    </div>
-  )}
-
-  <!-- Word Cloud Section -->
-  {hasWordCloudData ? (
-    <div class="mb-12 mt-12 network-panel">
-      <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
-        ☁️ 内容词云
-      </h2>
-      <p class="text-sm mb-6" style="color: var(--text-muted);">
-        基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
-      </p>
-
-      <!-- Word Cloud Canvas -->
-      <div class="wordcloud-container">
-        <canvas id="wordCloudCanvas"></canvas>
-      </div>
-    </div>
-  ) : (
-    <div class="mb-12 mt-12 network-panel text-center py-12">
-      <p class="text-lg" style="color: var(--text-muted);">
-        暂无足够内容生成词云
       </p>
     </div>
   )}
