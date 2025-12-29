@@ -5,6 +5,7 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 import {exec} from 'child_process';
 import {promisify} from 'util';
+import {fixChineseBold} from './scripts/markdown-bold-fix.js';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -426,39 +427,6 @@ app.delete('/api/posts/:id', (req, res) => {
     res.status(500).json({error: error.message});
   }
 });
-
-/**
- * 修复中文加粗格式
- * @param {string} content - Markdown 文件内容
- * @returns {string} 修复后的内容
- */
-function fixChineseBold(content) {
-	// 匹配 **内容** 格式，其中内容包含至少一个中文字符
-	// 使用负向后顾和正向预查来避免重复添加空格
-	let fixed = content;
-
-	// 第一步：在 ** 前面添加空格（如果前面是非空白字符）
-	// 匹配：非空白字符 + ** + 包含中文的内容 + **
-	fixed = fixed.replace(
-		/([^\s\n])(\*\*[^*]*?[\u4e00-\u9fa5][^*]*?\*\*)/g,
-		(match, before, bold) => {
-			// 检查 before 后面是否已经有空格
-			return before + ' ' + bold;
-		}
-	);
-
-	// 第二步：在 ** 后面添加空格（如果后面是非空白字符）
-	// 匹配：** + 包含中文的内容 + ** + 非空白字符
-	fixed = fixed.replace(
-		/(\*\*[^*]*?[\u4e00-\u9fa5][^*]*?\*\*)([^\s\n])/g,
-		(match, bold, after) => {
-			// 检查 after 前面是否已经有空格
-			return bold + ' ' + after;
-		}
-	);
-
-	return fixed;
-}
 
 // API: 修复文章中的中文加粗格式
 app.post('/api/posts/:id/fix-bold', (req, res) => {

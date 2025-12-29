@@ -25,7 +25,10 @@
     "fuse.js": "^7.1.0",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.4",
+    "unist-util-visit-parents": "^6.0.2"
   },
   "devDependencies": {
     "@astrojs/tailwind": "^6.0.2",
