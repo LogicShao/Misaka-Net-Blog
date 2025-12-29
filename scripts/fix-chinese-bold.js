@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * 中文加粗修复脚本
+ * 中文加粗问题扫描脚本
  *
  * 功能：
- * 1. 修复 Markdown 中 **中文** 加粗格式在特定位置解析失败的问题
- * 2. 在 **中文** 前后自动添加空格（如果尚未存在）
- * 3. 支持单篇文章修复或批量修复所有文章
+ * 1. 检测 Markdown 中 **中文** 加粗格式可能解析失败的位置
+ * 2. 标记可能出现断行或渲染异常的段落
+ * 3. 支持单篇文章或批量扫描所有文章
  */
 
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import readline from 'readline';
-import {fixChineseBold} from './markdown-bold-fix.js';
+import {findChineseBoldIssues} from './markdown-bold-fix.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,31 +61,44 @@ function getAllPosts() {
 }
 
 /**
- * 修复单篇文章
+ * 扫描单篇文章
  * @param {string} filename - 文件名
- * @returns {boolean} 是否成功修复
+ * @returns {number} 可疑位置数量
  */
-function fixSinglePost(filename) {
+function scanSinglePost(filename) {
 	const filePath = path.join(BLOG_DIR, filename);
 
 	try {
 		const content = fs.readFileSync(filePath, 'utf8');
-		const fixed = fixChineseBold(content);
+		const issues = findChineseBoldIssues(content);
 
-		// 检查是否有改动
-		if (content === fixed) {
-			console.log(`  ℹ️  ${filename} - 无需修复`);
-			return false;
+		if (issues.length === 0) {
+			console.log(`  ℹ️  ${filename} - 未发现可疑位置`);
+			return 0;
 		}
 
-		// 写入修复后的内容
-		fs.writeFileSync(filePath, fixed, 'utf8');
-		console.log(`  ✅ ${filename} - 修复完成`);
-		return true;
+		console.log(`  ⚠️  ${filename} - 发现 ${issues.length} 处可疑位置`);
+		issues.forEach((issue, index) => {
+			const location = `L${issue.line}:${issue.column}`;
+			const snippet = formatSnippet(issue.snippet);
+			console.log(`    ${index + 1}. ${location} ${issue.rule} - ${issue.message}`);
+			if (snippet) {
+				console.log(`       ${snippet}`);
+			}
+		});
+
+		return issues.length;
 	} catch (error) {
-		console.error(`  ❌ ${filename} - 修复失败: ${error.message}`);
-		return false;
+		console.error(`  ❌ ${filename} - 扫描失败: ${error.message}`);
+		return 0;
 	}
+}
+
+function formatSnippet(snippet) {
+	if (!snippet) return '';
+	const cleaned = snippet.replace(/\r?\n/g, '\\n').trim();
+	if (cleaned.length <= 160) return cleaned;
+	return `${cleaned.slice(0, 160)}...`;
 }
 
 /**
@@ -116,7 +129,7 @@ function ask(rl, question) {
  * 主函数
  */
 async function main() {
-	console.log('\n🔧 中文加粗修复工具\n');
+	console.log('\n🔍 中文加粗问题扫描工具\n');
 
 	const rl = createInterface();
 
@@ -125,36 +138,37 @@ async function main() {
 		const posts = getAllPosts();
 		console.log(`📚 找到 ${posts.length} 篇文章\n`);
 
-		// 选择修复模式
-		console.log('请选择修复模式：');
-		console.log('  1. 修复所有文章');
-		console.log('  2. 选择单篇文章修复');
+		// 选择扫描模式
+		console.log('请选择扫描模式：');
+		console.log('  1. 扫描所有文章');
+		console.log('  2. 选择单篇文章扫描');
 		console.log('  3. 退出\n');
 
 		const mode = await ask(rl, '请输入选项 (1/2/3): ');
 
 		if (mode === '1') {
-			// 修复所有文章
-			console.log('\n🚀 开始修复所有文章...\n');
+			// 扫描所有文章
+			console.log('\n🚀 开始扫描所有文章...\n');
 
-			const confirm = await ask(rl, '⚠️  确认修复所有文章？此操作会修改文件内容。(y/n): ');
+			const confirm = await ask(rl, '⚠️  确认扫描所有文章？(y/n): ');
 
 			if (confirm.toLowerCase() !== 'y' && confirm.toLowerCase() !== 'yes') {
 				console.log('\n❌ 操作已取消\n');
 				return;
 			}
 
-			let fixedCount = 0;
+			let issueCount = 0;
+			let fileCount = 0;
 			for (const post of posts) {
-				if (fixSinglePost(post)) {
-					fixedCount++;
-				}
+				const count = scanSinglePost(post);
+				if (count > 0) fileCount += 1;
+				issueCount += count;
 			}
 
-			console.log(`\n✨ 修复完成！共修复 ${fixedCount} 篇文章\n`);
+			console.log(`\n✨ 扫描完成！共发现 ${issueCount} 处可疑位置，涉及 ${fileCount} 篇文章\n`);
 
 		} else if (mode === '2') {
-			// 选择单篇文章修复
+			// 选择单篇文章扫描
 			console.log('\n📋 文章列表（按时间倒序）：\n');
 
 			posts.forEach((post, index) => {
@@ -181,9 +195,9 @@ async function main() {
 				return;
 			}
 
-			console.log('\n🚀 开始修复...\n');
-			fixSinglePost(posts[index]);
-			console.log('\n✨ 修复完成！\n');
+			console.log('\n🚀 开始扫描...\n');
+			scanSinglePost(posts[index]);
+			console.log('\n✨ 扫描完成！\n');
 
 		} else if (mode === '3') {
 			console.log('\n👋 再见！\n');
