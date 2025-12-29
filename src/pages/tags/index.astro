@@ -27,6 +27,15 @@ const totalPosts = allPosts.length;
 const hasTags = totalTags > 0;
 const averagePostsPerTag = totalTags > 0 ? (totalPosts / totalTags).toFixed(1) : '0.0';
 const topTag = hasTags ? sortedTags[0] : null;
+const totalTagOccurrences = sortedTags.reduce((acc, {count}) => acc + count, 0);
+const cumulativeShareData = (() => {
+  let runningTotal = 0;
+  return sortedTags.map(({count}, index) => {
+    runningTotal += count;
+    const percent = totalTagOccurrences > 0 ? (runningTotal / totalTagOccurrences) * 100 : 0;
+    return {rank: index + 1, percent: Number(percent.toFixed(2))};
+  });
+})();
 
 // ==================== 词云数据生成 ====================
 /**
@@ -295,6 +304,20 @@ const colorSchemes = [
         </h3>
         <div class="chart-wrapper">
           <canvas id="tagChart"></canvas>
+        </div>
+      </div>
+    )}
+
+    {hasTags && (
+      <div class="chart-container">
+        <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+          标签累计占比曲线
+        </h3>
+        <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+          按标签出现次数排序，曲线表示累计占比
+        </p>
+        <div class="chart-wrapper">
+          <canvas id="tagCumulativeChart"></canvas>
         </div>
       </div>
     )}
@@ -779,6 +802,163 @@ const colorSchemes = [
 
   // View Transitions 支持
   document.addEventListener('astro:page-load', initializeChart);
+</script>
+
+<!-- Cumulative Share Chart Initialization Script -->
+<script define:vars={{cumulativeShareData}}>
+  // 保存累计占比图表实例（避免重复创建）
+  let cumulativeChartInstance = null;
+
+  // 初始化累计占比图表的函数（支持 View Transitions）
+  function initializeCumulativeChart() {
+    const canvas = document.getElementById('tagCumulativeChart');
+    if (!canvas || cumulativeShareData.length === 0) return;
+
+    // 如果已有图表实例，先销毁
+    if (cumulativeChartInstance) {
+      cumulativeChartInstance.destroy();
+      cumulativeChartInstance = null;
+    }
+
+    // 获取当前主题
+    const isDark = document.documentElement.classList.contains('dark');
+
+    // 主题颜色配置
+    const colors = {
+      primary: isDark ? '#4ade80' : '#22c55e',
+      secondary: isDark ? '#38bdf8' : '#3b82f6',
+      text: isDark ? '#f0f8ff' : '#0f172a',
+      grid: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+      fill: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(34, 197, 94, 0.12)',
+    };
+
+    // 准备图表数据
+    const labels = cumulativeShareData.map(item => item.rank);
+    const data = cumulativeShareData.map(item => item.percent);
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, colors.primary);
+    gradient.addColorStop(1, colors.secondary);
+
+    // 初始化图表
+    cumulativeChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '累计占比',
+          data: data,
+          borderColor: gradient,
+          backgroundColor: colors.fill,
+          borderWidth: 2,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          tension: 0.35,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: colors.text,
+            bodyColor: colors.text,
+            borderColor: colors.primary,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              title: (items) => `Top ${items[0].label}`,
+              label: (item) => `累计占比 ${item.parsed.y}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              autoSkip: true,
+              maxTicksLimit: 10
+            }
+          },
+          y: {
+            beginAtZero: true,
+            suggestedMax: 100,
+            grid: {
+              color: colors.grid,
+              drawBorder: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              callback: (value) => `${value}%`
+            }
+          }
+        }
+      }
+    });
+
+    // 监听主题切换
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const newIsDark = document.documentElement.classList.contains('dark');
+
+          const newColors = {
+            primary: newIsDark ? '#4ade80' : '#22c55e',
+            secondary: newIsDark ? '#38bdf8' : '#3b82f6',
+            text: newIsDark ? '#f0f8ff' : '#0f172a',
+            grid: newIsDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+            fill: newIsDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(34, 197, 94, 0.12)',
+          };
+
+          const newGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+          newGradient.addColorStop(0, newColors.primary);
+          newGradient.addColorStop(1, newColors.secondary);
+
+          cumulativeChartInstance.data.datasets[0].borderColor = newGradient;
+          cumulativeChartInstance.data.datasets[0].backgroundColor = newColors.fill;
+
+          cumulativeChartInstance.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+          cumulativeChartInstance.options.plugins.tooltip.titleColor = newColors.text;
+          cumulativeChartInstance.options.plugins.tooltip.bodyColor = newColors.text;
+          cumulativeChartInstance.options.plugins.tooltip.borderColor = newColors.primary;
+
+          cumulativeChartInstance.options.scales.x.ticks.color = newColors.text;
+          cumulativeChartInstance.options.scales.y.ticks.color = newColors.text;
+          cumulativeChartInstance.options.scales.y.grid.color = newColors.grid;
+
+          cumulativeChartInstance.update();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  // 首次加载 - 等待所有外部资源加载完成
+  window.addEventListener('load', initializeCumulativeChart);
+
+  // View Transitions 支持
+  document.addEventListener('astro:page-load', initializeCumulativeChart);
 </script>
 
 <style>
