@@ -2,6 +2,7 @@
 // Misaka Network - Tags Overview Page
 import {getCollection} from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import {tagHref} from '../../utils/tagHref';
 
 // 获取所有已发布的博客文章
 const allPosts = await getCollection('blog', ({data}) => data.draft !== true);
@@ -23,6 +24,9 @@ const sortedTags = Array.from(tagStats.entries())
 // 计算总标签数和总文章数
 const totalTags = sortedTags.length;
 const totalPosts = allPosts.length;
+const hasTags = totalTags > 0;
+const averagePostsPerTag = totalTags > 0 ? (totalPosts / totalTags).toFixed(1) : '0.0';
+const topTag = hasTags ? sortedTags[0] : null;
 
 // ==================== 词云数据生成 ====================
 /**
@@ -193,6 +197,7 @@ function generateWordCloudData() {
 }
 
 const wordCloudData = generateWordCloudData();
+const hasWordCloudData = wordCloudData.length > 0;
 
 // 预定义的标签颜色方案（循环使用）
 const colorSchemes = [
@@ -252,10 +257,18 @@ const colorSchemes = [
       <div class="stat-item">
         <div class="stat-label">最多文章的标签</div>
         <div class="stat-value">
-          <a href={`/tags/${sortedTags[0].tag}`} class="hover:text-misaka-circuit transition-colors">
-            #{sortedTags[0].tag}
-          </a>
-          <span class="stat-count">({sortedTags[0].count} 篇)</span>
+          {topTag ? (
+            <>
+              <a href={tagHref(topTag.tag)} class="hover:text-misaka-circuit transition-colors">
+                #{topTag.tag}
+              </a>
+              <span class="stat-count">({topTag.count} 篇)</span>
+            </>
+          ) : (
+            <span class="text-sm" style="color: var(--text-muted);">
+              暂无
+            </span>
+          )}
         </div>
       </div>
 
@@ -269,20 +282,22 @@ const colorSchemes = [
       <div class="stat-item">
         <div class="stat-label">平均每个标签</div>
         <div class="stat-value">
-          {(totalPosts / totalTags).toFixed(1)} 篇
+          {averagePostsPerTag} 篇
         </div>
       </div>
     </div>
 
     <!-- Chart Container -->
-    <div class="chart-container">
-      <h3 class="text-lg font-semibold mb-4 font-sans" style="color: var(--text-secondary);">
-        标签分布 (Top 10)
-      </h3>
-      <div class="chart-wrapper">
-        <canvas id="tagChart"></canvas>
+    {hasTags && (
+      <div class="chart-container">
+        <h3 class="text-lg font-semibold mb-4 font-sans" style="color: var(--text-secondary);">
+          标签分布 (Top 10)
+        </h3>
+        <div class="chart-wrapper">
+          <canvas id="tagChart"></canvas>
+        </div>
       </div>
-    </div>
+    )}
   </div>
 
   <!-- Tags Grid -->
@@ -292,13 +307,13 @@ const colorSchemes = [
     </h2>
   </div>
 
-  {sortedTags.length > 0 && (
+  {hasTags && (
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {sortedTags.map(({tag, count}, index) => {
         const colorScheme = colorSchemes[index % colorSchemes.length];
         return (
           <a
-            href={`/tags/${tag}`}
+            href={tagHref(tag)}
             class="tag-card group"
             style={`
                             --tag-bg: ${colorScheme.bg};
@@ -334,20 +349,36 @@ const colorSchemes = [
     </div>
   )}
 
-  <!-- Word Cloud Section -->
-  <div class="mb-12 mt-12 network-panel">
-    <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
-      ☁️ 内容词云
-    </h2>
-    <p class="text-sm mb-6" style="color: var(--text-muted);">
-      基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
-    </p>
-
-    <!-- Word Cloud Canvas -->
-    <div class="wordcloud-container">
-      <canvas id="wordCloudCanvas"></canvas>
+  {!hasTags && (
+    <div class="network-panel text-center py-12">
+      <p class="text-lg" style="color: var(--text-muted);">
+        暂无标签数据
+      </p>
     </div>
-  </div>
+  )}
+
+  <!-- Word Cloud Section -->
+  {hasWordCloudData ? (
+    <div class="mb-12 mt-12 network-panel">
+      <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+        ☁️ 内容词云
+      </h2>
+      <p class="text-sm mb-6" style="color: var(--text-muted);">
+        基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
+      </p>
+
+      <!-- Word Cloud Canvas -->
+      <div class="wordcloud-container">
+        <canvas id="wordCloudCanvas"></canvas>
+      </div>
+    </div>
+  ) : (
+    <div class="mb-12 mt-12 network-panel text-center py-12">
+      <p class="text-lg" style="color: var(--text-muted);">
+        暂无足够内容生成词云
+      </p>
+    </div>
+  )}
 
   <!-- Back Link -->
   <div class="mt-12 text-center">
