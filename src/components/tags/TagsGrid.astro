@@ -1,0 +1,208 @@
+---
+import {tagHref} from '../../utils/tagHref';
+
+type TagCount = {tag: string; count: number};
+
+export interface Props {
+  sortedTags: TagCount[];
+  hasTags: boolean;
+}
+
+const {sortedTags, hasTags} = Astro.props;
+
+const colorSchemes = [
+  {bg: 'rgba(74, 222, 128, 0.1)', border: 'rgba(74, 222, 128, 0.5)', text: '#4ade80', hover: 'rgba(74, 222, 128, 0.2)'},
+  {bg: 'rgba(56, 189, 248, 0.1)', border: 'rgba(56, 189, 248, 0.5)', text: '#38bdf8', hover: 'rgba(56, 189, 248, 0.2)'},
+  {bg: 'rgba(168, 85, 247, 0.1)', border: 'rgba(168, 85, 247, 0.5)', text: '#a855f7', hover: 'rgba(168, 85, 247, 0.2)'},
+  {bg: 'rgba(251, 146, 60, 0.1)', border: 'rgba(251, 146, 60, 0.5)', text: '#fb923c', hover: 'rgba(251, 146, 60, 0.2)'},
+  {bg: 'rgba(244, 63, 94, 0.1)', border: 'rgba(244, 63, 94, 0.5)', text: '#f43f5e', hover: 'rgba(244, 63, 94, 0.2)'},
+  {bg: 'rgba(34, 197, 94, 0.1)', border: 'rgba(34, 197, 94, 0.5)', text: '#22c55e', hover: 'rgba(34, 197, 94, 0.2)'},
+];
+---
+
+<div class="mb-8">
+  <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+    🏷️ 所有标签
+  </h2>
+</div>
+
+{hasTags && (
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {sortedTags.map(({tag, count}, index) => {
+      const colorScheme = colorSchemes[index % colorSchemes.length];
+      return (
+        <a
+          href={tagHref(tag)}
+          class="tag-card group"
+          style={`
+            --tag-bg: ${colorScheme.bg};
+            --tag-border: ${colorScheme.border};
+            --tag-text: ${colorScheme.text};
+            --tag-hover: ${colorScheme.hover};
+          `}
+        >
+          <div class="tag-card-content">
+            <div class="tag-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+            </div>
+            <div class="tag-info">
+              <h3 class="tag-name">
+                #{tag}
+              </h3>
+              <p class="tag-count">
+                {count} {count === 1 ? '篇文章' : '篇文章'}
+              </p>
+            </div>
+            <div class="tag-arrow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      );
+    })}
+  </div>
+)}
+
+{!hasTags && (
+  <div class="network-panel text-center py-12">
+    <p class="text-lg" style="color: var(--text-muted);">
+      暂无标签数据
+    </p>
+  </div>
+)}
+
+<style>
+  .tag-card {
+    display: block;
+    text-decoration: none;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tag-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--tag-hover);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+
+  .tag-card:hover::before {
+    opacity: 1;
+  }
+
+  .tag-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--tag-text);
+  }
+
+  .tag-card-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .tag-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    color: var(--tag-text);
+    transition: all 0.3s ease;
+  }
+
+  .tag-card:hover .tag-icon {
+    transform: rotate(12deg) scale(1.1);
+    background: var(--tag-text);
+    color: var(--bg-primary);
+  }
+
+  .tag-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tag-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--tag-text);
+    margin: 0;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tag-count {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0;
+    margin-top: 0.25rem;
+  }
+
+  .tag-arrow {
+    flex-shrink: 0;
+    color: var(--tag-text);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+  }
+
+  .tag-card:hover .tag-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  @media (max-width: 640px) {
+    .tag-card {
+      padding: 1rem;
+    }
+
+    .tag-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .tag-name {
+      font-size: 1rem;
+    }
+
+    .tag-count {
+      font-size: 0.75rem;
+    }
+  }
+
+  :global(.dark) .tag-card {
+    background: var(--tag-bg);
+  }
+
+  :global(.dark) .tag-icon {
+    background: rgba(30, 41, 59, 0.8);
+  }
+
+  :global(.dark) .tag-card:hover .tag-icon {
+    background: var(--tag-text);
+  }
+</style>
