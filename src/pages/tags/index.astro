@@ -69,6 +69,12 @@ const tagNetworkData = {
   edges: networkEdges
 };
 const hasTagNetworkData = tagNetworkData.nodes.length > 1 && tagNetworkData.edges.length > 0;
+const maxTreemapTags = 40;
+const treemapData = sortedTags.slice(0, maxTreemapTags).map(({tag, count}) => ({
+  tag,
+  count
+}));
+const hasTreemapData = treemapData.length > 0;
 
 // ==================== 词云数据生成 ====================
 /**
@@ -352,6 +358,26 @@ const colorSchemes = [
         <div class="chart-wrapper">
           <canvas id="tagCumulativeChart"></canvas>
         </div>
+      </div>
+    )}
+
+    {hasTags && (
+      <div class="chart-container">
+        <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+          标签矩形树图
+        </h3>
+        <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+          矩形面积表示标签出现次数
+        </p>
+        {hasTreemapData ? (
+          <div class="chart-wrapper">
+            <canvas id="tagTreemapChart"></canvas>
+          </div>
+        ) : (
+          <div class="text-sm font-mono py-6 text-center" style="color: var(--text-muted);">
+            暂无足够数据生成矩形树图
+          </div>
+        )}
       </div>
     )}
 
@@ -1014,6 +1040,192 @@ const colorSchemes = [
 
   // View Transitions 支持
   document.addEventListener('astro:page-load', initializeCumulativeChart);
+</script>
+
+<!-- Treemap Canvas Initialization Script -->
+<script define:vars={{treemapData}}>
+  let treemapResizeTimeout;
+  let treemapObserver;
+  let treemapResizeBound = false;
+
+  function toRgba(hex, alpha) {
+    const sanitized = hex.replace('#', '');
+    const value = sanitized.length === 3
+      ? sanitized.split('').map(ch => ch + ch).join('')
+      : sanitized;
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function partitionItems(items) {
+    const left = [];
+    const right = [];
+    let leftSum = 0;
+    let rightSum = 0;
+
+    items.forEach((item) => {
+      if (leftSum <= rightSum) {
+        left.push(item);
+        leftSum += item.count;
+      } else {
+        right.push(item);
+        rightSum += item.count;
+      }
+    });
+
+    return {left, right, leftSum, rightSum};
+  }
+
+  function buildTreemap(items, rect) {
+    if (items.length === 0) return [];
+    if (items.length === 1) {
+      return [{...rect, item: items[0]}];
+    }
+
+    const total = items.reduce((sum, item) => sum + item.count, 0);
+    const {left, right, leftSum} = partitionItems(items);
+    const ratio = total > 0 ? leftSum / total : 0.5;
+
+    if (rect.width >= rect.height) {
+      const leftWidth = rect.width * ratio;
+      const leftRect = {x: rect.x, y: rect.y, width: leftWidth, height: rect.height};
+      const rightRect = {x: rect.x + leftWidth, y: rect.y, width: rect.width - leftWidth, height: rect.height};
+      return [...buildTreemap(left, leftRect), ...buildTreemap(right, rightRect)];
+    }
+
+    const topHeight = rect.height * ratio;
+    const topRect = {x: rect.x, y: rect.y, width: rect.width, height: topHeight};
+    const bottomRect = {x: rect.x, y: rect.y + topHeight, width: rect.width, height: rect.height - topHeight};
+    return [...buildTreemap(left, topRect), ...buildTreemap(right, bottomRect)];
+  }
+
+  function drawTreemap(ctx, width, height) {
+    const items = treemapData || [];
+    if (items.length === 0) return;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    const palette = isDark
+      ? ['#4ade80', '#38bdf8', '#a855f7', '#fb923c', '#f43f5e', '#22c55e']
+      : ['#22c55e', '#3b82f6', '#8b5cf6', '#f97316', '#ef4444', '#0ea5e9'];
+
+    const textColor = isDark ? '#e2e8f0' : '#0f172a';
+    const borderColor = isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(15, 23, 42, 0.12)';
+    const fontMono = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-mono')
+      .trim() || 'monospace';
+
+    const sortedItems = [...items].sort((a, b) => b.count - a.count);
+    const maxWeight = Math.max(...sortedItems.map(item => item.count));
+    const minWeight = Math.min(...sortedItems.map(item => item.count));
+    const gap = 2;
+
+    const rects = buildTreemap(sortedItems, {
+      x: 0,
+      y: 0,
+      width: width,
+      height: height
+    });
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.textBaseline = 'top';
+
+    rects.forEach((rect, index) => {
+      const item = rect.item;
+      const ratio = maxWeight === minWeight ? 0.5 : (item.count - minWeight) / (maxWeight - minWeight);
+      const alpha = 0.5 + ratio * 0.35;
+      const fillColor = toRgba(palette[index % palette.length], alpha);
+
+      const drawRect = {
+        x: rect.x + gap / 2,
+        y: rect.y + gap / 2,
+        width: Math.max(0, rect.width - gap),
+        height: Math.max(0, rect.height - gap)
+      };
+
+      if (drawRect.width <= 0 || drawRect.height <= 0) return;
+
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+
+      const label = `#${item.tag}`;
+      const padding = 6;
+      const fontSize = 11;
+      ctx.font = `600 ${fontSize}px ${fontMono}`;
+      const labelWidth = ctx.measureText(label).width;
+      const minWidth = labelWidth + padding * 2;
+      const minHeight = fontSize + padding * 2;
+
+      if (drawRect.width >= minWidth && drawRect.height >= minHeight) {
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        ctx.fillText(label, drawRect.x + padding, drawRect.y + padding);
+
+        const countText = `${item.count} 篇`;
+        const countY = drawRect.y + padding + fontSize + 4;
+        if (drawRect.height >= fontSize * 2 + padding * 2) {
+          ctx.font = `500 ${fontSize - 1}px ${fontMono}`;
+          ctx.fillText(countText, drawRect.x + padding, countY);
+        }
+      }
+    });
+  }
+
+  function initializeTreemapCanvas() {
+    const canvas = document.getElementById('tagTreemapChart');
+    if (!canvas || treemapData.length === 0) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = container.clientWidth;
+    const height = Math.max(320, Math.round(width / 1.6));
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawTreemap(ctx, width, height);
+
+    if (!treemapResizeBound) {
+      treemapResizeBound = true;
+      window.addEventListener('resize', () => {
+        clearTimeout(treemapResizeTimeout);
+        treemapResizeTimeout = setTimeout(() => {
+          initializeTreemapCanvas();
+        }, 200);
+      });
+    }
+
+    if (treemapObserver) {
+      treemapObserver.disconnect();
+    }
+
+    treemapObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          initializeTreemapCanvas();
+        }
+      });
+    });
+
+    treemapObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  window.addEventListener('load', initializeTreemapCanvas);
+  document.addEventListener('astro:page-load', initializeTreemapCanvas);
 </script>
 
 <!-- Tag Network Graph Initialization Script -->
