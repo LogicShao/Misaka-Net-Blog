@@ -1,0 +1,38 @@
+---
+export interface Props {
+  totalTags: number;
+  totalPosts: number;
+}
+
+const {totalTags, totalPosts} = Astro.props;
+---
+
+<div class="mb-12">
+  <nav class="text-sm mb-6 font-mono" style="color: var(--text-muted);">
+    <a href="/" class="hover:text-misaka-blue transition-colors">Home</a>
+    <span class="mx-2">/</span>
+    <a href="/blog" class="hover:text-misaka-blue transition-colors">Blog</a>
+    <span class="mx-2">/</span>
+    <span class="text-misaka-circuit">Tags</span>
+  </nav>
+
+  <div class="flex items-baseline space-x-4 mb-4">
+    <h1 class="text-4xl md:text-5xl font-bold font-sans" style="color: var(--text-primary);">
+      标签归档
+    </h1>
+    <div class="flex items-center space-x-2 text-sm font-mono" style="color: var(--text-muted);">
+      <span class="px-3 py-1 bg-misaka-circuit/20 border border-misaka-circuit/50 rounded-lg text-misaka-circuit">
+        {totalTags} 个标签
+      </span>
+      <span class="px-3 py-1 bg-misaka-blue/20 border border-misaka-blue/50 rounded-lg text-misaka-blue">
+        {totalPosts} 篇文章
+      </span>
+    </div>
+  </div>
+
+  <p class="text-lg font-mono" style="color: var(--text-muted);">
+    // Explore topics by tags
+  </p>
+
+  <div class="divider-circuit mt-6"></div>
+</div>

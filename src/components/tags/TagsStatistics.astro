@@ -1,0 +1,891 @@
+---
+import {tagHref} from '../../utils/tagHref';
+
+type TagCount = {tag: string; count: number};
+type CumulativeShareItem = {rank: number; percent: number};
+type TagNetworkNode = {id: string; weight: number};
+type TagNetworkEdge = {source: string; target: string; weight: number};
+type TagNetworkData = {nodes: TagNetworkNode[]; edges: TagNetworkEdge[]};
+
+export interface Props {
+  totalTags: number;
+  averagePostsPerTag: string;
+  topTag: TagCount | null;
+  hasTags: boolean;
+  chartTags: TagCount[];
+  cumulativeShareData: CumulativeShareItem[];
+  treemapData: TagCount[];
+  hasTreemapData: boolean;
+  tagNetworkData: TagNetworkData;
+  hasTagNetworkData: boolean;
+}
+
+const {
+  totalTags,
+  averagePostsPerTag,
+  topTag,
+  hasTags,
+  chartTags,
+  cumulativeShareData,
+  treemapData,
+  hasTreemapData,
+  tagNetworkData,
+  hasTagNetworkData
+} = Astro.props;
+---
+
+<div class="mb-12 network-panel">
+  <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+    📊 标签统计
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="stat-item">
+      <div class="stat-label">最多文章的标签</div>
+      <div class="stat-value">
+        {topTag ? (
+          <>
+            <a href={tagHref(topTag.tag)} class="hover:text-misaka-circuit transition-colors">
+              #{topTag.tag}
+            </a>
+            <span class="stat-count">({topTag.count} 篇)</span>
+          </>
+        ) : (
+          <span class="text-sm" style="color: var(--text-muted);">
+            暂无
+          </span>
+        )}
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-label">标签总数</div>
+      <div class="stat-value">
+        {totalTags} 个
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-label">平均每个标签</div>
+      <div class="stat-value">
+        {averagePostsPerTag} 篇
+      </div>
+    </div>
+  </div>
+
+  {hasTags && (
+    <div class="chart-container">
+      <h3 class="text-lg font-semibold mb-4 font-sans" style="color: var(--text-secondary);">
+        标签分布 (Top 10)
+      </h3>
+      <div class="chart-wrapper">
+        <canvas id="tagChart"></canvas>
+      </div>
+    </div>
+  )}
+
+  {hasTags && (
+    <div class="chart-container">
+      <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+        标签累计占比曲线
+      </h3>
+      <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+        按标签出现次数排序，曲线表示累计占比
+      </p>
+      <div class="chart-wrapper">
+        <canvas id="tagCumulativeChart"></canvas>
+      </div>
+    </div>
+  )}
+
+  {hasTags && (
+    <div class="chart-container">
+      <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+        标签矩形树图
+      </h3>
+      <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+        矩形面积表示标签出现次数
+      </p>
+      {hasTreemapData ? (
+        <div class="chart-wrapper">
+          <canvas id="tagTreemapChart"></canvas>
+        </div>
+      ) : (
+        <div class="text-sm font-mono py-6 text-center" style="color: var(--text-muted);">
+          暂无足够数据生成矩形树图
+        </div>
+      )}
+    </div>
+  )}
+
+  {hasTags && (
+    hasTagNetworkData ? (
+      <div class="chart-container">
+        <h3 class="text-lg font-semibold mb-2 font-sans" style="color: var(--text-secondary);">
+          标签共现网络图
+        </h3>
+        <p class="text-sm mb-4 font-mono" style="color: var(--text-muted);">
+          基于标签共现次数，展示主题之间的关联强度
+        </p>
+        <div class="network-graph-container">
+          <canvas id="tagNetworkCanvas"></canvas>
+        </div>
+      </div>
+    ) : (
+      <div class="chart-container text-center py-10">
+        <p class="text-sm font-mono" style="color: var(--text-muted);">
+          暂无足够共现数据
+        </p>
+      </div>
+    )
+  )}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script define:vars={{sortedTags: chartTags}}>
+  let chartInstance = null;
+
+  function initializeChart() {
+    const canvas = document.getElementById('tagChart');
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+
+    const isDark = document.documentElement.classList.contains('dark');
+
+    const colors = {
+      primary: isDark ? '#4ade80' : '#22c55e',
+      secondary: isDark ? '#38bdf8' : '#3b82f6',
+      text: isDark ? '#f0f8ff' : '#0f172a',
+      grid: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+      background: isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(74, 222, 128, 0.2)',
+      border: isDark ? 'rgba(74, 222, 128, 0.5)' : 'rgba(74, 222, 128, 0.7)',
+    };
+
+    const labels = sortedTags.map(item => item.tag);
+    const data = sortedTags.map(item => item.count);
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, colors.primary);
+    gradient.addColorStop(1, colors.secondary);
+
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '文章数量',
+          data: data,
+          backgroundColor: colors.background,
+          borderColor: colors.border,
+          borderWidth: 2,
+          borderRadius: 6,
+          hoverBackgroundColor: colors.primary + '40',
+          hoverBorderColor: colors.primary,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: colors.text,
+            bodyColor: colors.text,
+            borderColor: colors.border,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              title: (items) => `#${items[0].label}`,
+              label: (item) => `${item.parsed.y} 篇文章`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              maxRotation: 45,
+              minRotation: 45
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: colors.grid,
+              drawBorder: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              stepSize: 1,
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const newIsDark = document.documentElement.classList.contains('dark');
+
+          const newColors = {
+            primary: newIsDark ? '#4ade80' : '#22c55e',
+            secondary: newIsDark ? '#38bdf8' : '#3b82f6',
+            text: newIsDark ? '#f0f8ff' : '#0f172a',
+            grid: newIsDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+            background: newIsDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(74, 222, 128, 0.2)',
+            border: newIsDark ? 'rgba(74, 222, 128, 0.5)' : 'rgba(74, 222, 128, 0.7)',
+          };
+
+          chartInstance.data.datasets[0].backgroundColor = newColors.background;
+          chartInstance.data.datasets[0].borderColor = newColors.border;
+          chartInstance.data.datasets[0].hoverBackgroundColor = newColors.primary + '40';
+          chartInstance.data.datasets[0].hoverBorderColor = newColors.primary;
+
+          chartInstance.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+          chartInstance.options.plugins.tooltip.titleColor = newColors.text;
+          chartInstance.options.plugins.tooltip.bodyColor = newColors.text;
+          chartInstance.options.plugins.tooltip.borderColor = newColors.border;
+
+          chartInstance.options.scales.x.ticks.color = newColors.text;
+          chartInstance.options.scales.y.ticks.color = newColors.text;
+          chartInstance.options.scales.y.grid.color = newColors.grid;
+
+          chartInstance.update();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  window.addEventListener('load', initializeChart);
+  document.addEventListener('astro:page-load', initializeChart);
+</script>
+
+<script define:vars={{cumulativeShareData}}>
+  let cumulativeChartInstance = null;
+
+  function initializeCumulativeChart() {
+    const canvas = document.getElementById('tagCumulativeChart');
+    if (!canvas || cumulativeShareData.length === 0) return;
+
+    if (cumulativeChartInstance) {
+      cumulativeChartInstance.destroy();
+      cumulativeChartInstance = null;
+    }
+
+    const isDark = document.documentElement.classList.contains('dark');
+
+    const colors = {
+      primary: isDark ? '#4ade80' : '#22c55e',
+      secondary: isDark ? '#38bdf8' : '#3b82f6',
+      text: isDark ? '#f0f8ff' : '#0f172a',
+      grid: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+      fill: isDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(34, 197, 94, 0.12)',
+    };
+
+    const labels = cumulativeShareData.map(item => item.rank);
+    const data = cumulativeShareData.map(item => item.percent);
+
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, colors.primary);
+    gradient.addColorStop(1, colors.secondary);
+
+    cumulativeChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '累计占比',
+          data: data,
+          borderColor: gradient,
+          backgroundColor: colors.fill,
+          borderWidth: 2,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          tension: 0.35,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: colors.text,
+            bodyColor: colors.text,
+            borderColor: colors.primary,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              title: (items) => `Top ${items[0].label}`,
+              label: (item) => `累计占比 ${item.parsed.y}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              autoSkip: true,
+              maxTicksLimit: 10
+            }
+          },
+          y: {
+            beginAtZero: true,
+            suggestedMax: 100,
+            grid: {
+              color: colors.grid,
+              drawBorder: false
+            },
+            ticks: {
+              color: colors.text,
+              font: {
+                size: 12
+              },
+              callback: (value) => `${value}%`
+            }
+          }
+        }
+      }
+    });
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const newIsDark = document.documentElement.classList.contains('dark');
+
+          const newColors = {
+            primary: newIsDark ? '#4ade80' : '#22c55e',
+            secondary: newIsDark ? '#38bdf8' : '#3b82f6',
+            text: newIsDark ? '#f0f8ff' : '#0f172a',
+            grid: newIsDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(148, 163, 184, 0.2)',
+            fill: newIsDark ? 'rgba(74, 222, 128, 0.15)' : 'rgba(34, 197, 94, 0.12)',
+          };
+
+          const newGradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+          newGradient.addColorStop(0, newColors.primary);
+          newGradient.addColorStop(1, newColors.secondary);
+
+          cumulativeChartInstance.data.datasets[0].borderColor = newGradient;
+          cumulativeChartInstance.data.datasets[0].backgroundColor = newColors.fill;
+
+          cumulativeChartInstance.options.plugins.tooltip.backgroundColor = newIsDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+          cumulativeChartInstance.options.plugins.tooltip.titleColor = newColors.text;
+          cumulativeChartInstance.options.plugins.tooltip.bodyColor = newColors.text;
+          cumulativeChartInstance.options.plugins.tooltip.borderColor = newColors.primary;
+
+          cumulativeChartInstance.options.scales.x.ticks.color = newColors.text;
+          cumulativeChartInstance.options.scales.y.ticks.color = newColors.text;
+          cumulativeChartInstance.options.scales.y.grid.color = newColors.grid;
+
+          cumulativeChartInstance.update();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  window.addEventListener('load', initializeCumulativeChart);
+  document.addEventListener('astro:page-load', initializeCumulativeChart);
+</script>
+
+<script define:vars={{treemapData}}>
+  let treemapResizeTimeout;
+  let treemapObserver;
+  let treemapResizeBound = false;
+
+  function toRgba(hex, alpha) {
+    const sanitized = hex.replace('#', '');
+    const value = sanitized.length === 3
+      ? sanitized.split('').map(ch => ch + ch).join('')
+      : sanitized;
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function partitionItems(items) {
+    const left = [];
+    const right = [];
+    let leftSum = 0;
+    let rightSum = 0;
+
+    items.forEach((item) => {
+      if (leftSum <= rightSum) {
+        left.push(item);
+        leftSum += item.count;
+      } else {
+        right.push(item);
+        rightSum += item.count;
+      }
+    });
+
+    return {left, right, leftSum, rightSum};
+  }
+
+  function buildTreemap(items, rect) {
+    if (items.length === 0) return [];
+    if (items.length === 1) {
+      return [{...rect, item: items[0]}];
+    }
+
+    const total = items.reduce((sum, item) => sum + item.count, 0);
+    const {left, right, leftSum} = partitionItems(items);
+    const ratio = total > 0 ? leftSum / total : 0.5;
+
+    if (rect.width >= rect.height) {
+      const leftWidth = rect.width * ratio;
+      const leftRect = {x: rect.x, y: rect.y, width: leftWidth, height: rect.height};
+      const rightRect = {x: rect.x + leftWidth, y: rect.y, width: rect.width - leftWidth, height: rect.height};
+      return [...buildTreemap(left, leftRect), ...buildTreemap(right, rightRect)];
+    }
+
+    const topHeight = rect.height * ratio;
+    const topRect = {x: rect.x, y: rect.y, width: rect.width, height: topHeight};
+    const bottomRect = {x: rect.x, y: rect.y + topHeight, width: rect.width, height: rect.height - topHeight};
+    return [...buildTreemap(left, topRect), ...buildTreemap(right, bottomRect)];
+  }
+
+  function drawTreemap(ctx, width, height) {
+    const items = treemapData || [];
+    if (items.length === 0) return;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    const palette = isDark
+      ? ['#4ade80', '#38bdf8', '#a855f7', '#fb923c', '#f43f5e', '#22c55e']
+      : ['#22c55e', '#3b82f6', '#8b5cf6', '#f97316', '#ef4444', '#0ea5e9'];
+
+    const textColor = isDark ? '#e2e8f0' : '#0f172a';
+    const borderColor = isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(15, 23, 42, 0.12)';
+    const fontMono = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-mono')
+      .trim() || 'monospace';
+
+    const sortedItems = [...items].sort((a, b) => b.count - a.count);
+    const maxWeight = Math.max(...sortedItems.map(item => item.count));
+    const minWeight = Math.min(...sortedItems.map(item => item.count));
+    const gap = 2;
+
+    const rects = buildTreemap(sortedItems, {
+      x: 0,
+      y: 0,
+      width: width,
+      height: height
+    });
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.textBaseline = 'top';
+
+    rects.forEach((rect, index) => {
+      const item = rect.item;
+      const ratio = maxWeight === minWeight ? 0.5 : (item.count - minWeight) / (maxWeight - minWeight);
+      const alpha = 0.5 + ratio * 0.35;
+      const fillColor = toRgba(palette[index % palette.length], alpha);
+
+      const drawRect = {
+        x: rect.x + gap / 2,
+        y: rect.y + gap / 2,
+        width: Math.max(0, rect.width - gap),
+        height: Math.max(0, rect.height - gap)
+      };
+
+      if (drawRect.width <= 0 || drawRect.height <= 0) return;
+
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(drawRect.x, drawRect.y, drawRect.width, drawRect.height);
+
+      const label = `#${item.tag}`;
+      const padding = 6;
+      const fontSize = 11;
+      ctx.font = `600 ${fontSize}px ${fontMono}`;
+      const labelWidth = ctx.measureText(label).width;
+      const minWidth = labelWidth + padding * 2;
+      const minHeight = fontSize + padding * 2;
+
+      if (drawRect.width >= minWidth && drawRect.height >= minHeight) {
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        ctx.fillText(label, drawRect.x + padding, drawRect.y + padding);
+
+        const countText = `${item.count} 篇`;
+        const countY = drawRect.y + padding + fontSize + 4;
+        if (drawRect.height >= fontSize * 2 + padding * 2) {
+          ctx.font = `500 ${fontSize - 1}px ${fontMono}`;
+          ctx.fillText(countText, drawRect.x + padding, countY);
+        }
+      }
+    });
+  }
+
+  function initializeTreemapCanvas() {
+    const canvas = document.getElementById('tagTreemapChart');
+    if (!canvas || treemapData.length === 0) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = container.clientWidth;
+    const height = Math.max(320, Math.round(width / 1.6));
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawTreemap(ctx, width, height);
+
+    if (!treemapResizeBound) {
+      treemapResizeBound = true;
+      window.addEventListener('resize', () => {
+        clearTimeout(treemapResizeTimeout);
+        treemapResizeTimeout = setTimeout(() => {
+          initializeTreemapCanvas();
+        }, 200);
+      });
+    }
+
+    if (treemapObserver) {
+      treemapObserver.disconnect();
+    }
+
+    treemapObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          initializeTreemapCanvas();
+        }
+      });
+    });
+
+    treemapObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  window.addEventListener('load', initializeTreemapCanvas);
+  document.addEventListener('astro:page-load', initializeTreemapCanvas);
+</script>
+
+<script define:vars={{tagNetworkData}}>
+  let networkResizeTimeout;
+  let networkObserver;
+  let networkResizeBound = false;
+
+  function drawTagNetwork(ctx, width, height) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const nodes = tagNetworkData.nodes || [];
+    const edges = tagNetworkData.edges || [];
+    if (nodes.length < 2 || edges.length === 0) return;
+
+    const colors = {
+      node: isDark ? ['#4ade80', '#38bdf8', '#22d3ee', '#34d399'] : ['#22c55e', '#3b82f6', '#0ea5e9', '#16a34a'],
+      edge: isDark ? '74, 222, 128' : '34, 197, 94',
+      text: isDark ? '#e2e8f0' : '#0f172a',
+      ring: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.85)'
+    };
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const padding = 64;
+    const radius = Math.max(80, Math.min(width, height) / 2 - padding);
+
+    const maxNodeWeight = Math.max(...nodes.map(node => node.weight));
+    const maxEdgeWeight = Math.max(...edges.map(edge => edge.weight));
+
+    const fontMono = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-mono')
+      .trim() || 'monospace';
+
+    const positions = new Map();
+    nodes.forEach((node, index) => {
+      const angle = (Math.PI * 2 * index) / nodes.length - Math.PI / 2;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      positions.set(node.id, {x, y, angle});
+    });
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.lineCap = 'round';
+
+    edges.forEach((edge) => {
+      const from = positions.get(edge.source);
+      const to = positions.get(edge.target);
+      if (!from || !to) return;
+
+      const ratio = maxEdgeWeight > 0 ? edge.weight / maxEdgeWeight : 0;
+      const alpha = 0.15 + ratio * 0.45;
+      ctx.strokeStyle = `rgba(${colors.edge}, ${alpha})`;
+      ctx.lineWidth = 0.6 + ratio * 1.8;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+    });
+
+    ctx.font = `12px ${fontMono}`;
+    ctx.textBaseline = 'middle';
+
+    nodes.forEach((node, index) => {
+      const position = positions.get(node.id);
+      if (!position) return;
+
+      const ratio = maxNodeWeight > 0 ? node.weight / maxNodeWeight : 0;
+      const size = 6 + ratio * 10;
+      const color = colors.node[index % colors.node.length];
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(position.x, position.y, size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = colors.ring;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      const labelOffset = size + 6;
+      const labelX = position.x + Math.cos(position.angle) * labelOffset;
+      const labelY = position.y + Math.sin(position.angle) * labelOffset;
+      ctx.fillStyle = colors.text;
+      ctx.textAlign = Math.cos(position.angle) >= 0 ? 'left' : 'right';
+      ctx.fillText(`#${node.id}`, labelX, labelY);
+    });
+  }
+
+  function initializeTagNetwork() {
+    const canvas = document.getElementById('tagNetworkCanvas');
+    if (!canvas) return;
+
+    const nodes = tagNetworkData.nodes || [];
+    const edges = tagNetworkData.edges || [];
+    if (nodes.length < 2 || edges.length === 0) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = container.clientWidth;
+    const height = container.clientHeight || 520;
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    drawTagNetwork(ctx, width, height);
+
+    if (!networkResizeBound) {
+      networkResizeBound = true;
+      window.addEventListener('resize', () => {
+        clearTimeout(networkResizeTimeout);
+        networkResizeTimeout = setTimeout(() => {
+          initializeTagNetwork();
+        }, 200);
+      });
+    }
+
+    if (networkObserver) {
+      networkObserver.disconnect();
+    }
+
+    networkObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          initializeTagNetwork();
+        }
+      });
+    });
+
+    networkObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  window.addEventListener('load', initializeTagNetwork);
+  document.addEventListener('astro:page-load', initializeTagNetwork);
+</script>
+
+<style>
+  .network-graph-container {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background: linear-gradient(135deg,
+    var(--bg-secondary) 0%,
+    var(--bg-primary) 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .network-graph-container:hover {
+    border-color: rgba(74, 222, 128, 0.6);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.15),
+    0 0 0 1px rgba(74, 222, 128, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+  }
+
+  #tagNetworkCanvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  @media (max-width: 768px) {
+    .network-graph-container {
+      height: 420px;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .network-graph-container {
+      height: 360px;
+    }
+  }
+
+  :global(.dark) .network-graph-container {
+    background: linear-gradient(135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(15, 23, 42, 0.9) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(74, 222, 128, 0.05);
+  }
+
+  :global(.dark) .network-graph-container:hover {
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.2),
+    0 0 0 1px rgba(74, 222, 128, 0.2),
+    inset 0 1px 0 rgba(74, 222, 128, 0.1);
+  }
+
+  .chart-container {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .chart-container:hover {
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.1);
+  }
+
+  .chart-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .chart-container {
+      padding: 1rem;
+    }
+
+    .chart-wrapper {
+      max-width: 100%;
+    }
+  }
+
+  .stat-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .stat-item:hover {
+    border-color: var(--misaka-circuit);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.1);
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stat-count {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .stat-value {
+      font-size: 1.25rem;
+    }
+  }
+
+  :global(.dark) .stat-item {
+    background: rgba(30, 41, 59, 0.5);
+  }
+</style>

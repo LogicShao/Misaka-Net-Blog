@@ -1,6 +1,7 @@
 ---
 // Misaka Network - Network Stats Component
 import {getCollection} from 'astro:content';
+import {tagHref} from '../utils/tagHref';
 
 // 获取所有博客文章
 const allPosts = await getCollection('blog');
@@ -63,7 +64,7 @@ const totalWords = allPosts.reduce((acc, post) => {
       <div class="flex flex-wrap gap-2">
         {allTags.slice(0, 10).map(tag => (
           <a
-            href={`/tags/${tag}`}
+            href={tagHref(tag)}
             class="inline-block px-2 py-1 text-xs font-mono bg-misaka-circuit/10 text-misaka-circuit border border-misaka-circuit/30 rounded hover:bg-misaka-circuit/20 transition-colors"
           >
             #{tag}

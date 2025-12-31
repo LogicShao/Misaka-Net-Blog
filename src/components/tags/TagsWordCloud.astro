@@ -1,0 +1,308 @@
+---
+export interface Props {
+  wordCloudData: [string, number][];
+  hasWordCloudData: boolean;
+}
+
+const {wordCloudData, hasWordCloudData} = Astro.props;
+---
+
+{hasWordCloudData ? (
+  <div class="mb-12 mt-12 network-panel">
+    <h2 class="text-xl font-bold mb-6 font-sans" style="color: var(--text-primary);">
+      ☁️ 内容词云
+    </h2>
+    <p class="text-sm mb-6" style="color: var(--text-muted);">
+      基于所有文章的正文、标签、标题和描述生成，词的大小反映出现频率（正文权重最高）
+    </p>
+
+    <div class="wordcloud-container">
+      <canvas id="wordCloudCanvas"></canvas>
+    </div>
+  </div>
+) : (
+  <div class="mb-12 mt-12 network-panel text-center py-12">
+    <p class="text-lg" style="color: var(--text-muted);">
+      暂无足够内容生成词云
+    </p>
+  </div>
+)}
+
+<script is:inline src="/wordcloud2.js"></script>
+
+<script define:vars={{wordCloudData}}>
+  function initializeWordCloud() {
+    console.log('[WordCloud] Initializing...');
+
+    const canvas = document.getElementById('wordCloudCanvas');
+    if (!canvas) {
+      console.error('[WordCloud] Canvas not found');
+      return;
+    }
+
+    function initWhenReady() {
+      if (typeof window.WordCloud === 'undefined') {
+        console.log('[WordCloud] Waiting for library...', typeof window.WordCloud);
+        setTimeout(initWhenReady, 100);
+        return;
+      }
+
+      console.log('[WordCloud] Library loaded successfully');
+      console.log('[WordCloud] Data length:', wordCloudData.length);
+      console.log('[WordCloud] First 5 items:', wordCloudData.slice(0, 5));
+
+      const isDark = document.documentElement.classList.contains('dark');
+
+      const colors = isDark
+        ? [
+          '#4ade80', '#22c55e', '#10b981', '#34d399',
+          '#38bdf8', '#0ea5e9', '#06b6d4', '#22d3ee',
+          '#a855f7', '#9333ea', '#c084fc', '#d946ef',
+          '#fb923c', '#f97316', '#fb7185', '#fbbf24'
+        ]
+        : [
+          '#22c55e', '#16a34a', '#15803d', '#059669',
+          '#3b82f6', '#2563eb', '#1d4ed8', '#0284c7',
+          '#8b5cf6', '#7c3aed', '#a855f7', '#c026d3',
+          '#f97316', '#ea580c', '#dc2626', '#d97706'
+        ];
+
+      function smartColor(word, weight) {
+        const maxWeight = Math.max(...wordCloudData.map(item => item[1]));
+        const minWeight = Math.min(...wordCloudData.map(item => item[1]));
+        const normalizedWeight = (weight - minWeight) / (maxWeight - minWeight);
+
+        const colorIndex = Math.floor(normalizedWeight * (colors.length - 1));
+        return colors[colorIndex] || colors[0];
+      }
+
+      function initWordCloud() {
+        const dpr = window.devicePixelRatio || 1;
+        console.log('[WordCloud] Device Pixel Ratio (DPI Scale):', dpr);
+
+        const container = canvas.parentElement;
+        const width = container.clientWidth;
+        const height = 500;
+
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        console.log('[WordCloud] Canvas size:', {
+          cssWidth: width,
+          cssHeight: height,
+          physicalWidth: canvas.width,
+          physicalHeight: canvas.height,
+          dpr: dpr
+        });
+
+        ctx.clearRect(0, 0, width, height);
+
+        canvas.parentElement.style.opacity = '0.6';
+        canvas.parentElement.style.transition = 'opacity 0.5s ease';
+
+        try {
+          window.WordCloud(canvas, {
+            list: wordCloudData,
+            gridSize: Math.round(6 * width / 1024),
+            weightFactor: function (size) {
+              const maxSize = Math.max(...wordCloudData.map(item => item[1]));
+              const minSize = Math.min(...wordCloudData.map(item => item[1]));
+              const normalized = (size - minSize) / (maxSize - minSize);
+              const baseSize = width / 1024 * 15;
+              const sizeRange = width / 1024 * 35;
+              return baseSize + Math.pow(normalized, 0.5) * sizeRange;
+            },
+            fontFamily: 'Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+            fontWeight: function (word, weight) {
+              const maxWeight = Math.max(...wordCloudData.map(item => item[1]));
+              return weight > maxWeight * 0.7 ? '700' : '600';
+            },
+            color: function (word, weight) {
+              return smartColor(word, weight);
+            },
+            backgroundColor: 'transparent',
+            rotateRatio: 0.15,
+            rotationSteps: 2,
+            minRotation: -Math.PI / 8,
+            maxRotation: Math.PI / 8,
+            shuffle: true,
+            shrinkToFit: true,
+            drawOutOfBound: false,
+            ellipticity: 0.75,
+            origin: [width / 2, height / 2],
+            clearCanvas: true,
+            minSize: Math.max(8, width / 1024 * 10),
+            click: function (item) {
+              if (item && item[0]) {
+                console.log('[WordCloud] Clicked:', item[0], 'Weight:', item[1]);
+              }
+            },
+            hover: function (item, dimension, event) {
+              if (item) {
+                canvas.style.cursor = 'pointer';
+              } else {
+                canvas.style.cursor = 'default';
+              }
+            }
+          });
+
+          console.log('[WordCloud] Rendered successfully');
+
+          setTimeout(() => {
+            canvas.parentElement.style.opacity = '1';
+          }, 100);
+
+        } catch (error) {
+          console.error('[WordCloud] Render error:', error);
+          canvas.parentElement.style.opacity = '1';
+        }
+      }
+
+      initWordCloud();
+
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          initWordCloud();
+        }, 300);
+      });
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class') {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            initWordCloud();
+          }
+        });
+      });
+
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+
+    initWhenReady();
+  }
+
+  window.addEventListener('load', initializeWordCloud);
+  document.addEventListener('astro:page-load', initializeWordCloud);
+</script>
+
+<style>
+  .wordcloud-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: linear-gradient(135deg,
+    var(--bg-secondary) 0%,
+    var(--bg-primary) 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .wordcloud-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle,
+    rgba(74, 222, 128, 0.03) 0%,
+    transparent 70%);
+    animation: wordcloud-glow 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes wordcloud-glow {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(5%, 5%) scale(1.1);
+    }
+  }
+
+  .wordcloud-container:hover {
+    border-color: rgba(74, 222, 128, 0.6);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.15),
+    0 0 0 1px rgba(74, 222, 128, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+  }
+
+  #wordCloudCanvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    position: relative;
+    z-index: 1;
+  }
+
+  .wordcloud-container::after {
+    content: '词云生成中...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wordcloud-container[data-loading="true"]::after {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .wordcloud-container {
+      height: 400px;
+      border-radius: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .wordcloud-container {
+      height: 350px;
+    }
+  }
+
+  :global(.dark) .wordcloud-container {
+    background: linear-gradient(135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(15, 23, 42, 0.9) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(74, 222, 128, 0.05);
+  }
+
+  :global(.dark) .wordcloud-container::before {
+    background: radial-gradient(circle,
+    rgba(74, 222, 128, 0.05) 0%,
+    transparent 70%);
+  }
+
+  :global(.dark) .wordcloud-container:hover {
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.2),
+    0 0 0 1px rgba(74, 222, 128, 0.2),
+    inset 0 1px 0 rgba(74, 222, 128, 0.1);
+  }
+</style>
