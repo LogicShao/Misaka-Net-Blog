@@ -60,5 +60,11 @@ export const FRIEND_LINKS: FriendLink[] = [
         url: 'https://blog.remiki.ren',
         avatar: 'https://s2.loli.net/2025/09/19/dJtaOl2fVGKUb8n.jpg',
         description: 'Remi 的 Blog'
+    },
+	{
+        name: '二叉树树',
+        url: 'https://blog.acofork.com/',
+        avatar: 'https://q2.qlogo.cn/headimg_dl?dst_uin=2726730791&spec=0',
+        description: 'Protect What You Love.'
     }
 ];

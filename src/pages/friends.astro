@@ -5,6 +5,11 @@ import {FRIEND_LINKS} from '../consts';
 
 const pageTitle = '友情链接';
 const pageDescription = '与 Misaka Network 互相链接的优秀站点';
+const shuffledFriends = [...FRIEND_LINKS];
+for (let i = shuffledFriends.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [shuffledFriends[i], shuffledFriends[j]] = [shuffledFriends[j], shuffledFriends[i]];
+}
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
@@ -22,7 +27,7 @@ const pageDescription = '与 Misaka Network 互相链接的优秀站点';
 
     <!-- Friends Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-      {FRIEND_LINKS.map((friend) => (
+      {shuffledFriends.map((friend) => (
         <FriendCard
           name={friend.name}
           url={friend.url}
