@@ -1,0 +1,5 @@
+numpy
+python-frontmatter
+scikit-learn
+sentence-transformers
+torch

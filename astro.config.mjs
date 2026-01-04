@@ -21,7 +21,14 @@ export default defineConfig({
   ],
   markdown: {
     remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    rehypePlugins: [
+      [
+        rehypeKatex,
+        {
+          strict: (code) => (code === 'unicodeTextInMathMode' ? 'ignore' : 'warn'),
+        },
+      ],
+    ],
     shikiConfig: {
       theme: 'dracula',
       wrap: true,

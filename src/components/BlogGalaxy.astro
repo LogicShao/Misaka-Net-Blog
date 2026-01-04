@@ -1,0 +1,30 @@
+---
+import clusters from '../data/clusters.json';
+import blogGalaxyScript from '../scripts/blogGalaxy.ts?url';
+
+const hasData = clusters.length > 0;
+---
+
+<section class="network-panel space-y-4">
+  <div class="space-y-2">
+    <h2 class="text-2xl font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
+    <p class="text-sm font-mono" style="color: var(--text-muted);">
+      Explore posts in a 2D map. Click a point to open the article.
+    </p>
+  </div>
+
+  <div id="blog-galaxy-chart" class="h-[420px] md:h-[520px] w-full" aria-label="Blog galaxy chart"></div>
+
+  {!hasData && (
+    <p class="text-sm font-mono" style="color: var(--text-muted);">
+      No cluster data yet. Run <code>npm run update-graph</code> to generate it.
+    </p>
+  )}
+
+  <script
+    type="application/json"
+    id="blog-galaxy-data"
+    set:html={JSON.stringify(clusters)}
+  ></script>
+  <script type="module" src={blogGalaxyScript}></script>
+</section>

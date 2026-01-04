@@ -13,7 +13,7 @@ import SearchButton from './SearchButton.astro';
       <!-- Logo & Title -->
       <a href="/" class="flex items-center space-x-3 group">
         <div class="relative">
-          <!-- 电磁炮图标 -->
+          <!-- 电磁炮图�?-->
           <svg class="w-10 h-10 text-misaka-blue group-hover:text-misaka-circuit transition-colors duration-300"
                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"
@@ -40,6 +40,7 @@ import SearchButton from './SearchButton.astro';
         <div class="hidden md:flex items-center space-x-1">
           <HeaderLink href="/">首页</HeaderLink>
           <HeaderLink href="/blog">博客</HeaderLink>
+          <HeaderLink href="/blog/galaxy">Galaxy</HeaderLink>
           <HeaderLink href="/tags">标签</HeaderLink>
           <HeaderLink href="/friends">友链</HeaderLink>
           <HeaderLink href="/about">关于</HeaderLink>
@@ -77,6 +78,7 @@ import SearchButton from './SearchButton.astro';
       <div class="flex flex-col space-y-2">
         <HeaderLink href="/">首页</HeaderLink>
         <HeaderLink href="/blog">博客</HeaderLink>
+        <HeaderLink href="/blog/galaxy">Galaxy</HeaderLink>
         <HeaderLink href="/tags">标签</HeaderLink>
         <HeaderLink href="/friends">友链</HeaderLink>
         <HeaderLink href="/about">关于</HeaderLink>
@@ -96,15 +98,13 @@ import SearchButton from './SearchButton.astro';
     mobileMenuButton.addEventListener('click', () => {
       const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
 
-      // 切换菜单显示状态
-      mobileMenu.classList.toggle('hidden');
+      // 切换菜单显示状�?      mobileMenu.classList.toggle('hidden');
 
       // 切换图标
       menuIcon.classList.toggle('hidden');
       closeIcon.classList.toggle('hidden');
 
-      // 更新 aria-expanded 属性
-      mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
+      // 更新 aria-expanded 属�?      mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
     });
   }
 </script>

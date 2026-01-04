@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogGalaxy from '../../components/BlogGalaxy.astro';
+
+const title = 'Blog Galaxy';
+const description = 'Explore blog posts in a 2D galaxy map.';
+---
+
+<Layout title={title} description={description}>
+  <section class="mb-8">
+    <h1 class="text-4xl font-bold mb-2" style="color: var(--text-primary);">{title}</h1>
+    <p class="font-mono text-sm" style="color: var(--text-muted);">
+      Pan and zoom to explore clusters of posts.
+    </p>
+  </section>
+
+  <BlogGalaxy />
+</Layout>
