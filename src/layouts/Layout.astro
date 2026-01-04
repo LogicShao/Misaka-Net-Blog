@@ -9,9 +9,17 @@ import {SITE_TITLE, SITE_DESCRIPTION} from '../consts';
 interface Props {
   title?: string;
   description?: string;
+  mainClass?: string;
+  showFooter?: boolean;
 }
 
-const {title = SITE_TITLE, description = SITE_DESCRIPTION} = Astro.props;
+const {
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  mainClass,
+  showFooter = true,
+} = Astro.props;
+const resolvedMainClass = mainClass ?? 'flex-1 container mx-auto px-4 py-8 max-w-6xl';
 ---
 
 <!doctype html>
@@ -28,11 +36,11 @@ const {title = SITE_TITLE, description = SITE_DESCRIPTION} = Astro.props;
 <!-- 涓诲唴瀹瑰尯 -->
 <Header/>
 
-<main class="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+<main class={resolvedMainClass}>
   <slot/>
 </main>
 
-<Footer/>
+{showFooter && <Footer/>}
 
 <!-- 鎼滅储妯℃€佹 -->
 <SearchModal/>

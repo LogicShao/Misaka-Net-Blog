@@ -12,9 +12,28 @@ type ClusterItem = {
 let chart: echarts.ECharts | null = null;
 let resizeBound = false;
 let themeBound = false;
+let retryCount = 0;
+const MAX_RETRIES = 10;
+
+const isFullBleed = (container: HTMLElement) =>
+  container.dataset.fullBleed === 'true';
+
+const applyFullBleedHeight = (container: HTMLElement) => {
+  if (!isFullBleed(container)) {
+    return;
+  }
+  const header = document.querySelector('header');
+  const headerHeight = header ? header.getBoundingClientRect().height : 0;
+  const viewportHeight =
+    window.visualViewport?.height ?? window.innerHeight ?? 0;
+  const targetHeight = Math.max(viewportHeight - headerHeight, 240);
+  container.style.height = `${targetHeight}px`;
+};
 
 const handleResize = () => {
   if (chart) {
+    const container = chart.getDom() as HTMLElement;
+    applyFullBleedHeight(container);
     chart.resize();
   }
 };
@@ -49,6 +68,18 @@ const initGalaxy = () => {
   if (!container || !dataTag) {
     return;
   }
+
+  applyFullBleedHeight(container);
+
+  if (container.clientWidth === 0 || container.clientHeight === 0) {
+    if (retryCount < MAX_RETRIES) {
+      retryCount += 1;
+      requestAnimationFrame(initGalaxy);
+    }
+    return;
+  }
+
+  retryCount = 0;
 
   let items: ClusterItem[] = [];
   try {

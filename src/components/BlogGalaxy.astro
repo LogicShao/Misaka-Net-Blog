@@ -1,22 +1,48 @@
 ---
 import clusters from '../data/clusters.json';
-import blogGalaxyScript from '../scripts/blogGalaxy.ts?url';
 
+export interface Props {
+  fullBleed?: boolean;
+}
+
+const {fullBleed = false} = Astro.props;
 const hasData = clusters.length > 0;
+const wrapperClass = fullBleed ? 'relative w-full h-full overflow-hidden' : 'network-panel space-y-4';
+const chartClass = fullBleed ? 'w-full h-full' : 'h-[420px] md:h-[520px] w-full';
 ---
 
-<section class="network-panel space-y-4">
-  <div class="space-y-2">
-    <h2 class="text-2xl font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
-    <p class="text-sm font-mono" style="color: var(--text-muted);">
-      Explore posts in a 2D map. Click a point to open the article.
-    </p>
-  </div>
+<section class={wrapperClass}>
+  {fullBleed ? (
+    <div
+      class="absolute left-6 top-6 z-10 max-w-sm rounded-xl border px-4 py-3 backdrop-blur"
+      style="background-color: var(--bg-secondary); border-color: var(--border-color);"
+    >
+      <h2 class="text-lg font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
+      <p class="text-xs font-mono" style="color: var(--text-muted);">
+        Pan, zoom, and click a star to open a post.
+      </p>
+    </div>
+  ) : (
+    <div class="space-y-2">
+      <h2 class="text-2xl font-bold" style="color: var(--text-primary);">Blog Galaxy</h2>
+      <p class="text-sm font-mono" style="color: var(--text-muted);">
+        Explore posts in a 2D map. Click a point to open the article.
+      </p>
+    </div>
+  )}
 
-  <div id="blog-galaxy-chart" class="h-[420px] md:h-[520px] w-full" aria-label="Blog galaxy chart"></div>
+  <div
+    id="blog-galaxy-chart"
+    class={chartClass}
+    data-full-bleed={fullBleed ? 'true' : undefined}
+    aria-label="Blog galaxy chart"
+  ></div>
 
   {!hasData && (
-    <p class="text-sm font-mono" style="color: var(--text-muted);">
+    <p
+      class={fullBleed ? 'absolute bottom-6 left-6 text-xs font-mono' : 'text-sm font-mono'}
+      style="color: var(--text-muted);"
+    >
       No cluster data yet. Run <code>npm run update-graph</code> to generate it.
     </p>
   )}
@@ -26,5 +52,178 @@ const hasData = clusters.length > 0;
     id="blog-galaxy-data"
     set:html={JSON.stringify(clusters)}
   ></script>
-  <script type="module" src={blogGalaxyScript}></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    let chart = null;
+    let resizeBound = false;
+    let themeBound = false;
+    let retryCount = 0;
+    let loadAttempts = 0;
+
+    const MAX_RETRIES = 10;
+    const MAX_LOAD_ATTEMPTS = 120;
+
+    function isFullBleed(container) {
+      return container.dataset.fullBleed === 'true';
+    }
+
+    function applyFullBleedHeight(container) {
+      if (!isFullBleed(container)) return;
+      const header = document.querySelector('header');
+      const headerHeight = header ? header.getBoundingClientRect().height : 0;
+      const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 0;
+      const targetHeight = Math.max(viewportHeight - headerHeight, 240);
+      container.style.height = `${targetHeight}px`;
+    }
+
+    function handleResize() {
+      if (!chart) return;
+      const container = chart.getDom();
+      applyFullBleedHeight(container);
+      chart.resize();
+    }
+
+    function buildSeriesData(items, palette) {
+      return items.map((item) => ({
+        value: [item.x, item.y],
+        title: item.title,
+        date: item.date,
+        slug: item.slug,
+        cluster: item.cluster,
+        itemStyle: {
+          color: palette[(item.cluster || 0) % palette.length],
+        },
+      }));
+    }
+
+    function initGalaxy() {
+      const container = document.getElementById('blog-galaxy-chart');
+      const dataTag = document.getElementById('blog-galaxy-data');
+
+      if (!container || !dataTag || !window.echarts) return;
+
+      applyFullBleedHeight(container);
+
+      if (container.clientWidth === 0 || container.clientHeight === 0) {
+        if (retryCount < MAX_RETRIES) {
+          retryCount += 1;
+          requestAnimationFrame(initGalaxy);
+        }
+        return;
+      }
+
+      retryCount = 0;
+
+      let items = [];
+      try {
+        items = JSON.parse(dataTag.textContent || '[]');
+      } catch (error) {
+        console.error('[BlogGalaxy] Failed to parse clusters.json', error);
+        return;
+      }
+
+      if (!Array.isArray(items) || items.length === 0) {
+        const existing = window.echarts.getInstanceByDom(container);
+        if (existing) existing.dispose();
+        chart = null;
+        return;
+      }
+
+      const existing = window.echarts.getInstanceByDom(container);
+      if (existing) existing.dispose();
+
+      const rootStyles = getComputedStyle(document.documentElement);
+      const palette = [
+        rootStyles.getPropertyValue('--misaka-blue').trim() || '#00bfff',
+        rootStyles.getPropertyValue('--misaka-circuit').trim() || '#4ade80',
+        rootStyles.getPropertyValue('--misaka-accent').trim() || '#38bdf8',
+        rootStyles.getPropertyValue('--misaka-gray').trim() || '#64748b',
+        '#f97316',
+      ];
+
+      const seriesData = buildSeriesData(items, palette);
+
+      chart = window.echarts.init(container, null, {renderer: 'canvas'});
+      chart.setOption({
+        animationDuration: 600,
+        animationEasing: 'cubicOut',
+        grid: {left: 0, right: 0, top: 0, bottom: 0},
+        xAxis: {
+          type: 'value',
+          show: false,
+          scale: true,
+        },
+        yAxis: {
+          type: 'value',
+          show: false,
+          scale: true,
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: (params) => {
+            const data = params.data || {};
+            const title = data.title || '';
+            const date = data.date || '';
+            return date ? `${title}<br/>${date}` : title;
+          },
+        },
+        dataZoom: [
+          {type: 'inside', xAxisIndex: 0, filterMode: 'none'},
+          {type: 'inside', yAxisIndex: 0, filterMode: 'none'},
+        ],
+        series: [
+          {
+            type: 'scatter',
+            data: seriesData,
+            symbolSize: 10,
+            emphasis: {
+              scale: true,
+              itemStyle: {
+                shadowBlur: 16,
+                shadowColor: 'rgba(0, 191, 255, 0.35)',
+              },
+            },
+          },
+        ],
+      });
+
+      chart.on('click', (params) => {
+        const slug = params && params.data ? params.data.slug : null;
+        if (slug) {
+          window.location.href = `/blog/${slug}`;
+        }
+      });
+    }
+
+    function bindGlobalHandlers() {
+      if (!resizeBound) {
+        window.addEventListener('resize', handleResize);
+        resizeBound = true;
+      }
+
+      if (!themeBound) {
+        window.addEventListener('theme-changed', initGalaxy);
+        themeBound = true;
+      }
+    }
+
+    function setup() {
+      if (window.echarts) {
+        initGalaxy();
+        bindGlobalHandlers();
+        return;
+      }
+
+      if (loadAttempts < MAX_LOAD_ATTEMPTS) {
+        loadAttempts += 1;
+        requestAnimationFrame(setup);
+        return;
+      }
+
+      console.warn('[BlogGalaxy] ECharts failed to load.');
+    }
+
+    setup();
+    document.addEventListener('astro:page-load', setup);
+  </script>
 </section>
